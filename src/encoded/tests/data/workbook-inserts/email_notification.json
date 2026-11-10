@@ -1,0 +1,8 @@
+[
+  {
+    "uuid": "8f2d1c63-4b8a-4b0e-9a17-3d5c7e0f9a21",
+    "subject": "SMaHT Data Portal: New Data Release",
+    "body": "Files Released Since 2026-08-01\n-------------------------------\n\n- SMAFIABCDEF1.fastq.gz\n- SMAFIABCDEF2.fastq.gz",
+    "notification_type": "data_release"
+  }
+]

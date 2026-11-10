@@ -230,7 +230,7 @@ function stepNavigateFromHomeToBrowse(caps) {
         cy.get('#page-title-container .page-title')
             .should('contain', 'SMaHT Production Data');
 
-        cy.location('search').then((search) => {
+        cy.location('search').should((search) => {
             // Base query parameters that should always be included
             const baseParams = [`type=${caps.expectedType}`, 'study=Production'];
 
@@ -875,14 +875,16 @@ function stepSearchTableRowsTests(caps) {
             cy.log(`Random selected row indices: ${randomIndices.join(', ')}`);
 
             randomIndices.forEach((rowIndex) => {
-                const $rowEl = $rows.eq(rowIndex); // jQuery element for this row
+                // Re-query the row for every command; opening detail panels re-renders the table,
+                // so a jQuery element captured up front can be detached from the DOM
+                const getRow = () => cy.get(dataRowSelector).eq(rowIndex);
 
                 // We store these counts to later compare with the detail panel content.
                 let tissuesCount;
                 let assaysCount;
 
                 // --- Tissues (read & store count from cell label) ---
-                cy.wrap($rowEl)
+                getRow()
                     .find('.search-result-column-block[data-field="tissues"] .icon-container')
                     .should('exist')
                     .invoke('text')
@@ -893,7 +895,7 @@ function stepSearchTableRowsTests(caps) {
                     });
 
                 // --- Assays (read & store count from cell label) ---
-                cy.wrap($rowEl)
+                getRow()
                     .find('.search-result-column-block[data-field="assays"] .icon-container')
                     .should('exist')
                     .invoke('text')
@@ -904,7 +906,7 @@ function stepSearchTableRowsTests(caps) {
                     });
 
                 // --- Files: UI vs API ---
-                cy.wrap($rowEl)
+                getRow()
                     .find('.search-result-column-block[data-field="files"] a')
                     .should('exist')
                     .then(($a) => {
@@ -925,17 +927,18 @@ function stepSearchTableRowsTests(caps) {
                     });
 
                 // --- Tissues detail: open panel and verify header + list count ---
-                cy.wrap($rowEl)
+                getRow()
                     .find('.search-result-column-block[data-field="tissues"] .toggle-detail-button')
                     .should('exist')
                     .click({ force: true });
 
-                cy.wrap($rowEl)
+                getRow()
                     .find('.result-table-detail-container')
                     .should('have.class', 'detail-open')
                     .within(() => {
                         // Header <b>14 </b> should match the tissuesCount we parsed from the cell
-                        cy.get('.detail-header b')
+                        // the header shows a spinner until the queued per-donor request returns
+                        cy.get('.detail-header b', { timeout: 60000 })
                             .invoke('text')
                             .then((headerCountText) => {
                                 const headerCount = Number(headerCountText.trim());
@@ -952,17 +955,18 @@ function stepSearchTableRowsTests(caps) {
                     });
 
                 // --- Assays detail: open panel and verify header + list count ---
-                cy.wrap($rowEl)
+                getRow()
                     .find('.search-result-column-block[data-field="assays"] .toggle-detail-button')
                     .should('exist')
                     .click({ force: true });
 
-                cy.wrap($rowEl)
+                getRow()
                     .find('.result-table-detail-container')
                     .should('have.class', 'detail-open')
                     .within(() => {
                         // Header <b>N </b> should match the assaysCount we parsed from the cell
-                        cy.get('.detail-header b')
+                        // the header shows a spinner until the queued per-donor request returns
+                        cy.get('.detail-header b', { timeout: 60000 })
                             .invoke('text')
                             .then((headerCountText) => {
                                 const headerCount = Number(headerCountText.trim());

@@ -7,6 +7,269 @@ smaht-portal
 Change Log
 ----------
 
+2.15.17
+=======
+
+`PR 790: Cord blood release <https://github.com/smaht-dac/smaht-portal/pull/790>`_
+
+* Add cord blood enums
+* Update annotated file names script for cord blood samples
+
+
+2.15.16
+=======
+
+`PR 791: Speed up and stabilize Cypress data tests <https://github.com/smaht-dac/smaht-portal/pull/791>`_
+
+* Fix DataMatrix: clicking the already active matrix mode tab no longer clears results with a permanent spinner
+* Speed up the Cypress data tests (09b covering combinations, single-pass matrix row checks, concurrent popover API total checks, SPA navigation in 09a/11a/11b) without reducing coverage
+* Fix flaky Cypress tests: matrix loading waits, retry cascade in 09a, timeline toggle (01), browse menu navigation (03a/03b), detached rows and detail panels (03b), Hardy Scale N/A donors (11b), Sample Integrity load (09b), benchmarking tab load (06)
+* Fail the Cypress data matrix checks when columns fall under the N/A column group, listing the affected columns
+
+
+2.15.15
+=======
+
+`PR 787: Add SNV callset metadata TSV downloads to the Consortium Hub <https://github.com/smaht-dac/smaht-portal/pull/787>`_
+
+* Rename the "Filtered Somatic Variant Callsets" quick link to "Filtered Somatic SNV Callsets (vcf)"
+* Add download buttons for the v1 and v2 SNV callset metadata TSVs, resolving each file's ``href`` by UUID
+* Disable download buttons for files the user cannot access, with a tooltip explaining why
+* Move the ResourceFile search into a shared ``useResourceFileSearch`` hook, also used by the bulk donor metadata download button
+* Add WGS - MGI, WGS - Ultima Genomics and SBX-D - Roche to the Bulk WGS column group in the data matrix
+* Show HG002 as the donor label for hg002 in the data matrix
+
+
+2.15.14
+=======
+
+`PR 773: feat: update donor browse dropdown requests <https://github.com/smaht-dac/smaht-portal/pull/773>`_
+
+* Remove redundant fetches
+* Update donor assay and tissue data to use context provider
+
+
+2.15.13
+======
+
+`PR 782: fix: update facet overrides on portal pages <https://github.com/smaht-dac/smaht-portal/pull/782>`_
+
+* Fix facet overrides in embedded search tables and data release page
+
+
+2.15.12
+=======
+
+`PR 789: publication schema updates <https://github.com/smaht-dac/smaht-portal/pull/789>`_
+
+* Add previous dois property to publication schema for easier provenance tracking of publication items
+* add uniqueKey = true for doi (aleady is required) to enforce uniqueness.
+
+
+2.15.11
+=======
+
+`PR 788: improve release email summary <https://github.com/smaht-dac/smaht-portal/pull/788>`_
+
+* Release email summary (``/get_released_files_summary/``): add a compact overview of new and
+  retracted data (file, donor, tissue and assay counts, with links) above the full per-tissue
+  list; list tissues alphabetically with spelled-out donor sex and age
+* Read released files with a single search instead of the ``recent_files_summary`` aggregation
+
+
+2.15.10
+=======
+
+`PR 775: feat: improve renamed files table UI <https://github.com/smaht-dac/smaht-portal/pull/775>`_
+
+* Add facets to retracted and renamed files tables
+* Add a default-hidden "Retraction Date" facet to File, shown first in the retracted files table
+* Show a scroll shadow on both tables while there are more rows below
+
+
+2.15.9
+======
+
+`PR 785: update lock file <https://github.com/smaht-dac/smaht-portal/pull/785>`_
+
+* Update pyproject.toml and lock file to reflect new dcicutils version
+
+
+2.15.8
+======
+
+`PR 784: style: align publication thumbnails to top <https://github.com/smaht-dac/smaht-portal/pull/784>`_
+
+* Align thumbnails on publication items to the top of container
+
+
+2.15.7
+======
+
+`PR 761: WF Sample and File Nomenclature v3.0 <https://github.com/smaht-dac/smaht-portal/pull/761>`_
+
+* Update Sample and File Nomenclature documentation to version 3.0
+
+
+2.15.6
+======
+
+`PR 771: feat: pathology manifest download <https://github.com/smaht-dac/smaht-portal/pull/771>`_
+
+* Create new pathology manifest download button
+
+
+2.15.5
+======
+
+`PR 779: Data matrix: Benchmarking Donor x Assay tab and WGS Coverage view updates <https://github.com/smaht-dac/smaht-portal/pull/779>`_
+
+* Show the matrix-mode tab bar in the Benchmarking data matrix with only the Donor x Assay tab, via a
+  new ``matrixModeTabs`` DataMatrix prop that limits which mode tabs render (default: all)
+* Rename the data matrix Coverage toggle to "WGS Coverage"
+* In coverage view, fill cells that have files but no coverage value with a light blue (``#E7F1FA``)
+  so they read as the same data as the Files view
+
+
+2.15.4
+======
+
+`PR 781: Update path report outcome description <https://github.com/smaht-dac/smaht-portal/pull/781>`_
+
+* Add specific information regarding unacceptable pathology report outcomes.
+
+
+2.15.3
+======
+
+`PR 780: Update publication view to use citation_addon property <https://github.com/smaht-dac/smaht-portal/pull/780>`_
+
+* Update publication view to use citation_addon property
+
+
+2.15.2
+======
+
+`PR 778: Fix typo in facet <https://github.com/smaht-dac/smaht-portal/pull/778>`_
+
+* Fix "SMaHT Variant Call Sets" facet title
+
+
+2.15.1
+=======
+
+`PR 776: feat: add new files to genome reference table <https://github.com/smaht-dac/smaht-portal/pull/776>`_
+
+* Update Genome Reference Page
+
+
+2.15.0
+======
+
+`PR #716: Data-release email notifications <https://github.com/smaht-dac/smaht-portal/pull/716>`_
+
+* Users with dbGaP access can subscribe to data-release emails from their profile page
+* New admin-only Notification Status page to compose plain-text announcements, preview
+  them, insert a summary of released and retracted files, and send a test email or an email
+  to all subscribers (sending to all is limited to named accounts)
+* New ``EmailNotification`` item type recording sent announcements
+
+
+2.14.0
+======
+
+`PR 777: Add call_set to output files <https://github.com/smaht-dac/smaht-portal/pull/777>`_
+
+* Add admin-only ``call_set`` (``name``, ``category``) to ``OutputFile`` and ``ExternalOutputFile``
+* Replace the Data Description file facet with a Call Set facet grouped by category
+
+
+2.13.13
+=======
+
+`PR 774 Another User management script update <https://github.com/smaht-dac/smaht-portal/pull/774>`_
+
+* submits_for is set from submission-center code(s) in OC spreadsheet (used to be Yes or blank). 
+* On update they replace the existing value; a change in order alone is not treated as a change.
+* A blank or NIH-only cell removes submits_for (delete_fields).
+
+
+2.13.12
+=======
+
+`PR 763 Generate static section workbooks <https://github.com/smaht-dac/smaht-portal/pull/763>`_
+
+* Add new command for generating StaticSection workbook for publication static sections
+
+
+2.13.11
+=======
+
+`PR 770: Update User management script <https://github.com/smaht-dac/smaht-portal/pull/770>`_
+
+* include submission_center updating functionality
+* if user is revoked=Yes in sheet their groups, submission_centers and consortia are removed
+* updated warnings/logging
+
+
+2.13.10
+=======
+
+`PR 767: Data matrix: case-insensitive assay mapping, auto row grouping, and reliable Benchmarking tab visibility <https://github.com/smaht-dac/smaht-portal/pull/767>`_
+
+* Fix the Benchmarking tab sometimes being hidden or never loading: tab visibility now comes from an
+  up-front ``/search/`` file count per tab instead of a 10s fallback timer and the selected matrix's
+  (facet-filtered) results. Failed counts keep the tab visible.
+* Make DataMatrix ``valueChangeMap`` lookups case-insensitive and align default column groups with
+  backend spelling (e.g. ``Fiber-seq``, ``RNA-seq - Illumina``); remove redundant assay mappings.
+* Resolve unknown composite assay values (e.g. ``Hi-C - NewSequencer``) onto their base column group
+  and use the resolved map for browse links.
+* Keep all raw assay/platform values mapping to one display value when filtering Donor x Tissue browse links.
+* Assign row values not listed in any row group (e.g. new cell lines) to the single group whose
+  ``customUrlParams`` they satisfy.
+* Add ``COLO829VAI`` to the Benchmarking "Cell Line" row group.
+
+
+2.13.9
+======
+
+`PR 768: feat: add colo829 vai tab on benchmarking table <https://github.com/smaht-dac/smaht-portal/pull/768>`_
+
+* Add new benchmarking tab for colo829 vai
+
+
+2.13.8
+======
+
+`PR 744: Add sample_summary.cell_lines to File calculated properties <https://github.com/smaht-dac/smaht-portal/pull/744>`_
+
+* Adds ``sample_summary.cell_lines`` to File calculated properties, reporting resolved CellLine
+  ``code`` values for files linked through direct ``CellCulture`` sample sources or
+  ``CellCultureMixture`` component cultures.
+* Refactors File cell culture/cell line item utility traversal to compute sample sources once and
+  avoid redundant CellCultureMixture-to-CellLine expansion.
+* Adds focused non-workbook unit coverage for tissue-only, direct CellCulture, and
+  CellCultureMixture cell-line traversal paths.
+* Documents testing guidance in ``AGENTS.md`` to prefer targeted non-workbook tests for new behavior
+  and avoid mutating workbook items unless mutation is explicitly under test.
+
+
+2.13.7
+======
+
+`PR 766: VAI COLO cell lines dataset and access status  <https://github.com/smaht-dac/smaht-portal/pull/766>`_
+
+* Added new dataset for VAI COLO cell lines to the release_file command and dataset schema mixin.
+* Added new access status mapping for sequencing supplement files for STORM-seq
+
+
+2.13.6
+======
+
+`PR 762: Add tissue sample metadata transfer command <https://github.com/smaht-dac/smaht-portal/pull/762>`_
+
+* Added a command to transfer selected metadata from NDRI TPC tissue samples to matching non-TPC samples.
+
 2.13.5
 ======
 

@@ -460,12 +460,8 @@ const PublicationView = React.memo(function PublicationView(props) {
                             </div>
                             <span className="citation">
                                 {citationString}
-                                {(context?.accession === 'SMAPBTYIDADU' ||
-                                    context?.accession === 'SMAPBHJEFFSO') && (
-                                    <span>. Accepted at Cell Genomics.</span>
-                                )}
-                                {context?.accession === 'SMAPB7B2PUV5' && (
-                                    <span>. Accepted at Cell.</span>
+                                {context?.citation_addon?.trim() && (
+                                    <span>. {context.citation_addon}</span>
                                 )}
                             </span>
                             <button
@@ -478,8 +474,7 @@ const PublicationView = React.memo(function PublicationView(props) {
                                     <i
                                         className={`icon icon-fw icon-chevron-${
                                             showFullAuthorList ? 'up' : 'down'
-                                        }`}>
-                                    </i>
+                                        }`}></i>
                                 </span>
                             </button>
                         </div>

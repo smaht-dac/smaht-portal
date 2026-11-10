@@ -133,51 +133,45 @@ function stepHeaderChecks(caps) {
 function stepTimelineAccordionChecks(caps) {
     if (!caps.runTimelineAccordionChecks) return;
 
-    // Re-query strategy: never keep long-lived jQuery subjects across clicks
+    // Waits for the Bootstrap transition to settle (no `.collapsing`), then checks
+    // both the collapse body and the +/- icon of this card.
+    const expectDrawerState = (open) => {
+        cy.get('@card')
+            .find('.accordion-collapse')
+            .should(($el) => {
+                expect($el, 'collapse transition settled').not.to.have.class('collapsing');
+                if (open) {
+                    expect($el).to.have.class('show');
+                } else {
+                    expect($el).not.to.have.class('show');
+                }
+            });
+        cy.get('@card')
+            .find('.card-header-button i.icon')
+            .should('have.class', open ? 'icon-minus' : 'icon-plus');
+    };
+
     cy.get('#timeline .timeline-item .accordion .card-header-button').each(
         ($btn, index) => {
-            // Alias the card before clicking so we can re-query inside it later
+            // Scope every check to this button's own card
             cy.wrap($btn).closest('.card').as('card');
 
-            // Scroll + click
-            cy.wrap($btn).scrollIntoView().click({ force: true }).end();
-
-            // Re-query collapse AFTER the click (avoid using stale $collapse)
-            cy.get('.card')
-                .eq(index)
+            // Some drawers start open (defaultActiveKey), so read the initial state
+            const wasOpen = $btn
+                .closest('.card')
                 .find('.accordion-collapse')
-                .should(($el) => {
-                    // If it just opened, it must have 'show'; if it just closed, it must NOT.
-                    const btnExpanded = Cypress.$($btn)
-                        .find('i.icon')
-                        .hasClass('icon-minus');
-                    if (btnExpanded === true) {
-                        expect($el).to.have.class('show');
-                    } else {
-                        expect($el).not.to.have.class('show');
-                    }
-                });
+                .hasClass('show');
 
-            // Optional: toggle back to ensure both states work
+            cy.wrap($btn).scrollIntoView().click({ force: true });
+            expectDrawerState(!wasOpen);
+
+            // Toggle back to ensure both states work
             cy.wrap($btn).click({ force: true });
-            cy.get('.card')
-                .eq(index)
-                .find('.accordion-collapse')
-                .should(($el) => {
-                    const btnExpanded = Cypress.$($btn)
-                        .find('i.icon')
-                        .hasClass('icon-minus');
-                    if (btnExpanded === 'true') {
-                        expect($el).to.have.class('show');
-                    } else {
-                        expect($el).not.to.have.class('show');
-                    }
-                });
+            expectDrawerState(wasOpen);
 
             // Get production files count from second accordion (index 4)
             if (index === 4) {
-                cy.get('.card')
-                    .eq(index)
+                cy.get('@card')
                     .find('.accordion-collapse .number-group')
                     .contains('Generated')
                     .closest('.number-group')

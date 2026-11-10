@@ -55,6 +55,13 @@ export const BenchmarkingDataMap = {
                     COLO829BL Illumina WGS data at a mixture ratio of 1:50 at
                     varying sequencing depths (100 - 500X).
                 </p>
+                <p>
+                    The COLO829 VAI datasets utilize the same cell lines, but
+                    they were independently procured and prepared by Washington
+                    University (WashU) and the Van Andel Institute (VAI)
+                    specifically for the STORM-seq assay, distinguishing them
+                    from the samples procured by UWSC.
+                </p>
             </div>
         ),
         type: 'Cell Line Data',
@@ -91,6 +98,14 @@ export const BenchmarkingDataMap = {
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
                     '&dataset=colo829blt_in_silico&sort=-file_status_tracking.release_dates.initial_release',
+            },
+            {
+                eventKey: '#colo829-vai',
+                title: 'COLO829 VAI',
+                searchHref:
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=colo829_vai&sort=-file_status_tracking.release_dates.initial_release',
             },
         ],
     },

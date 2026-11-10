@@ -43,6 +43,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/call_set"
+        },
+        {
             "$ref": "mixins.json#/description"
         },
         {

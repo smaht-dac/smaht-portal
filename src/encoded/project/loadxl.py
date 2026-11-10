@@ -6,6 +6,7 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
     order = [
         "access_key",
         "user",
+        "email_notification",
         "consortium",
         "submission_center",
         "file_format",

@@ -22,13 +22,18 @@ from dcicutils.creds_utils import SMaHTKeyManager
 #   SMaHT Contact PI Association,
 #   Grant Component,
 #   DAC code in the portal
-#   Submitter (Yes/No)
+#   Data Submitter (center codes the user submits for, comma-separated)
 #   Revoked (Yes/No)
 #   Associate Network Member (Yes/No)
 
 # Define the named tuple
 User = namedtuple('User', ['first_name', 'last_name', 'dua_status', 'email', 'submission_center', 'submits_for',
-                          'is_associate'], defaults=('No',))
+                          'is_associate', 'revoked'], defaults=('No', False))
+
+# Revoked=Yes removes consortium membership: these properties are deleted outright.
+REVOKED_CLEAR_FIELDS = ('groups', 'consortia', 'submission_centers', 'submits_for')
+# Portal statuses this script never touches; portal status itself is never changed.
+IGNORED_STATUSES = ('deleted',)
 
 
 class UserCSVProcessorException(Exception):
@@ -105,16 +110,24 @@ class UserCSVProcessor:
         if not first_name or not last_name or not re.fullmatch(r'[^@\s]+@[^@\s]+', email):
             raise UserCSVProcessorException('Nonempty first/last names and a valid email are required')
         dua = self._flag(row[3], 'DUA signed')
-        submits_for = self._flag(row[8], 'Data submitter')
-        self._flag(row[9], 'Revoked')
+        submits_for = row[8].strip()
+        if submits_for.lower() in ('yes', 'no'):
+            raise UserCSVProcessorException(
+                f'Data submitter now takes center codes, not Yes/No; got {row[8]!r}')
+        revoked = self._flag(row[9], 'Revoked') == 'Yes'
         associate = self._flag(row[10], 'Associate Network Member') if len(row) > 10 else ''
-        return User(first_name, last_name, dua, email, row[7].strip(), submits_for, associate)
+        return User(first_name, last_name, dua, email, row[7].strip(), submits_for, associate, revoked)
+
+    def _active_users(self):
+        """Users whose row assigns access; revoked rows only clear it."""
+        return [user for user in self.user_dict.values() if user and not user.revoked]
 
     def generate_submission_center_list(self):
-        """Validate only centers assigned to eligible, unambiguous users."""
+        """Validate only centers assigned to eligible, unambiguous, non-revoked users."""
         self.submission_centers = list(dict.fromkeys(
-            sc for user in self.user_dict.values()
-            for sc in self._mapped_submission_centers(user.submission_center)))
+            sc for user in self._active_users()
+            for value in (user.submission_center, user.submits_for)
+            for sc in self._mapped_submission_centers(value)))
 
     def validate_submission_center_list(self):
         """Validate each actual link, including every compound-center token."""
@@ -124,8 +137,11 @@ class UserCSVProcessor:
 
     def validate_consortium_list(self):
         """Validate only consortia this batch can assign."""
+        active_users = self._active_users()
+        if not active_users:
+            return
         consortia = ['smaht']
-        if any(user.is_associate == 'Yes' for user in self.user_dict.values()):
+        if any(user.is_associate == 'Yes' for user in active_users):
             consortia.append('smaht_associate')
         for consortium in consortia:
             get_metadata(f'/consortia/{consortium}', key=self.key)
@@ -170,18 +186,27 @@ class UserCSVProcessor:
                 duplicate_emails.add(user.email)
                 continue
             first_seen_row[user.email] = row_number
-            # Include revoked identities in duplicate detection: a conflicting old
-            # active row must not restore access or create an ambiguous user.
-            if self._flag(_u[9], 'Revoked') != 'Yes':
-                users[user.email] = user
+            # Revoked identities take part in duplicate detection: a conflicting
+            # old active row must not restore access or create an ambiguous user.
+            # Unambiguous revoked rows are kept so update modes can clear access.
+            users[user.email] = user
         self.user_dict = users
+        self.duplicate_emails = sorted(duplicate_emails)
         return self.user_dict
 
+    def _print_duplicate_summary(self):
+        duplicates = getattr(self, 'duplicate_emails', [])
+        if duplicates:
+            PRINT(f'\033[1mWARNING: {len(duplicates)} duplicate emails were excluded (all rows skipped): '
+                  f'{", ".join(duplicates)}\033[0m')
+
     def ignore_existing_users(self) -> None:
-        """ Strips out users who already have a user record """
+        """ Strips out users who already have a user record, and revoked rows """
         new_users = {}
         for email, user in self.user_dict.items():
-            if self.check_for_existing_user(user):
+            if user.revoked:
+                PRINT(f'Skipping revoked user {email} - revoked rows are never created')
+            elif self.check_for_existing_user(user):
                 PRINT(f'Skipping already present user {email}')
             else:
                 PRINT(f'User {email} queued for creation')
@@ -209,16 +234,19 @@ class UserCSVProcessor:
         return list(dict.fromkeys(self._linked_identifier(sc, 'submission-centers')
                                   for sc in self._mapped_submission_centers(value)))
 
-    @staticmethod
-    def _target_submits_for(user, mapped_centers, existing=()):
-        # Blank cells are not deliberate removals. Explicit No clears non-DAC
-        # submission rights; DAC membership always retains the historical grant.
-        if user.submits_for == 'No':
-            target = []
-        elif user.submits_for == 'Yes' and mapped_centers:
-            target = list(mapped_centers)
-        else:
-            target = list(existing)
+    def _flag_associate_with_centers(self, email, centers):
+        """Associates keep sheet-specified centers, but that access needs a human look."""
+        if not hasattr(self, 'manual_review'):
+            self.manual_review = []
+        self.manual_review.append(email)
+        PRINT(f'\033[1mMANUAL REVIEW: associate member {email} has submission_centers '
+              f'{", ".join(centers)}\033[0m')
+
+    def _target_submits_for(self, user, mapped_centers):
+        # The Data submitter codes are the source of truth; a blank/NIH cell
+        # means no submission rights. DAC membership (from the center column)
+        # always retains the historical smaht_dac grant.
+        target = self._normalized_submission_centers(user.submits_for)
         if 'smaht_dac' in mapped_centers and 'smaht_dac' not in target:
             target.append('smaht_dac')
         return target
@@ -228,7 +256,7 @@ class UserCSVProcessor:
         number_updated = 0
         number_failed = 0
         for _, user in self.user_dict.items():
-            if user:  # allow callers to mark an entry as skipped
+            if user and not user.revoked:  # allow callers to mark an entry as skipped
                 try:
                     consortia = ['smaht']
                     if user.is_associate == 'Yes':
@@ -244,8 +272,10 @@ class UserCSVProcessor:
                     mapped_centers = self._normalized_submission_centers(user.submission_center)
                     if mapped_centers:
                         post_body['submission_centers'] = mapped_centers
+                        if 'smaht_associate' in consortia:
+                            self._flag_associate_with_centers(user.email, mapped_centers)
                     else:
-                        PRINT(f'No submission center for user {user.email} - posting without submission_centers/submits_for')
+                        PRINT(f'No submission center for user {user.email} - posting without submission_centers')
                     target_submits_for = self._target_submits_for(user, mapped_centers)
                     if target_submits_for:
                         post_body['submits_for'] = target_submits_for
@@ -298,21 +328,64 @@ class UserCSVProcessor:
         linked = get_metadata(f'/{collection}/{identifier}', key=self.key)
         return self._cache_link(collection, identifier, linked)
 
+    @staticmethod
+    def _require_lists(existing, fields, email):
+        for field in fields:
+            if not isinstance(existing.get(field, []), list):
+                raise UserCSVProcessorException(f'Malformed {field} for {email}')
+
+    def _patch_user(self, user, patch_body, delete_fields):
+        add_on_params = []
+        if self.validate_only:
+            add_on_params.append('check_only=true')
+        if delete_fields:
+            add_on_params.append('delete_fields=' + ','.join(delete_fields))
+        add_on = '?' + '&'.join(add_on_params) if add_on_params else ''
+        if self.verbose:
+            PRINT(f'PATCH body for {user.email} (add_on={add_on!r}):\n{json.dumps(patch_body, indent=2)}')
+        patch_metadata(patch_body, f'/users/{quote(user.email, safe="@")}', key=self.key, add_on=add_on)
+
+    def _revoke_user(self, user, existing, only_if_changed):
+        """Remove every membership in one PATCH; portal status is left unchanged.
+        Returns False when --update-changed finds nothing left to remove."""
+        self._require_lists(existing, REVOKED_CLEAR_FIELDS, user.email)
+        # Deleting (rather than storing []) leaves the properties absent. Unlike
+        # ordinary rows, this also removes admin groups and unrelated consortia.
+        delete_fields = [field for field in REVOKED_CLEAR_FIELDS if field in existing]
+        if only_if_changed and not delete_fields:
+            PRINT(f'Revoked user {user.email} already has no memberships - skipping')
+            return False
+        PRINT(f'Revoked user {user.email} - removing {", ".join(delete_fields) or "nothing"} '
+              f'(portal status {existing.get("status", "current")} unchanged)')
+        self._patch_user(user, {}, delete_fields)
+        return True
+
     def update_submits_for(self, only_if_changed: bool = False) -> tuple[int, int, int]:
-        """ Iterates through the user list updating submits_for, groups, and consortia where applicable """
+        """ Iterates through the user list updating submission_centers, submits_for, groups, and
+            consortia where applicable, and clearing all memberships for revoked rows """
         number_updated = 0
         number_failed = 0
         number_unchanged = 0
         for _, user in self.user_dict.items():
             try:
                 existing = self._get_user(user.email)
-                if existing is None or existing.get('status', 'current') != 'current':
+                status = existing.get('status', 'current') if existing is not None else None
+                if user.revoked:
+                    # Deleted accounts are out of scope; never create a missing user.
+                    if existing is None or status in IGNORED_STATUSES:
+                        PRINT(f'User {user.email} is missing or deleted - skipping')
+                        number_unchanged += 1
+                    elif self._revoke_user(user, existing, only_if_changed):
+                        number_updated += 1
+                    else:
+                        number_unchanged += 1
+                    continue
+                if status != 'current':
                     PRINT(f'User {user.email} is missing or not current - skipping')
                     number_unchanged += 1
                     continue
-                for field in ('groups', 'submits_for', 'consortia'):
-                    if not isinstance(existing.get(field, []), list):
-                        raise UserCSVProcessorException(f'Malformed {field} for {user.email}')
+                self._require_lists(existing, ('groups', 'submits_for', 'consortia', 'submission_centers'),
+                                    user.email)
                 existing_groups = existing.get('groups', [])
                 if not all(isinstance(group, str) for group in existing_groups):
                     raise UserCSVProcessorException(f'Malformed groups for {user.email}')
@@ -320,6 +393,8 @@ class UserCSVProcessor:
                                        for sc in existing.get('submits_for', [])]
                 existing_consortia = [self._linked_identifier(c, 'consortia')
                                      for c in existing.get('consortia', [])]
+                existing_centers = [self._linked_identifier(sc, 'submission-centers')
+                                    for sc in existing.get('submission_centers', [])]
 
                 # Manage our two consortium tags, not unrelated memberships.
                 target_consortia = [c for c in existing_consortia if c != 'smaht_associate']
@@ -330,9 +405,17 @@ class UserCSVProcessor:
 
                 mapped_centers = self._normalized_submission_centers(user.submission_center)
                 if not mapped_centers:
-                    PRINT(f'No submission center for user {user.email} - '
-                          'preserving existing submits_for unless Data submitter is No')
-                target_submits_for = self._target_submits_for(user, mapped_centers, existing_submits_for)
+                    PRINT(f'No submission center for user {user.email} - removing submission_centers')
+                target_submits_for = self._target_submits_for(user, mapped_centers)
+
+                # The spreadsheet is the source of truth: listed centers replace the
+                # existing ones, and a blank/NIH center cell deletes the property.
+                # Affiliation is independent of Data submitter.
+                centers_patch = (mapped_centers if mapped_centers and sorted(mapped_centers) != sorted(existing_centers)
+                                 else None)
+                delete_centers_field = not mapped_centers and 'submission_centers' in existing
+                if mapped_centers and 'smaht_associate' in target_consortia:
+                    self._flag_associate_with_centers(user.email, mapped_centers)
 
                 existing_has_dbgap = 'dbgap' in existing_groups
                 target_has_dbgap = user.dua_status == 'Yes' if user.dua_status else existing_has_dbgap
@@ -358,6 +441,8 @@ class UserCSVProcessor:
                     patch_body['submits_for'] = target_submits_for
                 if groups_patch is not None:
                     patch_body['groups'] = groups_patch
+                if centers_patch is not None:
+                    patch_body['submission_centers'] = centers_patch
 
                 if only_if_changed:
                     changed = (
@@ -365,27 +450,22 @@ class UserCSVProcessor:
                         or sorted(target_submits_for) != sorted(existing_submits_for)
                         or groups_patch is not None
                         or delete_groups_field
+                        or centers_patch is not None
+                        or delete_centers_field
                     )
                     if not changed:
                         PRINT(f'No changes needed for user {user.email} - skipping')
                         number_unchanged += 1
                         continue
 
-                add_on_params = []
-                if self.validate_only:
-                    add_on_params.append('check_only=true')
                 delete_fields = []
                 if not target_submits_for and existing_submits_for:
                     delete_fields.append('submits_for')
                 if delete_groups_field:
                     delete_fields.append('groups')
-                if delete_fields:
-                    add_on_params.append('delete_fields=' + ','.join(delete_fields))
-                add_on = '?' + '&'.join(add_on_params) if add_on_params else ''
-
-                if self.verbose:
-                    PRINT(f'PATCH body for {user.email} (add_on={add_on!r}):\n{json.dumps(patch_body, indent=2)}')
-                patch_metadata(patch_body, f'/users/{quote(user.email, safe="@")}', key=self.key, add_on=add_on)
+                if delete_centers_field:
+                    delete_fields.append('submission_centers')
+                self._patch_user(user, patch_body, delete_fields)
                 number_updated += 1
             except Exception as e:
                 PRINT(f'Error encountered in user {user.email}: {e}. '
@@ -404,8 +484,17 @@ class UserCSVProcessor:
             raise UserCSVProcessorException('Expected a header with at least 10 columns and Email in column 5')
         self.generate_users(rows[1:])
         self._linked_cache = {}
-        PRINT(f'Found {len(self.user_dict)} spreadsheet users to process')
+        self.manual_review = []
+        revoked = [email for email, user in self.user_dict.items() if user.revoked]
+        if args.create_new and revoked:
+            # Revoked rows are never created or looked up in create mode.
+            PRINT(f'Skipping {len(revoked)} revoked users - revoked rows are never created')
+            self.user_dict = {email: user for email, user in self.user_dict.items() if not user.revoked}
+            revoked = []
+        PRINT(f'Found {len(self.user_dict)} spreadsheet users to process'
+              + (f' ({len(revoked)} revoked - all memberships will be removed)' if revoked else ''))
         if not self.user_dict:
+            self._print_duplicate_summary()
             return 0
         self.generate_submission_center_list()
         self.validate_submission_center_list()
@@ -427,7 +516,11 @@ class UserCSVProcessor:
         else:
             PRINT(f'{number_updated} users have been updated on the portal')
         if number_unchanged:
-            PRINT(f'{number_unchanged} users were skipped (missing, not current, or already matching)')
+            PRINT(f'{number_unchanged} users were skipped (missing, not current, deleted, or already matching)')
+        if self.manual_review:
+            PRINT(f'\033[1mMANUAL REVIEW: {len(self.manual_review)} associate members have submission centers: '
+                  f'{", ".join(self.manual_review)}\033[0m')
+        self._print_duplicate_summary()
         if number_failed:
             PRINT(f'\033[1mWARNING: {number_failed} users failed - verify outcomes before retrying; see errors above\033[0m')
         return 1 if number_failed else 0
@@ -435,10 +528,17 @@ class UserCSVProcessor:
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Load OC users. Updates manage consortia, submits_for, and the dbgap group only; "
-                    "names and submission_centers are set on creation. Blank flags preserve existing values; "
-                    "No removes managed values. DAC members always retain smaht_dac submission rights. "
-                    "Associates receive both smaht and smaht_associate membership.")
+        description="Load OC users. Updates manage submission_centers, consortia, submits_for, and the dbgap "
+                    "group; names are set only on creation. Listed centers replace existing "
+                    "submission_centers; a blank or NIH center removes the property. "
+                    "Data submitter lists the centers the user submits for and replaces submits_for; a blank "
+                    "or NIH value removes it (Yes/No is rejected). Center affiliation is independent of Data "
+                    "submitter. Blank DUA/associate flags preserve existing values; No removes them. DAC "
+                    "members always retain smaht_dac submission rights. "
+                    "Associates receive both smaht and smaht_associate membership, and associates with "
+                    "centers are flagged for manual review. In update modes, Revoked=Yes removes groups, "
+                    "consortia, submission_centers, and submits_for without changing portal status; "
+                    "deleted users are ignored and revoked rows are never created.")
     parser.add_argument("csv_file_path", help="Path to the User CSV file")
     parser.add_argument("--env", help="env to use (if not data)", default='data')
     parser.add_argument("--validate-only", action='store_true', default=False,
@@ -449,11 +549,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
     mode_group.add_argument("--create-new", action='store_true', default=False,
                             help="Post new users only - skip users who already exist on the portal")
     mode_group.add_argument("--update-all", action='store_true', default=False,
-                            help="Do not post new users - unconditionally update consortia/submits_for/groups "
-                                 "on existing current users")
+                            help="Do not post new users - unconditionally update submission_centers/consortia/"
+                                 "submits_for/groups on existing current users, and clear revoked users")
     mode_group.add_argument("--update-changed", action='store_true', default=False,
-                            help="Like --update-all, but skip users whose consortia/submits_for/groups already "
-                                 "match the portal - only PATCH users with an actual change")
+                            help="Like --update-all, but skip users whose submission_centers/consortia/"
+                                 "submits_for/groups already match the portal - only PATCH users with an "
+                                 "actual change")
     return parser
 
 

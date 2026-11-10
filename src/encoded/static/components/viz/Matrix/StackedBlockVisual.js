@@ -3379,6 +3379,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
 }
 
+const COVERAGE_FILES_ONLY_BACKGROUND_COLOR = '#E7F1FA';
+
 const Block = React.memo(function Block(props){
     const {
         blockHeight, blockWidth, blockVerticalSpacing, data, rowTotals, parentGrouping, group,
@@ -3443,6 +3445,14 @@ const Block = React.memo(function Block(props){
         return blockValue >= 1000 ? formatLocalizedNumber(blockValue) : null;
     })();
     const hideCoverageBlock = countFor === 'total_coverage' && blockType === 'regular' && blockValue <= 0;
+    // In coverage view, cells that have files but no coverage value get a faint fill so they still
+    // read as the same data as the Files view.
+    const hasFilesWithoutCoverage = hideCoverageBlock && (Array.isArray(argData)
+        ? _.some(argData, (item) => getCountValueFromItem(item, 'files') > 0)
+        : (argData ? getCountValueFromItem(argData, 'files') > 0 : false));
+    if (hideCoverageBlock) {
+        contents = <span>&nbsp;</span>;
+    }
 
     // Build optional popover after blockValue is known so summary popovers can
     // use the exact rendered count instead of re-deriving from grouped rows.
@@ -3487,7 +3497,7 @@ const Block = React.memo(function Block(props){
 
     // Apply open/active styles
     if (hideCoverageBlock) {
-        style['backgroundColor'] = 'transparent';
+        style['backgroundColor'] = hasFilesWithoutCoverage ? COVERAGE_FILES_ONLY_BACKGROUND_COLOR : 'transparent';
         style['borderColor'] = 'transparent';
         style['pointerEvents'] = 'none';
     } else if (isOpenBlock) {
@@ -3520,6 +3530,7 @@ const Block = React.memo(function Block(props){
             data-place="bottom"
             data-block-value={blockValue}
             data-block-type={blockType || 'regular'}
+            {...(hasFilesWithoutCoverage ? { 'data-files-without-coverage': true } : {})}
             {...(compactedCountTooltip ? { 'data-tip': compactedCountTooltip } : {})}
             onMouseEnter={() => typeof handleBlockMouseEnter === 'function' && handleBlockMouseEnter(colIndex, rowIndex, group, rowGroupKey, summaryRowType)}
             onMouseLeave={handleBlockMouseLeave}

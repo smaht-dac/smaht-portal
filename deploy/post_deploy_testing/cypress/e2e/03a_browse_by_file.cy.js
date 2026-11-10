@@ -235,14 +235,22 @@ function waitForFileFacetBarPlotReady() {
 }
 
 function visitBrowseByFile(){
-    return cy.getLoadedMenuItem(dataNavBarItemSelectorStr)
+    cy.getLoadedMenuItem(dataNavBarItemSelectorStr)
         .click()
-        .should('have.class', 'dropdown-open-for')
-        .end()
-        .get(navBrowseByFileBtnSelector)
-        .click()
-        .get('#slow-load-container').should('not.have.class', 'visible').end()
-        .get('.facet-charts.loading').should('not.exist');
+        .should('have.class', 'dropdown-open-for');
+
+    cy.get(navBrowseByFileBtnSelector)
+        .should('be.visible')
+        .click();
+
+    // Wait for the navigation itself; the loading checks below also pass on the home page
+    cy.location('search', { timeout: 30000 }).should('include', 'type=File');
+
+    return cy
+        .get('#slow-load-container', { timeout: 30000 })
+        .should('not.have.class', 'visible')
+        .get('.facet-charts.loading', { timeout: 30000 })
+        .should('not.exist');
 }
 
 function loginIfNeeded(roleKey) {
@@ -264,7 +272,7 @@ function stepNavigateFromHomeToBrowse(caps) {
         cy.get('#page-title-container .page-title')
             .should('contain', 'SMaHT Production Data');
 
-        cy.location('search').then((search) => {
+        cy.location('search').should((search) => {
             // Base query parameters that should always be included
             const baseParams = ['type=File', 'sample_summary.studies=Production'];
 
@@ -518,6 +526,10 @@ function stepFacetExcludeGrouping(caps) {
             });
         })
         .end();
+
+    // same workaround as in stepFacetIncludeGrouping: start the next step (facet chart) fresh,
+    // otherwise the excluded grouping term is preserved and changes the bar plot
+    goto('/');
 }
 
 function stepTissueTypeFilterTests(caps) {
@@ -531,7 +543,8 @@ function stepTissueTypeFilterTests(caps) {
     visitBrowseByFile().then(() => {
         waitForFileFacetBarPlotReady();
         tissueTypeFilterOptions.forEach(({ buttonText, expectedCategory }) => {
-            cy.contains('#facet-charts-container button', buttonText)
+            // the previous filter's chart refresh can still be replacing the buttons
+            cy.contains('#facet-charts-container button', buttonText, { timeout: 30000 })
                 .should('be.visible')
                 .click({ force: true });
 

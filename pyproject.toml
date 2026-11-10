@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "2.13.5"
+version = "2.15.17"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -43,7 +43,7 @@ chardet = "^5.0.0"
 codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
 dcicsnovault = "11.36.2.0b1"
-dcicutils = "8.19.0.1b1"
+dcicutils = "^8.19.1"
 docutils = ">=0.16,<1"
 encoded-core = "^1.0.0"
 elasticsearch = "7.13.4"
@@ -196,6 +196,8 @@ release-file = "encoded.commands.release_file:main"
 restore-devtest-db = "encoded.commands.restore_devtest_db:main"
 release-donor-metadata = "encoded.commands.release_donor_metadata:main"
 show-schema= "encoded.commands.show_schema:main"  # For dev/testing only
+transfer-tpc-tissue-sample-metadata = "encoded.commands.transfer_tpc_tissue_sample_metadata:main"
+write-static-section-workbook = "encoded.commands.write_static_section_workbook:main"
 write-submission-spreadsheets = "encoded.commands.write_submission_spreadsheets:main"
 
 [paste.app_factory]
