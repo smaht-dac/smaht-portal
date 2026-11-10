@@ -375,6 +375,8 @@
     .entity-node text.se-context-domain { fill: #596d7e; font-size: 10px; font-weight: 500; }
 }
 
+// The Map tab's diagram fills the concept card below its heading, like the Summary tab's content.
+.se-concept-map-tab { padding: .5rem 1.75rem 1.5rem; @media (max-width: 900px) { padding: .5rem 1rem 1rem; } }
 .schema-explorer .se-concept-diagram, .se-concept-diagram { scroll-margin-top: 85px; outline: none;
     .se-concept-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; margin: .6rem 0; > div:first-child { margin-right: auto; strong { display: block; color: #253b4d; font-size: 18px; } > span { display: block; color: #617182; font-size: 12px; margin-top: .2rem; } } > input { flex: 0 1 260px; min-width: 160px; } }
     > .se-toolbar > .text-muted { display: none; }

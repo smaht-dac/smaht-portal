@@ -16,7 +16,7 @@ import { externalContextGroups } from './external-context';
 import { mapSentence, researchLabels } from './research-map';
 import { neighborhoodLayout } from './neighborhood';
 import CrossGroupConnections, { outsideConnections } from './CrossGroupConnections';
-import { Badge, Filters, visibleEdge, edgeLabel, exportPNG, ConceptTabs } from './shared';
+import { Badge, Filters, visibleEdge, edgeLabel, exportPNG } from './shared';
 
 const defaults = [];
 const colors = { linkTo: '#2368aa', calculated: '#7952a3', reverse: '#986019' };
@@ -36,8 +36,6 @@ export default function Diagram({
     const [expandedExternal, setExpandedExternal] = useState([]);
     const [domain, setDomain] = useState('');
     const [conceptContext, setConceptContext] = useState(null);
-    // Where the back button returns after a concept focus; it survives clearing the focus.
-    const [conceptReturn, setConceptReturn] = useState(null);
     const [showExternal, setShowExternal] = useState(false);
     useEffect(() => { setShowExternal(!!conceptContext); }, [conceptContext?.id]);
     useEffect(() => { setExpandedExternal([]); }, [conceptContext?.id, domain]);
@@ -69,16 +67,7 @@ export default function Diagram({
     }, []);
     const [exporting, setExporting] = useState(false),
         [error, setError] = useState('');
-    const diagramEntry = useRef();
     const markerPrefix = compact ? 'graph-arrow' : 'entity-arrow';
-    useEffect(() => {
-        if (!conceptContext) return undefined;
-        const frame = requestAnimationFrame(() => {
-            diagramEntry.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
-            diagramEntry.current?.focus({ preventScroll: true });
-        });
-        return () => cancelAnimationFrame(frame);
-    }, [conceptContext?.id]);
     const svg = useRef(),
         drag = useRef(),
         relationshipMenu = useRef(),
@@ -175,6 +164,8 @@ export default function Diagram({
         (n) => !hidden.includes(n.name) && (visibleConnected ? visibleConnected.has(n.name) : (!domain || domainFor(n.name) === domain || externalContextNames.has(n.name)))
     ), [nodes, hidden, visibleConnected, domain, externalContextNames]);
     const names = useMemo(() => new Set(visible.map((n) => n.name)), [visible]);
+    // The metadata map always draws the whole model, also above a concept's Map tab where `visible` is one group.
+    const overviewNodes = useMemo(() => nodes.filter((n) => !hidden.includes(n.name)), [nodes, hidden]);
     const groups = useMemo(() => groupRelationships(edges), [edges]);
     const edgeLanes = useMemo(() => {
         const pairs = new Map();
@@ -395,7 +386,6 @@ export default function Diagram({
     const choose = useCallback((name) => {
         if (!neighbors && !externalContextNames.has(name) && (domain || showDomains) && domainFor(name) !== domain) {
             setConceptContext(null);
-            setConceptReturn(null);
             setDomain(domainFor(name));
             setMoves({});
         }
@@ -434,7 +424,6 @@ export default function Diagram({
         });
     const chooseDomain = useCallback((id) => {
         setConceptContext(null);
-        setConceptReturn(null);
         setReturnConcept('');
         setDomain(id);
         setConnectionMode('shared');
@@ -444,7 +433,6 @@ export default function Diagram({
     }, []);
     const exploreConcept = (concept) => {
         setConceptContext({ id: concept.id, label: concept.label, hint: concept.hint, color: concept.color, domain: concept.domain, members: concept.members, connections: concept.connections, origin: concept.origin || 'concept' });
-        setConceptReturn({ id: concept.id, label: concept.label, origin: concept.origin || 'concept' });
         setFocusReturnedMap(false);
         setDomain(concept.domain);
         setSelected('');
@@ -452,12 +440,11 @@ export default function Diagram({
         setMoves({});
         setArrangement('hierarchical');
     };
-    // Leaves the concept: `summary` opens its Summary tab, otherwise the metadata map is shown.
-    const backToConcept = (summary = false) => {
-        setReturnConcept(summary ? conceptReturn.id : '');
+    // Leaves the concept's Map tab: `summary` names the concept whose Summary tab opens, otherwise the metadata map is shown.
+    const backToConcept = (summary = '') => {
+        setReturnConcept(summary);
         setFocusReturnedMap(!summary);
         setConceptContext(null);
-        setConceptReturn(null);
         setDomain('');
         setSelected('');
         setNeighbors(false);
@@ -565,38 +552,24 @@ export default function Diagram({
     const tracedEnds = useMemo(() => new Set(hoverEdge ? hoverEdge.ends || [hoverEdge.from, hoverEdge.to] : []), [hoverEdge]);
     const drawnGroups = shownGroups;
     const showAllTypes = useCallback(() => onBrowseAll?.(), [onBrowseAll]);
-    if (researchOverview) {
-        return (
-            <ResearchOverview index={index} nodes={visible} onType={choose}
-                onAllTypes={showAllTypes} onDetail={onDetail} onConnections={exploreConcept} initialConcept={returnConcept} focusMap={focusReturnedMap} />
-        );
-    }
-    return (
-        <section ref={diagramEntry} tabIndex={-1}
+    const overviewProps = { index, nodes: overviewNodes, onType: choose, onAllTypes: showAllTypes, onDetail, onConnections: exploreConcept };
+    if (researchOverview) return <ResearchOverview {...overviewProps} initialConcept={returnConcept} focusMap={focusReturnedMap} />;
+    const diagram = (
+        <section
             className={`se-diagram${compact ? ' se-compact' : ''}${conceptContext ? ' se-concept-diagram' : ''}${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}`}
             aria-label={
                 compact ? 'Item relationships' : 'All schema relationships'
             }>
-            <header className="se-diagram-header">
-                {conceptReturn && <button type="button" className="se-diagram-back" onClick={() => backToConcept(false)}>← Metadata map</button>}
-                {domain && !compact && !conceptReturn && <button type="button" className="se-diagram-back" onClick={() => chooseDomain('')}>← Metadata map</button>}
-                <div className="se-diagram-heading" style={conceptContext?.color ? { '--se-concept-color': conceptContext.color } : undefined}>
-                    {conceptContext ? (
-                        <>
-                            {/* A single group's title is not drawn in the canvas, so the concept names its group here. */}
-                            <span className="se-diagram-eyebrow">{domains.find((d) => d.id === conceptContext.domain)?.label || 'Explore the metadata'}</span>
-                            <h2>{conceptContext.label}</h2>
-                            {conceptContext.hint && <p className="se-diagram-question">{conceptContext.hint}</p>}
-                            <ConceptTabs active="map" label={conceptContext.label} onSummary={() => backToConcept(true)} />
-                        </>
-                    ) : (
-                        <>
-                            {eyebrow && <span className="se-diagram-eyebrow">{eyebrow}</span>}
-                            <h2>{title}</h2>
-                        </>
-                    )}
-                </div>
-            </header>
+            {/* A concept's heading and tabs are drawn by the metadata map above this diagram. */}
+            {!conceptContext && (
+                <header className="se-diagram-header">
+                    {domain && !compact && <button type="button" className="se-diagram-back" onClick={() => chooseDomain('')}>← Metadata map</button>}
+                    <div className="se-diagram-heading">
+                        {eyebrow && <span className="se-diagram-eyebrow">{eyebrow}</span>}
+                        <h2>{title}</h2>
+                    </div>
+                </header>
+            )}
             <div className="se-diagram-controls">
                 {!compact && (
                     <input
@@ -1119,4 +1092,12 @@ export default function Diagram({
             )}
         </section>
     );
+    // A concept's Map tab sits under the same metadata map and concept heading as its Summary tab.
+    if (conceptContext && !compact) {
+        return (
+            <ResearchOverview {...overviewProps} mapTab={diagram}
+                onSummary={backToConcept} onLeaveMap={() => backToConcept()} />
+        );
+    }
+    return diagram;
 }
