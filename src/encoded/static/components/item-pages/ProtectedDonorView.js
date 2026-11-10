@@ -34,23 +34,21 @@ const ProtectedDonorViewTitle = (props) => {
         <div className="view-title container-wide">
             <nav className="view-title-navigation">
                 <ul className="breadcrumb-list">
-                    {breadcrumbs.map(({ display_title, href }, i, arr) => {
-                        return (
-                            <li className="breadcrumb-list-item" key={i}>
-                                <a
-                                    className={
-                                        'breadcrumb-list-item-link link-underline-hover' +
+                    {breadcrumbs.map(({ display_title, href }, i, arr) => (
+                        <li className="breadcrumb-list-item" key={i}>
+                            <a
+                                className={
+                                    'breadcrumb-list-item-link link-underline-hover' +
                                         (href ? '' : ' no-link')
-                                    }
-                                    href={href}>
-                                    {display_title}
-                                </a>
-                                {i < arr.length - 1 ? (
-                                    <i className="icon icon-fw icon-angle-right fas"></i>
-                                ) : null}
-                            </li>
-                        );
-                    })}
+                                }
+                                href={href}>
+                                {display_title}
+                            </a>
+                            {i < arr.length - 1 ? (
+                                <i className="icon icon-fw icon-angle-right fas"></i>
+                            ) : null}
+                        </li>
+                    ))}
                 </ul>
             </nav>
             <h1 className="view-title-text">Donor Overview</h1>
@@ -81,6 +79,7 @@ const ProtectedDonorViewHeader = (props) => {
                                 className="col-md-auto col-12"
                                 data-tip="Donor Manifest Download is coming soon">
                                 <button
+                                    type="button"
                                     className="col-md-auto col-12 btn btn-primary btn-sm me-05 align-items-center download-button px-3"
                                     disabled>
                                     <i className="icon icon-user fas me-1" />
@@ -214,49 +213,49 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                         </div>
                         {statisticValues.assays > 0 &&
                             statisticValues.tissues > 0 ? (
-                            <div className="body d-flex justify-content-center overflow-scroll">
-                                <DataMatrix
-                                    key="data-matrix-donor"
-                                    query={{
-                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&analysis_details=No+value&analysis_details=Filtered&analysis_details=Phased&donors.display_title=${context.display_title}&limit=all`,
-                                        columnAggFields: [
-                                            'assays.display_title',
-                                            'sequencers.platform',
-                                        ],
-                                        rowAggFields: [
-                                            'donors.display_title',
-                                            'sample_summary.tissues',
-                                            'data_type',
-                                            'analysis_details',
-                                            'sample_summary.category',
-                                        ],
-                                    }}
-                                    resultTransformedPostProcessFuncKey="analysisDerivedColumns"
-                                    browseFilteringTransformFuncKey="analysisDerivedColumns"
-                                    excludePrimaryColumnNoValue={false}
-                                    headerFor={null}
-                                    defaultOpen={true}
-                                    idLabel="donor"
-                                    session={session}
-                                    yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
-                                    showUniqueDonorsAssayBand={false}
-                                    dedupeBenchmarkingDsaAcrossTissues={study !== 'Production'}
-                                    baseBrowseFilesPath={study === 'Production' ? "/browse/" : "/search/"}
-                                />
-                            </div>
-                        ) : (
-                            <div className="body">
-                                <div className="callout-card">
-                                    <i className="icon icon-fw icon-2x icon-table-cells fas"></i>
-                                    <h4>Assay x Tissue Data Matrix</h4>
-                                    <span>
-                                        Check back for updates on Assay x Tissue
-                                        Data Matrix development with future
-                                        portal releases
-                                    </span>
+                                <div className="body d-flex justify-content-center overflow-scroll">
+                                    <DataMatrix
+                                        key="data-matrix-donor"
+                                        query={{
+                                            url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&analysis_details=No+value&analysis_details=Filtered&analysis_details=Phased&donors.display_title=${context.display_title}&limit=all`,
+                                            columnAggFields: [
+                                                'assays.display_title',
+                                                'sequencers.platform',
+                                            ],
+                                            rowAggFields: [
+                                                'donors.display_title',
+                                                'sample_summary.tissues',
+                                                'data_type',
+                                                'analysis_details',
+                                                'sample_summary.category',
+                                            ],
+                                        }}
+                                        resultTransformedPostProcessFuncKey="analysisDerivedColumns"
+                                        browseFilteringTransformFuncKey="analysisDerivedColumns"
+                                        excludePrimaryColumnNoValue={false}
+                                        headerFor={null}
+                                        defaultOpen={true}
+                                        idLabel="donor"
+                                        session={session}
+                                        yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
+                                        showUniqueDonorsAssayBand={false}
+                                        dedupeBenchmarkingDsaAcrossTissues={study !== 'Production'}
+                                        baseBrowseFilesPath={study === 'Production' ? "/browse/" : "/search/"}
+                                    />
                                 </div>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="body">
+                                    <div className="callout-card">
+                                        <i className="icon icon-fw icon-2x icon-table-cells fas"></i>
+                                        <h4>Assay x Tissue Data Matrix</h4>
+                                        <span>
+                                            Check back for updates on Assay x Tissue
+                                            Data Matrix development with future
+                                            portal releases
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                     </div>
                     <div className="histology-tab tab-card">
                         <div className="header">
@@ -267,7 +266,8 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                         <div className="body">
                             <img
                                 className="placeholder"
-                                src="/static/img/Tissue Histology Blur.png"></img>
+                                src="/static/img/Tissue Histology Blur.png">
+                            </img>
                             <div className="callout-card">
                                 <i className="icon icon-lungs fas"></i>
                                 <h4>Tissue Histology Browser</h4>

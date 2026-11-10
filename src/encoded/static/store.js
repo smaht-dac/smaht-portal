@@ -55,9 +55,7 @@ const reducers = {
 const rootReducer = (state, action) => {
     switch (action.type) {
         case 'BATCH_ACTIONS':
-            return action.payload.reduce((currentState, batchAction) => {
-                return rootReducer(currentState, batchAction);
-            }, state);
+            return action.payload.reduce((currentState, batchAction) => rootReducer(currentState, batchAction), state);
         default:
             return combineReducers(reducers)(state, action);
     }

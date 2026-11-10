@@ -94,8 +94,8 @@ export class BigDropdownNavItem extends React.PureComponent {
             typeof propActive === 'boolean'
                 ? propActive
                 : typeof navItemHref === 'string' && typeof href === 'string'
-                ? memoizedUrlParse(href).pathname.indexOf(navItemHref) > -1
-                : false;
+                    ? memoizedUrlParse(href).pathname.indexOf(navItemHref) > -1
+                    : false;
 
         const navItemProps = {
             id,

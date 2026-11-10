@@ -283,7 +283,7 @@ def validate_checked_in_policy():
         "gateway-only status log": '"~50[24]" 1' in nginx_conf,
         "client address omitted": bool(log_format) and "$remote_addr" not in log_format.group("body"),
         "450MB parent cap": re.findall(r"^rss_limit\s*=\s*(\S+)", base_ini, re.M) == ["450MB"],
-        "pinned nginx syntax gate": "RUN nginx -v && nginx -t" in dockerfile,
+        "production nginx syntax gate": "RUN nginx -v && nginx -t" in dockerfile,
     }
     failed = [name for name, ok in checks.items() if not ok]
     ok = not failed

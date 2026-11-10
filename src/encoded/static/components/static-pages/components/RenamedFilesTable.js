@@ -121,7 +121,7 @@ function RenamedFilesTableHeader({ context, href }) {
 const extractPreviousFileName = (notesToTsv = null) => {
     if (!notesToTsv || !Array.isArray(notesToTsv)) return null;
 
-    for (let note of notesToTsv) {
+    for (const note of notesToTsv) {
         const splitStr = note?.split('This file was originally named ');
         if (note && splitStr?.length > 1) {
             return splitStr[1].split(' due')[0];

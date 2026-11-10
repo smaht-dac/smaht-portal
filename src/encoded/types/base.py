@@ -2,10 +2,12 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from dcicutils.misc_utils import PRINT
 from pyramid.request import Request
+from pyramid.settings import asbool
 from pyramid.view import view_config
 from snovault import AbstractCollection, abstract_collection, calculated_property
 from snovault.crud_views import (
     collection_add as sno_collection_add,
+    item_delete_full as sno_item_delete_full,
     item_edit as sno_item_edit,
 )
 from snovault.types.base import (
@@ -27,6 +29,12 @@ from snovault.server_defaults import add_last_modified
 
 from . import acl
 from .utils import get_item
+from ..audit_logging import (
+    EVENT_TYPE_DELETION,
+    EVENT_TYPE_DESTRUCTION,
+    canonical_uuid,
+    record_audit_event,
+)
 from ..local_roles import DEBUG_PERMISSIONS
 from ..schema_formats import is_accession
 from ..utils import get_remote_user
@@ -137,6 +145,9 @@ class Item(SnovaultItem):
     item_type = 'item'
     AbstractCollection = AbstractCollection
     Collection = SMAHTCollection
+    # Set by a subclass whose own ``update`` already audits its deletion, so
+    # ``item_delete_full`` does not record the same transition twice.
+    AUDITS_OWN_DELETION = False
     # This value determines the default status mapping of permissions
     # Ie: if an item status = public, then the ACL ALLOW_EVERYONE_VIEW applies to its permissions,
     # so anyone (even unauthenticated users) can view it
@@ -406,3 +417,66 @@ def collection_add(context, request, render=None):
 @debug_log
 def item_edit(context, request, render=None):
     return sno_item_edit(context, request, render)
+
+
+def _audited_item_fields(context):
+    """Identify a deleted or purged item without copying its properties."""
+    fields = {}
+    resource_uuid = canonical_uuid(getattr(context, "uuid", None))
+    if resource_uuid is not None:
+        fields["resource_uuid"] = resource_uuid
+    item_type = getattr(getattr(context, "type_info", None), "item_type", None)
+    if isinstance(item_type, str) and item_type:
+        fields["resource_type"] = item_type
+    accession = (getattr(context, "properties", None) or {}).get("accession")
+    if isinstance(accession, str) and accession:
+        fields["resource_accession"] = accession
+    return fields
+
+
+@view_config(context=Item, permission='edit', request_method='DELETE')
+@debug_log
+def item_delete_full(context, request, render=None):
+    """Audit DELETE, distinguishing a status change from a permanent purge.
+
+    ``?purge=true`` removes the record from PostgreSQL and OpenSearch, which is
+    the only destruction this application performs and observes; the S3 object
+    behind a File is not touched here and is never claimed to be. A plain
+    DELETE is a status change, which a type that audits its own lifecycle
+    (see ``AUDITS_OWN_DELETION``) has already recorded.
+    """
+    purge_requested = asbool(request.GET and request.GET.get('purge'))
+    audit_fields = _audited_item_fields(context)
+    try:
+        result = sno_item_delete_full(context, request, render)
+    except Exception:
+        record_audit_event(
+            request,
+            "Item purge failed" if purge_requested else "Item deletion failed",
+            EVENT_TYPE_DESTRUCTION if purge_requested else EVENT_TYPE_DELETION,
+            "item_purge" if purge_requested else "item_delete",
+            "failure",
+            **audit_fields,
+        )
+        raise
+    if not (isinstance(result, dict) and result.get("status") == "success"):
+        return result
+    if purge_requested:
+        record_audit_event(
+            request,
+            "Item permanently purged",
+            EVENT_TYPE_DESTRUCTION,
+            "item_purge",
+            "success",
+            **audit_fields,
+        )
+    elif not getattr(context, "AUDITS_OWN_DELETION", False):
+        record_audit_event(
+            request,
+            "Item deleted",
+            EVENT_TYPE_DELETION,
+            "item_delete",
+            "success",
+            **audit_fields,
+        )
+    return result

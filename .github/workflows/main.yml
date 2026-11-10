@@ -26,6 +26,8 @@ jobs:
 
     # Build matrix
     strategy:
+      # A DOCKER credential failure must not cancel the independent UNIT suite.
+      fail-fast: false
       matrix:
         test_type: [ 'UNIT', 'DOCKER' ]
         node_version: ['20']
@@ -54,6 +56,10 @@ jobs:
         run: |
           make build
 
+      - name: Frontend regression tests
+        if: ${{ matrix.test_type == 'UNIT' }}
+        run: npm test -- --runInBand
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -76,7 +82,39 @@ jobs:
         if: ${{ matrix.test_type == 'DOCKER' }}
         run: |
           touch deploy/docker/local/docker_development.ini  # cheap substitute for prepare-docker to make ignored file
-          docker build .
+          docker build -t smaht-portal:ci .
+
+      - name: Non-root nginx request-body smoke test
+        if: ${{ matrix.test_type == 'DOCKER' }}
+        run: |
+          # No app entrypoint, credentials, or external network: synthetic upstreams only.
+          docker run --rm --network none --entrypoint python smaht-portal:ci \
+            deploy/docker/production/tests/nginx_request_body_smoke.py
+
+      # The steps above build the portable public default base. Production
+      # (buildspec.yml) builds on the private Docker Hardened Images base, so CI
+      # builds that exact base too; without DHI credentials this fails here.
+      - name: Authenticate Docker Hardened Images
+        if: ${{ matrix.test_type == 'DOCKER' }}
+        uses: docker/login-action@v3
+        with:
+          registry: dhi.io
+          username: ${{ secrets.DHI_USERNAME }}
+          password: ${{ secrets.DHI_TOKEN }}
+
+      - name: Docker Build (production DHI base)
+        if: ${{ matrix.test_type == 'DOCKER' }}
+        env:
+          DHI_BASE_IMAGE: dhi.io/python:3.11-debian13-sfw-dev@sha256:c7288562a4492de0c1f1ff851e7eee1f2d0cd4f9e5ae5fef0701188344c7be83
+        run: |
+          touch deploy/docker/local/docker_development.ini
+          docker build --build-arg BASE_IMAGE="$DHI_BASE_IMAGE" -t smaht-portal:ci-dhi .
+
+      - name: Non-root nginx request-body smoke test (production DHI base)
+        if: ${{ matrix.test_type == 'DOCKER' }}
+        run: |
+          docker run --rm --network none --entrypoint python smaht-portal:ci-dhi \
+            deploy/docker/production/tests/nginx_request_body_smoke.py
 
       - name: Cleanup
         if: ${{ always() && matrix.test_type == 'UNIT' }}

@@ -1,4 +1,6 @@
 import requests
+import structlog
+from jwt import exceptions as jwt_exceptions
 from dcicutils.redis_tools import RedisSessionToken
 from snovault.authentication import (
     NamespacedAuthenticationPolicy,
@@ -24,6 +26,27 @@ from urllib.parse import urlencode
 import re
 
 from snovault.validation import ValidationFailure
+from .audit_logging import (
+    AUTH_FAILURE_EMAIL_RESTRICTED,
+    AUTH_FAILURE_PROVIDER_UNCONFIGURED,
+    AUTH_FAILURE_TOKEN_EXPIRED,
+    AUTH_FAILURE_TOKEN_REJECTED,
+    EVENT_TYPE_AUTHORIZATION,
+    record_audit_event,
+    record_auth_failure_reason,
+    record_verified_claims,
+    result_subject_uuid,
+    subject_uuid_fields,
+)
+from .okta import (
+    OktaConfigurationError,
+    decode_okta_id_token,
+    okta_is_configured,
+    token_is_asymmetrically_signed,
+)
+
+
+log = structlog.getLogger(__name__)
 
 # From NIH CADR List
 BLOCKED_TLDS = ["cn", "hk", "mo", "ru", "ir", "kp", "cu", "ve"]
@@ -87,7 +110,7 @@ def session_properties(context, request):
     namespace, userid = principal.split('.', 1)
     properties = get_basic_properties_for_user(request, userid)
     email = properties.get('details', {}).get('email')
-    email_is_not_restricted(request.registry, None, email)
+    email_is_not_restricted(request.registry, None, email, request=request)
     return properties
 
 
@@ -113,8 +136,13 @@ def email_matches_blocked_country(email: str) -> bool:
     return bool(COUNTRY_DOMAIN_PATTERN.search(email))
 
 
-def email_is_not_restricted(registry, jwt_info, email=None):
-    """ Raises HTTPForbidden if email address is restricted, no-op otherwise """
+def email_is_not_restricted(registry, jwt_info, email=None, request=None):
+    """ Raises HTTPForbidden if email address is restricted, no-op otherwise
+
+        The refusal is the portal's most CADR-specific denial, so it records
+        why before raising; the response-level audit event then names the
+        reason instead of reporting an unexplained 403.
+    """
     restricted_domains = registry['RESTRICTED_DOMAINS']
     restricted_emails = registry['RESTRICTED_EMAILS']
     if email is None:  # if no email passed, check jwt
@@ -132,12 +160,82 @@ def email_is_not_restricted(registry, jwt_info, email=None):
     if (email_matches_blocked_country(email) or
             email in restricted_emails or email_domain in restricted_emails or
             email_domain in restricted_domains):
+        record_auth_failure_reason(request, AUTH_FAILURE_EMAIL_RESTRICTED)
         raise HTTPForbidden(
             title=f"Email address {email} restricted due to NIH CADR Security Guidelines",
         )
 
 
 class SMAHTAuth0AuthenticationPolicy(Auth0AuthenticationPolicy):
+    """Adds Okta ID-token verification and the restricted-email check.
+
+    Two token families reach this policy and they are kept strictly apart by
+    the token's own `alg` header:
+
+    * Asymmetric (RS256) tokens are Okta ID tokens from the SPA's Authorization
+      Code + PKCE login. They are verified against the configured issuer's JWKS,
+      audience and claims by ``encoded.okta.decode_okta_id_token``.
+    * Symmetric (HS256) tokens are the legacy Auth0/RAS tokens and the tokens
+      snovault mints for user impersonation, signed with ``auth0.secret``. They
+      keep snovault's existing verification untouched.
+
+    Because the Okta path pins its accepted algorithm set to RS256 and the
+    legacy path keeps snovault's shared-secret key, neither family can be
+    verified by the other's rules - an "alg confusion" downgrade has nowhere to
+    land.
+    """
+
+    @staticmethod
+    def get_token_info(token, request):
+        """ Verify Okta-issued ID tokens via JWKS; defer to snovault otherwise.
+
+            Overrides `Auth0AuthenticationPolicy.get_token_info`, which is invoked
+            as `self.get_token_info(...)` by snovault and so dispatches here.
+
+            Audit note: the *verified* claims that identify the session and the
+            asserting provider are stashed on the request for later audit
+            events. The token itself is never stored or logged, and nothing is
+            stashed on a verification failure - an unverified token makes no
+            trustworthy statement about anybody.
+        """
+        if not token_is_asymmetrically_signed(token):
+            payload = Auth0AuthenticationPolicy.get_token_info(token, request)
+            if payload:
+                record_verified_claims(request, payload)
+            else:
+                record_auth_failure_reason(request, AUTH_FAILURE_TOKEN_REJECTED)
+            return payload
+
+        if not okta_is_configured(request.registry.settings):
+            # An asymmetrically signed token cannot be checked without an issuer
+            # to check it against. Refuse rather than fall through to a
+            # shared-secret decode that would treat the key as opaque bytes.
+            log.warning("Received an asymmetrically signed token but Okta is not configured")
+            record_auth_failure_reason(request, AUTH_FAILURE_PROVIDER_UNCONFIGURED)
+            request.set_property(lambda r: True, 'auth0_expired')
+            return None
+
+        try:
+            payload = decode_okta_id_token(token, request.registry)
+        except jwt_exceptions.ExpiredSignatureError:
+            # Normal/expected expiration - lets renderers unset the cookie.
+            record_auth_failure_reason(request, AUTH_FAILURE_TOKEN_EXPIRED)
+            request.set_property(lambda r: True, 'auth0_expired')
+            return None
+        # PyJWTError is the base for every rejection reason worth catching here,
+        # including InvalidKeyError and PyJWKClientError - neither of which is a
+        # subclass of InvalidTokenError, so a narrower catch would surface a 500.
+        except (jwt_exceptions.PyJWTError, OktaConfigurationError,
+                requests.RequestException, ValueError) as e:
+            log.warning("Rejected Okta ID token", error=str(e))
+            record_auth_failure_reason(request, AUTH_FAILURE_TOKEN_REJECTED)
+            request.set_property(lambda r: True, 'auth0_expired')
+            return None
+
+        record_verified_claims(request, payload)
+        request.set_property(lambda r: False, 'auth0_expired')
+        return payload
+
     def unauthenticated_userid(self, request):
         """ Override the login to additionally include restricted user checks """
 
@@ -159,7 +257,7 @@ class SMAHTAuth0AuthenticationPolicy(Auth0AuthenticationPolicy):
             return None
 
         # Check email against domains
-        email_is_not_restricted(request.registry, jwt_info)
+        email_is_not_restricted(request.registry, jwt_info, request=request)
 
         # duplicates a small amount of effort but not meaningfully
         return super().unauthenticated_userid(request)
@@ -191,9 +289,31 @@ def smaht_create_unauthorized_user(context, request):
 
     registry = request.registry
 
+    presented_token = get_jwt(request)
+    if (presented_token and token_is_asymmetrically_signed(presented_token)
+            and okta_is_configured(registry.settings)):
+        # Okta SPA self-registration. The browser has already POSTed this Okta ID
+        # token to /login, so it arrives here as the `jwtToken` cookie; verify it
+        # directly. The Redis session-token branch below belongs to the
+        # confidential Auth0/RAS `/callback` exchange, which the PKCE SPA flow
+        # never populates - taking it for an Okta token would fail on a
+        # Redis-enabled environment.
+        try:
+            jwt_info = decode_okta_id_token(presented_token, registry)
+        except (jwt_exceptions.PyJWTError, OktaConfigurationError,
+                requests.RequestException, ValueError) as e:
+            log.warning("Rejected Okta ID token during self-registration", error=str(e))
+            raise HTTPUnauthorized(
+                title="Could not validate your Okta login. Try logging in again.",
+                headers={
+                    'WWW-Authenticate':
+                        "Bearer realm=\"{}\"; Basic realm=\"{}\"".format(request.domain, request.domain)}
+            )
+        email = jwt_info['email'].lower()
+
     # old method for retrieving auth'd email - request object should have _auth0_authenticated set
     # NOTE: it is not obvious to me how this works... probably should be looked into - Will March 29 2023
-    if not redis_is_active(request):
+    elif not redis_is_active(request):
         email = "<no auth0 authenticated e-mail supplied>"
         if hasattr(request, "_auth0_authenticated"):
             email = request._auth0_authenticated  # equal to: jwt_info['email'].lower()
@@ -240,7 +360,7 @@ def smaht_create_unauthorized_user(context, request):
             headers={
                 'WWW-Authenticate': "Bearer realm=\"{}\"; Basic realm=\"{}\"".format(request.domain, request.domain)}
         )
-    email_is_not_restricted(request.registry, None, email)
+    email_is_not_restricted(request.registry, None, email, request=request)
 
     # set user insert props
     del user_props['g-recaptcha-response']
@@ -275,6 +395,14 @@ def smaht_create_unauthorized_user(context, request):
     if recap_res['success']:
         sno_res = sno_collection_add(user_coll, request, False)  # POST User
         if sno_res.get('status') == 'success':
+            record_audit_event(
+                request,
+                "User account created",
+                EVENT_TYPE_AUTHORIZATION,
+                "user_account_create",
+                "success",
+                **subject_uuid_fields(result_subject_uuid(sno_res)),
+            )
             return sno_res
         else:
             raise HTTPForbidden(title="Could not create user. Try logging in again.")

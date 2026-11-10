@@ -1,11 +1,78 @@
 from typing import List, Union
 from copy import deepcopy
 
+import structlog
+from pyramid.httpexceptions import HTTPForbidden
 from pyramid.request import Request
-from snovault import calculated_property, collection, load_schema
+from pyramid.security import NO_PERMISSION_REQUIRED
+from pyramid.view import view_config
+from snovault import TYPES, calculated_property, collection, load_schema
+from snovault.resource_views import item_view as sno_item_view
+from snovault.util import debug_log
+
+from ..audit_logging import (
+    EVENT_TYPE_AUTHORIZATION,
+    canonical_uuid,
+    record_audit_event,
+)
 from .acl import ONLY_DBGAP_VIEW_ACL, ONLY_PUBLIC_DBGAP_VIEW_ACL
 
 from .abstract_donor import AbstractDonor
+
+
+log = structlog.getLogger(__name__)
+
+
+def is_protected_donor_search(context, request, search_type=None):
+    """Match search scopes that can include ProtectedDonor, not just its name.
+
+    Mirror Snovault's default/wildcard resolution and use its type registry for
+    aliases and abstract subtypes. This selects auditing only; Snovault still
+    performs the search and applies its principal filters.
+    """
+    del context
+    if search_type is not None:
+        requested_types = [search_type]
+    else:
+        try:
+            requested_types = request.params.getall("type")
+        except (AttributeError, KeyError):
+            requested_types = [request.params.get("type")]
+        requested_types = requested_types or ["Item"]
+        if "*" in requested_types:
+            requested_types = ["Item"]
+    if "ProtectedDonor" in requested_types or "Item" in requested_types:
+        return True
+    types = request.registry[TYPES]
+    return any(
+        name in types and "ProtectedDonor" in types[name].subtypes
+        for name in requested_types
+    )
+
+
+def _protected_donor_result_count(result):
+    if isinstance(result, dict):
+        try:
+            if "total" in result:
+                return int(result["total"])
+            graph = result.get("@graph")
+            return len(graph) if isinstance(graph, list) else 0
+        except (TypeError, ValueError):
+            return 0
+    return 0
+
+
+def log_protected_donor_search(request, result, outcome="allowed"):
+    """Log a ProtectedDonor search without query, filter, or returned-record data."""
+    record_audit_event(
+        request,
+        "ProtectedDonor search accessed",
+        EVENT_TYPE_AUTHORIZATION,
+        "protected_donor_search",
+        outcome,
+        resource_type="protected_donor",
+        result_count=_protected_donor_result_count(result),
+    )
 
 
 def _build_protected_donor_embedded_list():
@@ -225,3 +292,36 @@ class ProtectedDonor(AbstractDonor):
     def donor(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "donor")
         return result or None
+
+
+@view_config(context=ProtectedDonor, request_method="GET", permission=NO_PERMISSION_REQUIRED)
+@debug_log
+def protected_donor_item_view(context, request):
+    """Audit allowed and denied default ProtectedDonor record access."""
+    target_fields = {}
+    target_uuid = canonical_uuid(getattr(context, "uuid", None))
+    if target_uuid is not None:
+        target_fields["target_uuid"] = target_uuid
+
+    if not request.has_permission("view", context):
+        record_audit_event(
+            request,
+            "ProtectedDonor record access denied",
+            EVENT_TYPE_AUTHORIZATION,
+            "protected_donor_record_access",
+            "denied",
+            resource_type="protected_donor",
+            **target_fields,
+        )
+        raise HTTPForbidden()
+
+    record_audit_event(
+        request,
+        "ProtectedDonor record accessed",
+        EVENT_TYPE_AUTHORIZATION,
+        "protected_donor_record_access",
+        "allowed",
+        resource_type="protected_donor",
+        **target_fields,
+    )
+    return sno_item_view(context, request)

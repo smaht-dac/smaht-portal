@@ -26,6 +26,7 @@ const THEME = {
 // --- Wrap long axis labels (limit to N lines, add tooltip if truncated) ---
 function wrapAxisLabelsLimited(selection, maxWidth, maxLines = 2, isYAxis = false) {
     selection.each(function () {
+        // eslint-disable-next-line no-invalid-this -- d3-selection.each binds this to the selected element.
         const text = d3.select(this);
         const originalText = text.text();
         const words = originalText.split(/\s+/).reverse();
@@ -101,7 +102,7 @@ const TITLE_BAND = 44;   // vertical space reserved for title
  * @param {string} props.title - title of the chart
  * @param {JSX.Element} props.popover - popover component to be rendered
  * @returns {JSX.Element} Chart Title component
- * 
+ *
  * Note: Popover is manually triggered to support popover interaction
  */
 const ChartTitle = ({ title = '', popover = null }) => {
@@ -140,7 +141,7 @@ const ChartTitle = ({ title = '', popover = null }) => {
                 )}
             </h3>
         </div>
-    )
+    );
 };
 
 const DonorCohortViewChart = ({
@@ -307,11 +308,11 @@ const DonorCohortViewChart = ({
                     <div class="mosaic-cursor-body">
                       ${hasCrumb ? `
                       <div class="detail-crumbs">
-	                    <div data-depth="0" class="crumb row first">
-		                    <div class="field col-auto">${crumbTitle}</div>
-		                    <div class="name col">${crumbLabel}</div>
-		                    <div class="count col-auto pull-right text-end">${crumbValue}</div>
-	                    </div>
+                        <div data-depth="0" class="crumb row first">
+                            <div class="field col-auto">${crumbTitle}</div>
+                            <div class="name col">${crumbLabel}</div>
+                            <div class="count col-auto pull-right text-end">${crumbValue}</div>
+                        </div>
                       </div>` : ''}
                       <h6 class="field-title">
                         <small class="pull-right sets-label">${rightTitle}</small><small>${leftTitle}</small>
@@ -524,20 +525,24 @@ const DonorCohortViewChart = ({
 
             // Add tooltip only when truncated; also set cursor conditionally
             yAx.selectAll('text')
-                .each(function () {
+                .each(function (d, i, nodes) {
+                    // eslint-disable-next-line no-invalid-this -- d3-selection.each binds this to the selected element.
                     const t = d3.select(this);
                     const isTruncated = !!t.attr('data-truncated');
                     t.style('cursor', isTruncated ? 'pointer' : 'default');
                 })
                 .on('mouseover', function (e) {
+                    // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                     const t = d3.select(this);
                     if (t.attr('data-truncated')) showTip(e, t.attr('data-fulltext'));
                 })
                 .on('mousemove', function (e) {
+                    // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                     const t = d3.select(this);
                     if (t.attr('data-truncated')) moveTip(e);
                 })
-                .on('mouseout', function () {
+                .on('mouseout', function (e) {
+                    // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                     const t = d3.select(this);
                     if (t.attr('data-truncated')) hideTip();
                 });
@@ -625,24 +630,24 @@ const DonorCohortViewChart = ({
         const baseDimMap = new WeakMap();
 
         const baseDims = {
-            female: (d) => ({
+            female: (d) => {return {
                 x: x(d.group),
                 y: y(d.value2 || 0),
                 width: x.bandwidth(),
                 height: y(0) - y(d.value2 || 0)
-            }),
-            male: (d) => ({
+            };},
+            male: (d) => {return {
                 x: x(d.group),
                 y: y((d.value1 || 0) + (d.value2 || 0)),
                 width: x.bandwidth(),
                 height: y(0) - y(d.value1 || 0)
-            }),
-            single: (d) => ({
+            };},
+            single: (d) => {return {
                 x: x(d.group),
                 y: y(d.value1 || 0),
                 width: x.bandwidth(),
                 height: y(0) - y(d.value1 || 0)
-            })
+            };}
         };
 
         const insetStroke = (selection, color) => {
@@ -725,14 +730,19 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', femaleColor)
                 .attr('stroke', 'none')
-                .each(function (d) { baseDimMap.set(this, baseDims.female(d)); })
+                .each(function (d) {
+                    // eslint-disable-next-line no-invalid-this -- d3-selection.each binds this to the selected element.
+                    baseDimMap.set(this, baseDims.female(d));
+                })
                 .on('mouseover', (e, d) => {
                     insetStroke(d3.select(e.currentTarget), femaleHoverStroke);
                     showTip(e, d, 'secondary');
                 })
                 .on('mousemove', moveTip)
-                .on('mouseout', function () {
+                .on('mouseout', function (event) {
+                    // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                     if (_pinnedSelection !== this) {
+                        // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                         clearStroke(d3.select(this));
                     }
                     hideTip();
@@ -747,14 +757,19 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', maleColor)
                 .attr('stroke', 'none')
-                .each(function (d) { baseDimMap.set(this, baseDims.male(d)); })
+                .each(function (d) {
+                    // eslint-disable-next-line no-invalid-this -- d3-selection.each binds this to the selected element.
+                    baseDimMap.set(this, baseDims.male(d));
+                })
                 .on('mouseover', (e, d) => {
                     insetStroke(d3.select(e.currentTarget), maleHoverStroke);
                     showTip(e, d, 'primary');
                 })
                 .on('mousemove', moveTip)
-                .on('mouseout', function () {
+                .on('mouseout', function (event) {
+                    // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                     if (_pinnedSelection !== this) {
+                        // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                         clearStroke(d3.select(this));
                     }
                     hideTip();
@@ -807,7 +822,10 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', color)
                 .attr('stroke', 'none')
-                .each(function (d) { baseDimMap.set(this, baseDims.single(d)); })
+                .each(function (d) {
+                    // eslint-disable-next-line no-invalid-this -- d3-selection.each binds this to the selected element.
+                    baseDimMap.set(this, baseDims.single(d));
+                })
                 .on('mouseover', (e, d) => {
                     if ((d.value1 || 0) > 0) {
                         insetStroke(d3.select(e.currentTarget), hardyHoverStroke);
@@ -815,8 +833,10 @@ const DonorCohortViewChart = ({
                     }
                 })
                 .on('mousemove', moveTip)
-                .on('mouseout', function () {
+                .on('mouseout', function (event) {
+                    // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                     if (_pinnedSelection !== this) {
+                        // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                         clearStroke(d3.select(this));
                     }
                     hideTip();

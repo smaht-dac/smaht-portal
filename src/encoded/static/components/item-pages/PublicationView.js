@@ -48,7 +48,7 @@ export default class PublicationOverview extends DefaultItemView {
 // Header component containing high-level information for the file item
 const PublicationViewTitle = () => {
     // Default breadcrumbs for the File Overview page
-    let breadcrumbs = [
+    const breadcrumbs = [
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
         {
@@ -60,23 +60,21 @@ const PublicationViewTitle = () => {
         <div className="view-title container-wide">
             <nav className="view-title-navigation">
                 <ul className="breadcrumb-list">
-                    {breadcrumbs.map(({ display_title, href }, i, arr) => {
-                        return (
-                            <li className="breadcrumb-list-item" key={i}>
-                                <a
-                                    className={
-                                        'breadcrumb-list-item-link link-underline-hover' +
+                    {breadcrumbs.map(({ display_title, href }, i, arr) => (
+                        <li className="breadcrumb-list-item" key={i}>
+                            <a
+                                className={
+                                    'breadcrumb-list-item-link link-underline-hover' +
                                         (href ? '' : ' no-link')
-                                    }
-                                    href={href}>
-                                    {display_title}
-                                </a>
-                                {i < arr.length - 1 ? (
-                                    <i className="icon icon-fw icon-angle-right fas"></i>
-                                ) : null}
-                            </li>
-                        );
-                    })}
+                                }
+                                href={href}>
+                                {display_title}
+                            </a>
+                            {i < arr.length - 1 ? (
+                                <i className="icon icon-fw icon-angle-right fas"></i>
+                            ) : null}
+                        </li>
+                    ))}
                 </ul>
             </nav>
             <h1 className="view-title-text">Publication Overview</h1>
@@ -134,7 +132,7 @@ const PublicationStatViewer = ({ doi, session, isBenchmarking }) => {
         };
 
         const hrefParts = url.parse(searchUrl, true);
-        let hrefQuery = normalizeQueryValuesForStringify(
+        const hrefQuery = normalizeQueryValuesForStringify(
             _.clone(hrefParts.query)
         );
         delete hrefQuery.limit;
@@ -474,7 +472,8 @@ const PublicationView = React.memo(function PublicationView(props) {
                                     <i
                                         className={`icon icon-fw icon-chevron-${
                                             showFullAuthorList ? 'up' : 'down'
-                                        }`}></i>
+                                        }`}>
+                                    </i>
                                 </span>
                             </button>
                         </div>

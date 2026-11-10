@@ -103,7 +103,8 @@ export const DataTable = ({
         result['Released'] = isReleased(d['file_status']) ? 'Yes' : 'No';
         result['Overall QC status'] = d.quality_metrics?.overall_quality_status;
         qcFields.forEach((qcField, i) => {
-            const { flag = "NA", value } = d.quality_metrics?.qc_values[qcField];
+            const { flag = "NA", value } =
+                d.quality_metrics?.qc_values?.[qcField] || {};
             const metric_key = removeToolName(qc_info[qcField]['key']);
             result[metric_key] = value;
             result[metric_key + '_flag'] = flag;
@@ -118,15 +119,13 @@ export const DataTable = ({
         return result;
     });
 
-    filteredDataFormatted.sort((a, b) => {
-        return sortFormattedData(a, b);
-    });
+    filteredDataFormatted.sort((a, b) => sortFormattedData(a, b));
 
     const tableBodyData = filteredDataFormatted.map((d) => {
         const result = {};
         const file_link = '/' + d['File'];
         result['File'] = (
-            <a href={file_link} target="_blank">
+            <a href={file_link} target="_blank" rel="noreferrer">
                 {d['File']}
             </a>
         );
@@ -178,7 +177,8 @@ export const DataTable = ({
             sortIcon = (
                 <i
                     className={sortIconClass}
-                    onClick={() => handleSort(col)}></i>
+                    onClick={() => handleSort(col)}>
+                </i>
             );
         }
 
@@ -186,8 +186,8 @@ export const DataTable = ({
             col === 'Platform'
                 ? 'width-150-nw'
                 : col.length > 20
-                ? 'width-120'
-                : '';
+                    ? 'width-120'
+                    : '';
 
         return (
             <th key={col}>
