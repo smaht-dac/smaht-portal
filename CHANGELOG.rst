@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+2.15.18
+=======
+
+`PR 795: eHAT-Seq and scATAC-Seq updates <https://github.com/smaht-dac/smaht-portal/pull/795>`_
+
+* Update annotated file names script so VCFs with germline and somatic variants don't include the string ``germline``
+* Add enums to ``File.data_type`` and ``Software.category`` for scATAC-Seq
+
+
 2.15.17
 =======
 
