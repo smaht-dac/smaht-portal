@@ -20,19 +20,98 @@ def _read(rel):
         return fh.read()
 
 
-@pytest.mark.unit
-def test_ci_authenticates_private_dhi_before_build():
+PRODUCTION_DHI_BASE_IMAGE = "dhi.io/python:3.11-debian-sfw-dev"
+
+
+def _ci_docker_steps():
     workflow = yaml.safe_load(_read(".github/workflows/main.yml"))
-    steps = workflow["jobs"]["build"]["steps"]
+    return workflow["jobs"]["build"]
+
+
+@pytest.mark.unit
+def test_ci_builds_the_production_dhi_base_after_authenticating():
+    job = _ci_docker_steps()
+    assert job["strategy"]["fail-fast"] is False
+    steps = job["steps"]
+    names = [step.get("name") for step in steps]
     login = next(step for step in steps if step.get("uses") == "docker/login-action@v3")
-    build = next(step for step in steps if step.get("name") == "Docker Build")
-    assert steps.index(login) < steps.index(build)
-    assert login["if"] == build["if"] == "${{ matrix.test_type == 'DOCKER' }}"
+    public = steps[names.index("Docker Build")]
+    dhi = steps[names.index("Docker Build (production DHI base)")]
+    dhi_smoke = steps[names.index("Non-root nginx request-body smoke test (production DHI base)")]
+    # The portable public-base build needs no credentials, so it runs first.
+    assert steps.index(public) < steps.index(login) < steps.index(dhi) < steps.index(dhi_smoke)
+    docker_only = "${{ matrix.test_type == 'DOCKER' }}"
+    assert login["if"] == public["if"] == dhi["if"] == dhi_smoke["if"] == docker_only
     assert login["with"] == {
         "registry": "dhi.io",
         "username": "${{ secrets.DHI_USERNAME }}",
         "password": "${{ secrets.DHI_TOKEN }}",
     }
+    assert dhi["env"]["DHI_BASE_IMAGE"] == PRODUCTION_DHI_BASE_IMAGE
+    assert '--build-arg BASE_IMAGE="$DHI_BASE_IMAGE"' in dhi["run"]
+    assert "smaht-portal:ci-dhi" in dhi["run"] and "smaht-portal:ci-dhi" in dhi_smoke["run"]
+
+
+@pytest.mark.unit
+def test_production_codebuild_ships_the_dhi_base_and_fails_closed():
+    spec = yaml.safe_load(_read("buildspec.yml"))
+    assert spec["env"]["variables"]["DHI_BASE_IMAGE"] == PRODUCTION_DHI_BASE_IMAGE
+    assert spec["env"]["secrets-manager"] == {
+        "DHI_USERNAME": "dhi-registry-credentials:username",
+        "DHI_TOKEN": "dhi-registry-credentials:token",
+    }
+    pre_build, build = spec["phases"]["pre_build"], spec["phases"]["build"]
+    assert pre_build["on-failure"] == build["on-failure"] == "ABORT"
+    guard = next(c for c in pre_build["commands"] if "DHI_BASE_IMAGE" in c and "case" in c)
+    login = next(c for c in pre_build["commands"] if "docker login dhi.io" in c)
+    assert pre_build["commands"].index(guard) < pre_build["commands"].index(login)
+    # The token reaches docker on stdin, never on the command line.
+    assert "--password-stdin" in login and '"$DHI_TOKEN" |' in login
+    builds = [c for c in build["commands"] if c.startswith("docker build")]
+    assert builds == ['docker build --build-arg BASE_IMAGE="$DHI_BASE_IMAGE" -t $IMAGE_REPO_NAME:$IMAGE_TAG .']
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("value", [PRODUCTION_DHI_BASE_IMAGE, "python:3.11.16-slim-bookworm", "", "dhi.io/"])
+def test_production_base_image_guard_only_accepts_dhi(value):
+    spec = yaml.safe_load(_read("buildspec.yml"))
+    guard = next(c for c in spec["phases"]["pre_build"]["commands"]
+                 if "DHI_BASE_IMAGE" in c and "case" in c)
+    result = subprocess.run(["sh", "-c", guard], env={"DHI_BASE_IMAGE": value, "PATH": os.defpath},
+                            capture_output=True, text=True)
+    assert (result.returncode == 0) is (value == PRODUCTION_DHI_BASE_IMAGE), result.stderr
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("codename", ["trixie", "bullseye", ""])
+def test_nginx_install_script_refuses_other_debian_releases(codename, tmp_path):
+    os_release = tmp_path / "os-release"
+    os_release.write_text(f"VERSION_CODENAME={codename}\n")
+    result = subprocess.run(
+        ["bash", os.path.join(REPO, "deploy/docker/production/install_nginx_bookworm.sh")],
+        env={"OS_RELEASE_FILE": str(os_release), "PATH": os.defpath},
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 1
+    assert "not bookworm" in result.stderr
+
+
+@pytest.mark.unit
+def test_nginx_install_script_proceeds_on_bookworm(tmp_path):
+    """On bookworm the guard passes and installation starts (stubbed addgroup)."""
+    os_release = tmp_path / "os-release"
+    os_release.write_text("VERSION_CODENAME=bookworm\n")
+    stub = tmp_path / "bin"
+    stub.mkdir()
+    (stub / "addgroup").write_text("#!/bin/sh\necho reached-install\nexit 97\n")
+    (stub / "addgroup").chmod(0o755)
+    result = subprocess.run(
+        ["bash", os.path.join(REPO, "deploy/docker/production/install_nginx_bookworm.sh")],
+        env={"OS_RELEASE_FILE": str(os_release), "PATH": f"{stub}{os.pathsep}{os.defpath}"},
+        capture_output=True, text=True,
+    )
+    assert "reached-install" in result.stdout
+    assert "not bookworm" not in result.stderr
 
 
 @pytest.mark.unit

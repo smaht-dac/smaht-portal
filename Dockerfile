@@ -16,6 +16,8 @@
 #
 # BASE_IMAGE is overridable, but defaults to the standard Debian slim Python image
 # (NOT a hardened image) so plain `docker build .` works with no registry auth.
+# Production (buildspec.yml) and CI pass the private Docker Hardened Images base
+# (dhi.io) instead; see docs/operations/ci_private_base.md.
 ARG BASE_IMAGE=python:3.11.16-slim-bookworm
 
 # ---------------------------------------------------------------------------
@@ -124,18 +126,19 @@ RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
 # Runtime OS deps only. psycopg2-binary bundles libpq, so libpq-dev isn't needed
 # here; gcc/build tools aren't needed since wheels are built in the builder stage.
 # libmagic1 is for python-magic; make is for the local entrypoint; git is invoked
-# indirectly by dcicutils at runtime.
+# indirectly by dcicutils at runtime; adduser provides the addgroup/adduser the
+# nginx install script uses (already present on Debian slim, stated for any base).
 RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends ca-certificates git make libmagic1 && \
+    apt-get install -y --no-install-recommends ca-certificates git make libmagic1 adduser && \
     apt-get clean
 
 # nginx: install the pinned nginx.org build via the bookworm install script. That
 # script also creates the non-root nginx user (uid/gid 121) and symlinks nginx's
 # access/error logs to stdout/stderr.
-# On this standard Debian slim base the `adm` group (gid 4) and `www-data` user
-# (uid 33) already exist and uid/gid 121 are free (re-verified on bookworm), so -
-# unlike the hardened base - no extra account/tooling bootstrapping is required
-# before installing nginx.
+# On the standard Debian slim base the `adm` group (gid 4) and `www-data` user
+# (uid 33) already exist and uid/gid 121 are free (re-verified on bookworm). The
+# script refuses a base that is not Debian bookworm; the production dhi.io build
+# is verified by CI's "Docker Build (production DHI base)" step, not here.
 COPY deploy/docker/production/install_nginx_bookworm.sh /install_nginx.sh
 RUN bash /install_nginx.sh && \
     apt-get clean

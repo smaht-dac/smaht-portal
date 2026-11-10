@@ -30,6 +30,15 @@ NGINX_EXPECTED_FINGERPRINTS="573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
 8540A6F18833A80E9C1653A42FD21310B49F6B46
 9E9BE90EACBCDE69FE9B204CBCDCD8A38D88A2B3"
 
+# These are bookworm packages. Refuse any other Debian release, e.g. a base image
+# tag (such as the production dhi.io base) that has moved to a newer release, rather
+# than mixing suites. OS_RELEASE_FILE exists only so tests can exercise this check.
+. "${OS_RELEASE_FILE:-/etc/os-release}"
+if [ "${VERSION_CODENAME:-}" != "bookworm" ]; then
+    echo "install_nginx_bookworm.sh: base image is Debian '${VERSION_CODENAME:-unknown}', not bookworm" >&2
+    exit 1
+fi
+
 set -x \
 # create nginx user/group first, to be consistent throughout docker variants.
 # uid/gid 121 are free on the Debian slim bookworm base (checked 2026-09), and the

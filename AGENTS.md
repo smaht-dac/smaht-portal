@@ -72,8 +72,8 @@ authoritative files over copied details; use `README.rst` for the longer macOS s
   image build needs `touch deploy/docker/local/docker_development.ini` first because the ignored file
   is copied into the image; `.github/workflows/main.yml` and `buildspec.yml` do the same. Build with
   `DOCKER_BUILDKIT=1 docker build .` when BuildKit is not already the default.
-- `Dockerfile` owns production base-image and nginx package selection; private-base CI access
-  is documented in `docs/operations/ci_private_base.md`. `supervisord.conf` runs nginx and multiple
+- `Dockerfile` owns nginx package selection and the portable public default base; production's
+  private DHI base, its CodeBuild credentials and CI access are in `docs/operations/ci_private_base.md`. `supervisord.conf` runs nginx and multiple
   non-root Pyramid processes; role entrypoints build runtime configuration before serving,
   indexing, ingesting, or deploying.
 - The production image installs the pinned nginx.org build via

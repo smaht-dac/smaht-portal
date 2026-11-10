@@ -1,8 +1,18 @@
 version: 0.2
 
+# Production builds on the private Docker Hardened Images (dhi.io) base. The
+# Dockerfile's public default base exists only for local/portable builds and is
+# never what this build ships. Credentials come from the JSON Secrets Manager
+# secret below (username/token keys); the CodeBuild service role needs
+# secretsmanager:GetSecretValue on it. A missing secret, a non-dhi.io base or a
+# failed login aborts the build. See docs/operations/ci_private_base.md.
 env:
   variables:
     DOCKER_BUILDKIT: "1"
+    DHI_BASE_IMAGE: "dhi.io/python:3.11-debian-sfw-dev"
+  secrets-manager:
+    DHI_USERNAME: "dhi-registry-credentials:username"
+    DHI_TOKEN: "dhi-registry-credentials:token"
 
 # Reuse the Docker layer cache across builds when CodeBuild reuses a build host.
 # Requires the CodeBuild project's cache type to be set to LOCAL (and privileged mode,
@@ -13,17 +23,22 @@ cache:
 
 phases:
   pre_build:
+    on-failure: ABORT
     commands:
       - touch deploy/docker/local/docker_development.ini  # cheap substitute for prepare-docker to make ignored file
       - chmod +x ./buildspec_create_gitinfo.sh
       - ./buildspec_create_gitinfo.sh
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - case "$DHI_BASE_IMAGE" in dhi.io/?*) ;; *) echo "DHI_BASE_IMAGE must be a dhi.io image" >&2; exit 1 ;; esac
+      - echo Logging in to dhi.io...
+      - printf '%s' "$DHI_TOKEN" | docker login dhi.io --username "$DHI_USERNAME" --password-stdin
   build:
+    on-failure: ABORT
     commands:
       - echo Build started on `date`
-      - echo Building the Docker image...
-      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
+      - echo Building the Docker image on $DHI_BASE_IMAGE...
+      - docker build --build-arg BASE_IMAGE="$DHI_BASE_IMAGE" -t $IMAGE_REPO_NAME:$IMAGE_TAG .
       - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
       # Pull the CrowdStrike Falcon Container Sensor and mirror it into ECR.
       # Note: -c/--copy is the destination registry; -r/--region is the Falcon cloud
