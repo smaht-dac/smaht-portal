@@ -414,6 +414,12 @@ def is_germline(file: Dict[str, Any]) -> bool:
     return "Germline Variant Calls" in get_data_category(file)
 
 
+def is_somatic(file: Dict[str, Any]) -> bool:
+
+    """Check if file is somatic variant calls."""
+    return "Somatic Variant Calls" in get_data_category(file)
+
+
 def get_alignment_details(file: Dict[str, Any]) -> List[str]:
     """Get alignment details from file."""
     return file.get("alignment_details", [])
