@@ -127,3 +127,11 @@ def profile(context, request):
 #         'title': 'Submissions',
 #         'href': '/submissions',
 #     }
+
+
+@calculated_property(context=User, category='user_action')
+def schema_explorer(context, request):
+    from encoded.schema_explorer import can_view_explorer
+    if can_view_explorer(request):
+        return {'id': 'schema-explorer', 'title': 'Schema Explorer',
+                'href': '/schema-explorer'}

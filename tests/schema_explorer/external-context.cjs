@@ -1,0 +1,20 @@
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const base='src/encoded/static/components/static-pages/schema-explorer/';
+const url=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
+(async()=>{
+ const read=name=>fs.readFileSync(base+name+'.js','utf8');
+ const source=read('external-context').replace("'./domains'",JSON.stringify(url(read('domains')))).replace("'./research-map'",JSON.stringify(url(read('research-map'))));
+ const {externalContextGroups}=await import(url(source));
+ const {domains}=await import(url(read('domains')));
+ assert.deepEqual(externalContextGroups(new Set(['Donor','Tissue','File'])),[],'Small contexts stay explicit');
+ const groups=externalContextGroups(new Set(['VariantCalls','QualityMetric','Software','Tissue','TissueSample','Document','SubmissionCenter']));
+ const byId=Object.fromEntries(groups.map(group=>[group.id,group]));
+ for(const group of groups)assert.equal(group.label,domains.find(domain=>domain.id===group.id).label,'External groups reuse the catalog group name');
+ assert.ok(groups.every(group=>group.label.length<=32),'Group names fit the card without truncation');
+ assert.deepEqual(byId.files.mapLabels,['Data files','Quality assessment']);
+ assert.equal(byId.files.unmapped,1,'Software has no Donor to data box');
+ assert.deepEqual(byId.samples.mapLabels,['Source material','Sample'],'Map names follow the numbered map order');
+ assert.deepEqual(byId.administrative.mapLabels,[]);
+ assert.equal(byId.administrative.unmapped,2);
+ console.log('External context: catalog group names, map vocabulary per group and unmapped counts passed.');
+})();

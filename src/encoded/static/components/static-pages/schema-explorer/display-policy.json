@@ -1,0 +1,10 @@
+{
+    "hiddenFields": [
+        "principals_allowed", "principals", "effective_principals",
+        "actions", "user_actions", "groups", "roles", "local_roles",
+        "__ac_local_roles__", "__acl__", "acl", "permissions", "permission",
+        "submits_for", "was_unauthorized", "access_key_id", "secret_access_key",
+        "secret_access_key_hash", "password", "password_hash", "access_token",
+        "refresh_token", "id_token", "jwtToken"
+    ]
+}

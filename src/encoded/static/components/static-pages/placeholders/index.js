@@ -41,6 +41,7 @@ import { PublicationCollectionsNavigation } from '../PublicationCollectionsNavig
 import { PublicationCollection } from '../PublicationCollection';
 import { RecentReleasesTimelineMatrix } from '../components/RecentReleasesTimelineMatrix';
 import { ConsortiumHub } from '../ConsortiumHub';
+import SchemaExplorerSection from '../SchemaExplorerSection';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -79,6 +80,7 @@ const placeholders = {
     PublicationCollection,
     RecentReleasesTimelineMatrix,
     ConsortiumHub,
+    SchemaExplorerSection,
 };
 
 export const replaceString = memoize(
