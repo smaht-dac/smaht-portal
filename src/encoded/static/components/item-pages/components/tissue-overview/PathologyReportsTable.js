@@ -248,17 +248,17 @@ export function useScrollToHighlightedReport(highlightedReportId, expandedDonorU
 const AliquotReportsTable = ({ reports, highlightedReportId, enableConditionalColor }) => (
     <table className="pathology-aliquot-table">
         <colgroup>
-            <col style={{ width: '12%' }} />
-            <col style={{ width: '8%' }} />
-            <col style={{ width: '6%' }} />
-            <col style={{ width: '10%' }} />
             <col style={{ width: '11%' }} />
-            <col style={{ width: '9%' }} />
-            <col style={{ width: '9%' }} />
-            <col style={{ width: '10%' }} />
-            <col style={{ width: '8%' }} />
-            <col style={{ width: '11%' }} />
+            <col style={{ width: '7%' }} />
             <col style={{ width: '6%' }} />
+            <col style={{ width: '16%' }} />
+            <col style={{ width: '13%' }} />
+            <col style={{ width: '9%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '9%' }} />
+            <col style={{ width: '7%' }} />
+            <col style={{ width: '9%' }} />
+            <col style={{ width: '5%' }} />
         </colgroup>
         <thead>
             <tr>

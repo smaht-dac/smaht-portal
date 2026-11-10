@@ -4560,7 +4560,10 @@ $pathology-reports-muted: #B0B0B0;
                     background-color: $pathology-reports-zebra;
                 }
 
-                tbody tr td.is-finding-present {
+                // Listed with the zebra selector too -- it outranks the
+                // plain one, so even rows would otherwise stay grey.
+                tbody tr td.is-finding-present,
+                tbody tr:nth-child(even) td.is-finding-present {
                     background-color: #fcffc3;
                 }
 
