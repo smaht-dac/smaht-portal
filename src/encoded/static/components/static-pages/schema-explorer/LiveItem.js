@@ -37,7 +37,7 @@ function ValueRow({ row, parent, bundle, query, inspect, request }) {
                     e.stopPropagation();
                     inspect(row);
                 }}>
-                Origin ↗
+                Origin <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" />
             </button>
             {row.linkedItem && (
                 <button
@@ -47,7 +47,7 @@ function ValueRow({ row, parent, bundle, query, inspect, request }) {
                         e.stopPropagation();
                         request(row.linkedItem);
                     }}>
-                    Load →
+                    Load <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" />
                 </button>
             )}
             {row.sourceItem !== (parent?.sourceItem || bundle.id) && (

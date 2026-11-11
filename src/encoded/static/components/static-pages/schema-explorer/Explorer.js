@@ -309,13 +309,13 @@ export default function Explorer() {
                         id={mode === 'item' ? 'open-entity' : undefined}
                         aria-pressed={mode === 'map'}
                         onClick={() => setMode('map')}>
-                        Metadata map
+                        <i className="icon icon-fw icon-diagram-project fas" aria-hidden="true" /> Metadata map
                     </button>
                     <button type="button"
                         id={mode === 'map' ? 'open-entity' : undefined}
                         aria-pressed={mode === 'item'}
                         onClick={() => setMode('item')}>
-                        Schema details
+                        <i className="icon icon-fw icon-table fas" aria-hidden="true" /> Schema details
                     </button>
                 </div>
                 <span className="se-actions-tools">
@@ -331,7 +331,7 @@ export default function Explorer() {
                         disabled={loading}
                         onClick={() => setRefresh((n) => n + 1)}
                         title="Reload the deployed snapshot. Source changes require a server restart or a rebuilt artifact.">
-                        <span aria-hidden="true">↻</span> {loading ? 'Reloading…' : 'Reload snapshot'}
+                        <i className="icon icon-fw icon-sync-alt fas" aria-hidden="true" /> {loading ? 'Reloading…' : 'Reload snapshot'}
                     </button>
                 </span>
             </div>
@@ -352,7 +352,7 @@ export default function Explorer() {
             </div>
             <div hidden={mode !== 'item'} className="se-item-view">
                 <nav className="se-item-nav" aria-label="Schema navigation">
-                    {returnToMap && <button type="button" className="se-back-to-map" onClick={backToMap}>← Back to schema map</button>}
+                    {returnToMap && <button type="button" className="se-back-to-map" onClick={backToMap}><i className="icon icon-fw icon-arrow-left fas" aria-hidden="true" /> Back to schema map</button>}
                     {history.entries.length > 1 && (
                         <span className="se-item-history">
                             <button type="button" disabled={history.position <= 0} onClick={() => travel(-1)}
@@ -387,15 +387,15 @@ export default function Explorer() {
                                     only restates the name (e.g. death_circumstances) adds nothing under the title. */}
                                 {hasOwnDescription(model) && <p className="se-diagram-question">{model.schema.description}</p>}
                                 <div className="se-inheritance-chain" aria-label="Schema sources and inheritance">
-                                    <button type="button" onClick={() => source(model.source)}>Python source ↗</button>
-                                    {model.schemaSource && <button type="button" onClick={() => source(model.schemaSource)}>JSON schema ↗</button>}
+                                    <button type="button" onClick={() => source(model.source)}>Python source <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" /></button>
+                                    {model.schemaSource && <button type="button" onClick={() => source(model.schemaSource)}>JSON schema <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" /></button>}
                                     {model.bases.length > 0 && (
                                         <span className="se-inheritance-bases" aria-label="Inheritance (method resolution order)">
                                             <span className="se-inheritance-label">Inherits from</span>
                                             {model.bases.map((base, i) => (
                                                 <React.Fragment key={base.id}>
                                                     {i > 0 && <span aria-hidden="true">›</span>}
-                                                    <button type="button" title={`${base.id} · open source`} onClick={() => source(base.source)}>{baseLabel(base.id, model.bases)} ↗</button>
+                                                    <button type="button" title={`${base.id} · open source`} onClick={() => source(base.source)}>{baseLabel(base.id, model.bases)} <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" /></button>
                                                 </React.Fragment>
                                             ))}
                                         </span>

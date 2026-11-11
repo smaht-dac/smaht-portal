@@ -16,7 +16,7 @@ import { externalContextGroups } from './external-context';
 import { mapSentence, researchLabels } from './research-map';
 import { neighborhoodLayout } from './neighborhood';
 import CrossGroupConnections, { outsideConnections } from './CrossGroupConnections';
-import { Badge, Filters, visibleEdge, edgeLabel, exportPNG } from './shared';
+import { Badge, Filters, visibleEdge, edgeLabel, exportPNG, InfoPopover } from './shared';
 
 const defaults = [];
 const colors = { linkTo: '#2368aa', calculated: '#7952a3', reverse: '#986019' };
@@ -267,6 +267,12 @@ export default function Diagram({
         summarize && ['covered', 'Hover an arrow to trace it; an arrow from a base type also marks the subtypes that inherit it'],
         ['arrow', 'Arrow points to the referenced schema'],
     ].filter(Boolean) : [];
+    // The reading note for the current view; it moved with the legend into the canvas info popover.
+    const guideNote = selected ? ''
+        : conceptContext ? `Highlighted schemas belong to ${conceptContext.label}. Select a schema or arrow to explore its relationships. Drag to pan; scroll to zoom.`
+            : !showDomains ? 'Drag the background to pan, scroll to zoom, or drag a type to move it. Select a type to highlight its neighbors; select an edge to inspect its fields.'
+                : summarize ? 'Inherited references are drawn once at their visible base type. Select a type for its exact links, including self-references, or choose All references.'
+                    : 'All references are expanded. Select a type to focus its connections, or choose Shared definitions to combine inherited links.';
     const title = compact ? 'Relationships' : neighbors ? selected
         : singleFrame?.label || domains.find((d) => d.id === domain)?.label || 'All schemas';
     const eyebrow = compact ? '' : neighbors ? 'Schema neighborhood' : domain ? 'Schema group' : '';
@@ -563,7 +569,7 @@ export default function Diagram({
             {/* A concept's heading and tabs are drawn by the metadata map above this diagram. */}
             {!conceptContext && (
                 <header className="se-diagram-header">
-                    {domain && !compact && <button type="button" className="se-diagram-back" onClick={() => chooseDomain('')}>← Metadata map</button>}
+                    {domain && !compact && <button type="button" className="se-diagram-back" onClick={() => chooseDomain('')}><i className="icon icon-fw icon-arrow-left fas" aria-hidden="true" /> Metadata map</button>}
                     <div className="se-diagram-heading">
                         {eyebrow && <span className="se-diagram-eyebrow">{eyebrow}</span>}
                         <h2>{title}</h2>
@@ -686,31 +692,26 @@ export default function Diagram({
                             else { setMoves({}); setNeighbors(false); }
                         }}>{neighbors ? 'Back to the whole group' : 'Show only its connections'}
                         </button>
-                        <button type="button" onClick={() => onExplore(selected)}>Open schema details →</button>
-                        <button type="button" className="se-selection-clear" onClick={clearSelection} aria-label={`Clear selection of ${selected}`}>Clear ×</button>
+                        <button type="button" onClick={() => onExplore(selected)}>Open schema details <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button>
+                        <button type="button" className="se-selection-clear" onClick={clearSelection} aria-label={`Clear selection of ${selected}`}><i className="icon icon-fw icon-times fas" aria-hidden="true" /> Clear</button>
                     </span>
                 </div>
             )}
-            {!selected && conceptContext && (
-                <p className="se-flow-note">Highlighted schemas belong to {conceptContext.label}. Select a schema or arrow to explore its relationships. Drag to pan; scroll to zoom.</p>
-            )}
-            {!selected && !showDomains && !conceptContext && <p className="se-flow-note">Drag the background to pan, scroll to zoom, or drag a type to move it. Select a type to highlight its neighbors; select an edge to inspect its fields.</p>}
-            {!selected && showDomains && !conceptContext && (
-                <p className="se-flow-note">{selected
-                    ? `Showing ${selected} references between visible schemas, including inherited and self-references. Clear selection to return to the group overview.`
-                    : summarize ? 'Inherited references are drawn once at their visible base type. Select a type for its exact links, including self-references, or choose All references.'
-                        : 'All references are expanded. Select a type to focus its connections, or choose Shared definitions to combine inherited links.'}
-                </p>
-            )}
-            {legend.length > 0 && (
-                <ul className="se-diagram-legend" aria-label="Diagram legend">
-                    {legend.map(([kind, label]) => <li key={kind}><span className={`se-legend-swatch se-legend-${kind}`} aria-hidden="true" />{label}</li>)}
-                </ul>
-            )}
             <div className="se-canvas-wrap">
+                {/* The reading note and legend sit behind an info icon, as on the portal's charts. */}
+                <span className={`se-canvas-info${compact ? ' se-canvas-info-compact' : ''}`}>
+                    <InfoPopover id="se-diagram-guide-popover" className="se-diagram-guide-popover" label="How to read this diagram" title="Reading the diagram" placement="bottom-end">
+                        {guideNote && <p>{guideNote}</p>}
+                        {legend.length > 0 && (
+                            <ul className="se-diagram-legend" aria-label="Diagram legend">
+                                {legend.map(([kind, label]) => <li key={kind}><span className={`se-legend-swatch se-legend-${kind}`} aria-hidden="true" />{label}</li>)}
+                            </ul>
+                        )}
+                    </InfoPopover>
+                </span>
                 {!compact && (
                     <button type="button" className="se-canvas-fullscreen" id="entity-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} title={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onPointerDown={(e) => e.stopPropagation()} onClick={() => setFull(!full)}>
-                        <svg aria-hidden="true" viewBox="0 0 16 16"><path d={full ? 'M6 1v5H1M10 1v5h5M15 10h-5v5M6 15v-5H1' : 'M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5'} /></svg>
+                        <i className={`icon icon-fw fas ${full ? 'icon-compress-alt' : 'icon-expand-alt'}`} aria-hidden="true" />
                     </button>
                 )}
                 <svg
@@ -802,7 +803,7 @@ export default function Diagram({
                         transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
                         {showDomains && clustered.frames.map((frame) => (
                             <g key={frame.id} className="se-domain-frame">
-                                <rect x={frame.left} y={frame.top} width={frame.width} height={frame.height} rx="12" />
+                                <rect x={frame.left} y={frame.top} width={frame.width} height={frame.height} rx="4" />
                                 {!singleFrame && (
                                     <text x={frame.left + 24} y={frame.top + 38} role="button" tabIndex={0}
                                         aria-label={`Focus group: ${frame.label}`}
@@ -816,7 +817,7 @@ export default function Diagram({
                             </g>
                         ))}
                         {showDomains && clustered.layers.map((layer) => (
-                            <rect key={`panel-${layer.id}`} className="se-stage-panel" x={layer.panel.left} y={layer.panel.top} width={layer.panel.width} height={layer.panel.height} rx="8" />
+                            <rect key={`panel-${layer.id}`} className="se-stage-panel" x={layer.panel.left} y={layer.panel.top} width={layer.panel.width} height={layer.panel.height} rx="4" />
                         ))}
                         {showDomains && clustered.layers.map((layer) => (
                             <g key={layer.id}>
@@ -825,7 +826,7 @@ export default function Diagram({
                             </g>
                         ))}
                         {neighborhoodView?.panels.map((panel) => (
-                            <rect key={`panel-${panel.id}`} className="se-stage-panel" x={panel.panel.left} y={panel.panel.top} width={panel.panel.width} height={panel.panel.height} rx="8" />
+                            <rect key={`panel-${panel.id}`} className="se-stage-panel" x={panel.panel.left} y={panel.panel.top} width={panel.panel.width} height={panel.panel.height} rx="4" />
                         ))}
                         {neighborhoodView?.panels.map((panel) => (
                             <text key={panel.id} className="se-stage-label se-neighborhood-group" x={panel.left} y={panel.top + 18}>{panel.label}</text>
@@ -925,7 +926,7 @@ export default function Diagram({
                                     transform={`translate(${p.x - width / 2},${p.y - height / 2})`} role="button" tabIndex={0}
                                     aria-label={`${expanded ? 'Collapse' : 'Expand'} ${bundle.label}: ${bundle.members.length} connected schemas`} aria-expanded={expanded}
                                     onClick={toggle} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(); } }}>
-                                    <title>{`${bundle.label}\n${mapLine}`}</title><rect width={width} height={height} rx="8" />
+                                    <title>{`${bundle.label}\n${mapLine}`}</title><rect width={width} height={height} rx="4" />
                                     <text x="12" y="20" className="se-external-group-title">{label}</text>
                                     <text x="12" y="37" className="se-external-group-map">{mapText}</text>
                                     <text x="12" y="54">{bundle.members.length} connected {bundle.members.length === 1 ? 'schema' : 'schemas'} · {expanded ? 'Collapse ↑' : 'Expand →'}</text>
@@ -964,7 +965,7 @@ export default function Diagram({
                                     }}>
                                     <title>{tooltip}</title>
                                     {externalContextNames.has(n.name) && <text className="se-context-domain" x="0" y="-8">Other group · {domains.find((group) => group.id === domainFor(n.name))?.label}</text>}
-                                    <rect className="se-node-body" width={cardWidth} height={cardHeight} rx={8} />
+                                    <rect className="se-node-body" width={cardWidth} height={cardHeight} rx={4} />
                                     <text className="se-node-title" x="12" y={26}>
                                         {n.name}
                                     </text>
@@ -999,7 +1000,7 @@ export default function Diagram({
                                                     if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); inspectInherited(n.name); }
                                                 }}>
                                                 <title>{`Inherited from ${[...tag.owners].join(', ')}. Its shared definition is drawn once at the base; hover to trace it.`}</title>
-                                                <rect x={(cardWidth - tagWidth) / 2} y={cardHeight - 8} width={tagWidth} height="16" rx="8" />
+                                                <rect x={(cardWidth - tagWidth) / 2} y={cardHeight - 8} width={tagWidth} height="16" rx="3" />
                                                 <text x={cardWidth / 2} y={cardHeight + 3.5}>{text}</text>
                                             </g>
                                         );
@@ -1022,7 +1023,7 @@ export default function Diagram({
                                         }
                                     }}>
                                     <title>{externalGroups.map((group) => `${group.label}: ${group.count} connected ${group.count === 1 ? 'schema' : 'schemas'}`).join('\n')}</title>
-                                    <rect x="-105" y="7" width="210" height="19" rx="7" />
+                                    <rect x="-105" y="7" width="210" height="19" rx="3" />
                                     <text x="0" y="20">External connections · {externalGroups.length} {externalGroups.length === 1 ? 'group' : 'groups'}</text>
                                 </g>
                             </g>
@@ -1053,7 +1054,7 @@ export default function Diagram({
                                 {selectedDescription && <p>{selectedDescription}</p>}
                             </div>
                             {!compact
-                                ? <button type="button" className="se-selected-open" onClick={() => onExplore(selected)}>Open schema details →</button>
+                                ? <button type="button" className="se-selected-open" onClick={() => onExplore(selected)}>Open schema details <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button>
                                 : <button type="button" onClick={clearSelection}>Clear selection</button>}
                         </header>
                     )}
@@ -1075,7 +1076,7 @@ export default function Diagram({
                                             </th>
                                             <td><code>{e.field}</code></td>
                                             <td><Badge kind={e.kind}>{edgeLabel(e)}</Badge></td>
-                                            <td className="se-selected-action"><button type="button" onClick={() => inspect({ ...e, edges: [e] })}>Details →</button></td>
+                                            <td className="se-selected-action"><button type="button" onClick={() => inspect({ ...e, edges: [e] })}>Details <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button></td>
                                         </tr>
                                     ))}
                                 </tbody>

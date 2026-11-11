@@ -32,7 +32,7 @@ export default function SchemaCatalog({ index, query, onOpen, onOpenGroup }) {
                     <section className="se-catalog-group" key={group.id} aria-label={group.label}>
                         <header>
                             <h3>{group.label} <span>{group.total}</span></h3>
-                            {onOpenGroup && <button type="button" onClick={() => onOpenGroup(group.id)}>Open group map →</button>}
+                            {onOpenGroup && <button type="button" onClick={() => onOpenGroup(group.id)}>Open group map <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button>}
                         </header>
                         <ul>
                             {group.members.map(({ model, caption }) => (

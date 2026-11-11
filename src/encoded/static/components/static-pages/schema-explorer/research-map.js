@@ -14,6 +14,16 @@ export const concepts = [
     { id: 'quality', label: 'Quality assessment', hint: 'How was data quality measured?', example: 'QualityMetric', domain: 'files', types: 'QualityMetric ExternalQualityMetric', description: 'Files reference quality measurements through quality_metrics and external_quality_metrics. These records describe quality rather than biological provenance.' },
     { id: 'sequencing', label: 'Sequencing', hint: 'How was the library sequenced?', example: 'Sequencing', domain: 'sequencing', types: 'Sequencing', description: 'Sequencing metadata records the run configuration, sequencer and preparation kits. FileSet.sequencing links an experiment to this information.' },
 ];
+// Concepts outside the numbered path hang off one of its steps, and sit beside it on the map:
+// [step, column offset, row offset].
+export const branchOf = { analysis: 'files', workflow: 'files', quality: 'files', sequencing: 'fileSet' };
+const branchPlace = { analysis: [0, 1], quality: [1, 0], workflow: [1, 1], sequencing: [1, 0] };
+
+// Portal Font Awesome icons for each concept, shown in its heading like an item page's entity icon.
+export const conceptIcons = {
+    donor: 'user', material: 'lungs', sample: 'vial', analyte: 'flask', library: 'dna', fileSet: 'layer-group',
+    files: 'file', analysis: 'magnifying-glass-chart', workflow: 'gears', quality: 'clipboard-check', sequencing: 'microscope',
+};
 export const connections = [
     { from: 'material', to: 'donor', fields: ['donor'], question: "Which donor supplied this material?", explanation: "The donor field connects source material to its donor. The exact reference is defined on the source-material schema, such as Tissue or CellLine.", label: 'donated by', primary: true },
     { from: 'sample', to: 'material', fields: ['sample_sources[]'], question: "Where did the sample come from?", explanation: "The sample_sources field connects a specimen to its source tissue or culture. A sample can reference more than one source record.", label: 'taken from', primary: true },
@@ -41,11 +51,21 @@ export function buildResearchMap(index, available, viewport = { width: 1200, hei
     }
     const nodeWidth = 216, nodeHeight = 104;
     const columns = viewport.width >= 1080 ? 4 : viewport.width >= 810 ? 3 : 2;
-    const positions = {};
-    nodes.forEach((node, i) => {
-        const row = Math.floor(i / columns), col = i % columns;
-        positions[node.id] = { x: nodeWidth / 2 + (row % 2 ? columns - col - 1 : col) * 316, y: nodeHeight / 2 + row * 190 };
-    });
+    // The numbered steps read like newspaper columns: down each column, then on from the top of the next one.
+    // Each branch takes the cell beside its step, or the nearest free cell when that one is taken or off the grid.
+    const rows = Math.ceil(nodes.length / columns);
+    const cells = {}, taken = new Set();
+    const place = (id, col, row) => { cells[id] = [col, row]; taken.add(`${col},${row}`); };
+    nodes.filter((node) => !branchOf[node.id]).forEach((node, i) => place(node.id, Math.floor(i / rows), i % rows));
+    for (const node of nodes.filter((n) => branchOf[n.id])) {
+        const [col, row] = cells[branchOf[node.id]] || [0, 0];
+        const [dc, dr] = branchPlace[node.id];
+        const free = [];
+        for (let c = 0; c < columns; c++) for (let r = 0; r < rows; r++) if (!taken.has(`${c},${r}`)) free.push([c, r]);
+        free.sort((a, b) => (Math.abs(a[0] - col - dc) + Math.abs(a[1] - row - dr)) - (Math.abs(b[0] - col - dc) + Math.abs(b[1] - row - dr)));
+        place(node.id, ...free[0]);
+    }
+    const positions = Object.fromEntries(Object.entries(cells).map(([id, [col, row]]) => [id, { x: nodeWidth / 2 + col * 316, y: nodeHeight / 2 + row * 190 }]));
     return { nodes, edges, positions, nodeWidth, nodeHeight };
 }
 

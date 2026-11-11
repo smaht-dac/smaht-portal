@@ -127,7 +127,15 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.deepEqual(await cardPaint(),normalPaint,'Overview hover does not highlight the diagram action');
  assert.equal(await sourceConcept.locator('[data-overview] text').evaluate(node=>getComputedStyle(node).textDecorationLine),'underline','Overview has its own hover treatment');
  await page.locator('h2').first().hover();
- await page.locator('.se-research-legend').screenshot({path:path.join(output,'map-reading-guide.png')});
+ // The reading guide sits behind the info icon beside the map title, like the portal's chart titles.
+ assert.equal(await page.locator('.se-research-legend').count(),0,'No separate guide grid above the map');
+ await page.getByRole('button',{name:'How to read the map',exact:true}).click();
+ const guide=page.locator('.se-map-guide-popover');
+ await guide.waitFor();
+ for(const text of ['Follow the numbered workflow forward','Read each arrow as a sentence','arrows point to the referenced schema','opens its schema diagram','Drag to pan'])assert.ok((await guide.textContent()).includes(text),`The guide keeps: ${text}`);
+ await guide.screenshot({path:path.join(output,'map-reading-guide.png')});
+ await page.keyboard.press('Escape');await page.locator('h2').first().click({position:{x:2,y:2}});
+ await guide.waitFor({state:'detached'});
  await page.locator('#research-svg').screenshot({path:path.join(output,'research-overview.png')});
  assert.equal(await page.getByRole('button',{name:/^(Whole model|Trace a file to its donor)$/}).count(),0,'The overview has one mode');
  // Concept navigation: a map card opens its diagram, Summary/Map tabs switch views, the stepper moves between concepts.
@@ -192,7 +200,14 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.locator('[data-entity="Library"].se-concept-center').count(),1,'The original concept remains visually anchored');
  assert.equal(await page.locator('.se-research-detail .se-concept-eyebrow').textContent(),'Analytes, Libraries & Sequencing','The concept names its group above the title');
  assert.equal(await page.locator('.se-concept-diagram .se-diagram-facts').count(),0,'The diagram carries no separate fact chips');
- assert.ok((await page.locator('.se-diagram-legend').textContent()).includes('In focus: Library'),'The legend explains the outlined concept schemas');
+ assert.equal(await page.locator('.se-concept-diagram > .se-diagram-legend, .se-concept-diagram > .se-flow-note').count(),0,'Reading help is not stacked above the canvas');
+ await page.getByRole('button',{name:'How to read this diagram',exact:true}).click();
+ const diagramGuide=page.locator('.se-diagram-guide-popover');
+ await diagramGuide.waitFor();
+ assert.ok((await diagramGuide.locator('.se-diagram-legend').textContent()).includes('In focus: Library'),'The legend explains the outlined concept schemas');
+ assert.match(await diagramGuide.textContent(),/Highlighted schemas belong to Library/,'The reading note moved into the guide');
+ await page.keyboard.press('Escape');await page.locator('.se-research-detail h3').click();
+ await diagramGuide.waitFor({state:'detached'});
  for(const pair of ['Library to Analyte','FileSet to Library','Library to LibraryPreparation'])assert.ok(await page.locator(`#entity-svg .se-edge[aria-label="${pair}"]`).count(),'The overview connections and additional preparation metadata are present');
  await page.locator('.se-concept-diagram').screenshot({path:path.join(output,'library-simplified-entry.png')});
  await page.locator('.se-diagram > .se-canvas-wrap').screenshot({path:path.join(output,'library-direct-connections.png')});
@@ -292,7 +307,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await catalog.locator('.se-catalog-group').count(),6);
  assert.ok(await catalog.getByRole('region',{name:'Admin, Content & Ontology',exact:true}).count(),'The catalog and external cards share one group name');
  await catalog.screenshot({path:path.join(output,'schema-catalog.png')});
- await catalog.getByRole('region',{name:'Donor & Clinical History',exact:true}).getByRole('button',{name:'Open group map →',exact:true}).click();
+ await catalog.getByRole('region',{name:'Donor & Clinical History',exact:true}).getByRole('button',{name:'Open group map',exact:true}).click();
  assert.equal(await page.getByLabel('Diagram layout',{exact:true}).inputValue(),'hierarchical');
  await shell.screenshot({path:path.join(output,'hierarchical-map.png')});
  await selectSetting('Schema group','donors');
@@ -495,13 +510,14 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
    await outsideCue.click();
    assert.ok(await outsideRegion.isVisible());
    await outsideRegion.locator('details[data-domain="workflows"] summary').click();
-   await outsideRegion.getByRole('button',{name:'WorkflowRun →',exact:true}).click();
+   await outsideRegion.getByRole('button',{name:'WorkflowRun',exact:true}).click();
    assert.equal(await page.getByLabel('Schema group',{exact:true}).inputValue(),'workflows','External schema navigation opens its group');
    assert.ok(await page.locator('[data-entity="WorkflowRun"].selected').count());
   }
 
  }
- await page.getByRole('button',{name:'← Metadata map',exact:true}).click();
+ // The group map's back button; the page tab carries the same name.
+ await page.locator('.se-diagram-header .se-diagram-back').click();
  assert.equal(await page.locator('.se-research-overview').count(),1);
  await page.getByLabel('Search schemas',{exact:true}).fill('Donor');
  await page.getByRole('button',{name:'Donor',exact:true}).click();

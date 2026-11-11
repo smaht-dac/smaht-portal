@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { buildResearchMap, researchLabels, traceProvenance, overviewFlow } from './research-map';
+import { buildResearchMap, researchLabels, traceProvenance, overviewFlow, conceptIcons, branchOf } from './research-map';
 import { routeEdges } from './routing';
 import { abstractTypes, domains } from './domains';
 import { conceptConnections } from './concept-connections';
-import { exportPNG, ConceptTabs } from './shared';
+import { exportPNG, ConceptTabs, InfoPopover } from './shared';
 
 function lines(text) {
     const result = [''];
@@ -37,7 +37,7 @@ function RelationshipRow({ edge, section, graph, onInspect }) {
                 <small>{owners.length === 1 ? `on ${owners[0]}` : `on ${owners.length} schemas`}</small>
             </td>
             <td className="se-relationship-action">
-                <button type="button" onClick={() => onInspect(edge)} aria-label={`Details for ${from} to ${to}`}>Details →</button>
+                <button type="button" onClick={() => onInspect(edge)} aria-label={`Details for ${from} to ${to}`}>Details <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button>
             </td>
         </tr>
     );
@@ -91,8 +91,23 @@ function RelationshipSection({ section, graph, onInspect }) {
     );
 }
 
-// Concepts outside the numbered path hang off one of its steps.
-const branchOf = { analysis: 'files', workflow: 'files', quality: 'files', sequencing: 'fileSet' };
+// How to read the map, behind the info icon beside the title as on the portal's chart titles.
+function MapGuide() {
+    return (
+        <InfoPopover id="se-map-guide-popover" className="se-map-guide-popover" label="How to read the map" title="Reading the map">
+            <h4>Donor to data</h4>
+            <p>Follow the numbered workflow forward, or trace a file’s origin backward.</p>
+            <p>Branches add experimental and analysis context. Read each arrow as a sentence: Donor provides Source material.</p>
+            <p>Schema diagrams use the reference direction instead: arrows point to the referenced schema.</p>
+            <h4>Explore the relationships</h4>
+            <p><b>Box</b> opens its schema diagram · <b>Arrow</b> opens relationship details.</p>
+            <p><b>Summary</b> explains the concept.</p>
+            <h4>Move around</h4>
+            <p>Drag to pan · Scroll to zoom</p>
+        </InfoPopover>
+    );
+}
+
 
 // The whole donor-to-data path with the current concept marked, so its place reads at a glance.
 function WorkflowStepper({ concept, graph, onConcept }) {
@@ -260,7 +275,7 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
     return (
         <section className={`se-research-overview${full ? ' se-fullscreen' : ''}`} aria-label="Metadata relationship overview">
             <div className="se-research-heading">
-                <div><h2>From donor to data</h2><p>How specimens, experiments and files connect in the SMaHT metadata model.</p></div>
+                <div><div className="se-research-title"><h2>From donor to data</h2><MapGuide /></div><p>How specimens, experiments and files connect in the SMaHT metadata model.</p></div>
                 <button type="button" onClick={onAllTypes}>All {nodes.length} schemas</button>
             </div>
             <div className="se-research-toolbar">
@@ -282,27 +297,13 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
             {query && <div className="se-toolbar">{nodes.filter((node) => node.name.toLowerCase().includes(query.toLowerCase())).slice(0, 8).map((node) => <button type="button" key={node.name} onClick={() => onType(node.name)}>{node.name}</button>)}</div>}
             {concept && (
                 <button type="button" className="se-research-map-toggle" aria-expanded={mapExpanded} aria-controls="research-map-context" onClick={() => setMapExpanded(!mapExpanded)}>
-                    <span>Metadata map <span aria-hidden="true">/</span> {concept.label}</span><span>{mapExpanded ? 'Hide map ↑' : 'Show map ↓'}</span>
+                    <span>Metadata map <span aria-hidden="true">/</span> {concept.label}</span><span>{mapExpanded ? 'Hide map' : 'Show map'} <i className={`icon icon-fw fas ${mapExpanded ? 'icon-angle-up' : 'icon-angle-down'}`} aria-hidden="true" /></span>
                 </button>
             )}
             <div id="research-map-context" hidden={!mapExpanded}>
-                <div className="se-research-legend" aria-label="Reading the map">
-                    <div className="se-map-guide">
-                        <span className="se-map-guide-symbol" aria-hidden="true">1–7</span>
-                        <div><strong>Donor to data</strong><p>Follow the numbered workflow forward, or trace a file’s origin backward.</p><p>Branches add experimental and analysis context. Read each arrow as a sentence: Donor provides Source material.</p><p>Schema diagrams use the reference direction instead: arrows point to the referenced schema.</p></div>
-                    </div>
-                    <div className="se-map-guide">
-                        <span className="se-map-guide-symbol" aria-hidden="true">↗</span>
-                        <div><strong>Explore the relationships</strong><p><b>Box</b> opens its schema diagram · <b>Arrow</b> opens relationship details.</p><p><b>Summary</b> explains the concept.</p></div>
-                    </div>
-                    <div className="se-map-guide se-map-guide-navigation">
-                        <span className="se-map-guide-symbol" aria-hidden="true">↔</span>
-                        <div><strong>Move around</strong><p>Drag to pan · Scroll to zoom</p></div>
-                    </div>
-                </div>
                 {error && <p role="alert">{error}</p>}
                 <div className="se-canvas-wrap">
-                    <button type="button" className="se-canvas-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onClick={() => setFull(!full)}>{full ? '↙' : '⛶'}</button>
+                    <button type="button" className="se-canvas-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onClick={() => setFull(!full)}><i className={`icon icon-fw fas ${full ? 'icon-compress-alt' : 'icon-expand-alt'}`} aria-hidden="true" /></button>
                     <svg ref={svg} id="research-svg" className="se-canvas" role="group" aria-label="Donor to data relationship map" tabIndex={0}
                         onPointerDown={(event) => {
                             if (event.button !== 0 || event.target.closest('[data-concept], [data-reference], [data-overview]')) return;
@@ -324,7 +325,7 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
                             if (delta) { event.preventDefault(); setCamera((c) => {return { ...c, x: c.x + delta[0], y: c.y + delta[1] };}); }
                         }}>
                         <defs>
-                            {[['research-arrow', '#477293'], ['research-arrow-traced', '#079483' /* $seafoam-60 */]].map(([id, color]) => (
+                            {[['research-arrow', '#888'], ['research-arrow-traced', '#079483' /* $seafoam-60 */]].map(([id, color]) => (
                                 <marker key={id} id={id} viewBox="0 0 10 8" refX="10" refY="4" markerWidth="10" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
                                     <path d="M0,0 L10,4 L0,8 Z" fill={color} />
                                 </marker>
@@ -353,7 +354,7 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
                                         <g className="se-research-diagram-action" role="button" tabIndex={0}
                                             aria-label={`Explore ${node.label} connections: ${node.hint}`} aria-pressed={selected === node.id} onClick={() => openMap(node, 'map')}
                                             onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openMap(node, 'map'); } }}>
-                                            <rect className="se-research-card" width={graph.nodeWidth} height={graph.nodeHeight} rx="8" />
+                                            <rect className="se-research-card" width={graph.nodeWidth} height={graph.nodeHeight} rx="4" />
                                             <text className="se-research-title" x="14" y="26">{node.label}</text>
                                             {lines(node.hint).map((line, i) => <text className="se-research-hint" key={line} x="14" y={47 + i * 15}>{line}</text>)}
                                             <text className="se-research-example" x="14" y="89">{node.example}</text>
@@ -387,12 +388,16 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
 
             {concept && (
                 <section ref={detail} className="se-research-detail" aria-label={`${concept.label} details`}>
+                    {/* Laid out like a portal item page header: entity icon, title, then a ruled label | value row. */}
                     <header className="se-concept-heading">
+                        <span className="se-concept-icon" aria-hidden="true"><i className={`icon fas icon-${conceptIcons[concept.id] || 'circle'}`} /></span>
                         <div>
-                            <button type="button" className="se-diagram-back" onClick={returnToMap}>← Metadata map</button>
-                            <span className="se-concept-eyebrow">{domains.find((d) => d.id === concept.domain)?.label || 'Explore the metadata'}</span>
+                            <button type="button" className="se-diagram-back" onClick={returnToMap}><i className="icon icon-fw icon-arrow-left fas" aria-hidden="true" /> Metadata map</button>
                             <h3 ref={detailHeading} tabIndex={-1}>{concept.label}</h3>
-                            <p className="se-concept-question">{concept.hint}</p>
+                            <div className="se-concept-subtitle">
+                                <p className="se-concept-question">{concept.hint}</p>
+                                <span className="se-concept-meta"><span>Schema group</span><span className="se-concept-eyebrow">{domains.find((d) => d.id === concept.domain)?.label || 'Explore the metadata'}</span></span>
+                            </div>
                             <ConceptTabs active={mapTab ? 'map' : 'summary'} label={concept.label} onSummary={() => onSummary(concept.id)}
                                 onMap={() => openMap(concept, 'concept')} />
                         </div>
@@ -402,27 +407,31 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
                             <p className="se-concept-description">{concept.description}</p>
                             <WorkflowStepper concept={concept} graph={graph} onConcept={choose} />
                             <div className="se-concept-workspace">
-                                <section className="se-concept-relationships" aria-labelledby="concept-relationships-heading">
-                                    <h4 id="concept-relationships-heading">Key relationships for {concept.label.toLowerCase()}</h4>
-                                    <p className="se-concept-help">How {concept.label.toLowerCase()} connects to other metadata. Use Details to see every schema and field definition behind a link.</p>
-                                    {relationshipSections(detailConnections, concept).map((section) => <RelationshipSection key={`${concept.id}-${section.key}`} section={section} graph={graph} onInspect={inspect} />)}
+                                <section className="se-concept-relationships se-card" aria-labelledby="concept-relationships-heading">
+                                    <h4 className="se-card-header" id="concept-relationships-heading">Key relationships for {concept.label.toLowerCase()}</h4>
+                                    <div className="se-card-body">
+                                        <p className="se-concept-help">How {concept.label.toLowerCase()} connects to other metadata. Use Details to see every schema and field definition behind a link.</p>
+                                        {relationshipSections(detailConnections, concept).map((section) => <RelationshipSection key={`${concept.id}-${section.key}`} section={section} graph={graph} onInspect={inspect} />)}
+                                    </div>
                                 </section>
-                                <aside className="se-concept-schemas" aria-labelledby="concept-schemas-heading">
-                                    <h4 id="concept-schemas-heading">Schemas in this concept <span>{concept.members.length}</span></h4>
-                                    <p>Choose a schema to explore its fields and model details.</p>
-                                    {hasAbstract && <p className="se-concept-inheritance-help">Abstract types define shared fields for the concrete schemas below.</p>}
-                                    {schemaGroups.map((group) => (
-                                        <div className="se-concept-schema-group" key={group.label}>
-                                            {hasAbstract && <h5>{group.label}</h5>}
-                                            {group.members.map((name) => (
-                                                <button className={`se-concept-schema${group.abstract ? ' se-concept-schema-abstract' : ''}`} data-schema={name} data-abstract={group.abstract} type="button" key={name} onClick={() => onType(name)}>
-                                                    <span className="se-concept-schema-name"><span>{name}</span>{group.abstract && <span className="se-concept-abstract-badge">Abstract</span>}<span aria-hidden="true">→</span></span>
-                                                    <span className="se-concept-schema-description">{index.models.find((model) => model.name === name)?.schema.description || `Explore the ${name} schema and its fields.`}</span>
-                                                    {group.abstract && <span className="se-concept-abstract-note">Shared base definition</span>}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    ))}
+                                <aside className="se-concept-schemas se-card" aria-labelledby="concept-schemas-heading">
+                                    <h4 className="se-card-header" id="concept-schemas-heading">Schemas in this concept <span>{concept.members.length}</span></h4>
+                                    <div className="se-card-body">
+                                        <p>Choose a schema to explore its fields and model details.</p>
+                                        {hasAbstract && <p className="se-concept-inheritance-help">Abstract types define shared fields for the concrete schemas below.</p>}
+                                        {schemaGroups.map((group) => (
+                                            <div className="se-concept-schema-group" key={group.label}>
+                                                {hasAbstract && <h5>{group.label}</h5>}
+                                                {group.members.map((name) => (
+                                                    <button className={`se-concept-schema${group.abstract ? ' se-concept-schema-abstract' : ''}`} data-schema={name} data-abstract={group.abstract} type="button" key={name} onClick={() => onType(name)}>
+                                                        <span className="se-concept-schema-name"><span>{name}</span>{group.abstract && <span className="se-concept-abstract-badge">Abstract</span>}<i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></span>
+                                                        <span className="se-concept-schema-description">{index.models.find((model) => model.name === name)?.schema.description || `Explore the ${name} schema and its fields.`}</span>
+                                                        {group.abstract && <span className="se-concept-abstract-note">Shared base definition</span>}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </aside>
                             </div>
                         </>
@@ -431,7 +440,7 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
             )}
             <p className="se-research-support">
                 Not every schema is on this map.
-                <button type="button" onClick={onAllTypes}>Browse all {nodes.length} schemas by group →</button>
+                <button type="button" onClick={onAllTypes}>Browse all {nodes.length} schemas by group <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button>
             </p>
         </section>
     );
