@@ -2,17 +2,17 @@
 // groups schemas without inventing references. The reference graph retains schema
 // direction; overviewFlow separately projects the numbered biological path.
 export const concepts = [
-    { id: 'donor', label: 'Donor', step: 1, hint: 'Who donated the material?', example: 'Donor', domain: 'donors', types: 'Donor ProtectedDonor AbstractDonor', description: 'Donor metadata identifies the individual who supplied the biological material. Clinical history and protected details provide additional context.' },
-    { id: 'material', label: 'Source material', step: 2, hint: 'Which tissue or culture?', example: 'Tissue · CellCulture', domain: 'samples', types: 'SampleSource Tissue CellCulture CellLine CellCultureMixture', description: 'Source material is the tissue or cultured material from which specimens originate. Tissue and CellLine records can reference a donor directly; CellCulture and CellLine records can also reference the tissue samples they were derived from (tissue_samples), so a culture can appear both before and after a sample in the workflow.' },
-    { id: 'sample', label: 'Sample', step: 3, hint: 'Which specimen was used?', example: 'Sample and subtypes', domain: 'samples', types: 'Sample TissueSample CellSample CellCultureSample', description: 'A sample is the specimen used for an experiment. Its sample_sources field references source material. TissueSample, CellSample and CellCultureSample share the Sample model.' },
-    { id: 'analyte', label: 'Analyte', step: 4, hint: 'What material was extracted?', example: 'Analyte · preparation', domain: 'sequencing', types: 'Analyte AnalytePreparation', description: 'An analyte is biological material prepared from one or more samples. The samples field preserves those source specimens; analyte_preparation records how the material was prepared.' },
-    { id: 'library', label: 'Library', step: 5, hint: 'What was prepared for sequencing?', example: 'Library · preparation', domain: 'sequencing', types: 'Library LibraryPreparation', description: 'A library references its source analytes and its library preparation. Following analytes links the sequencing material back to the original specimens.' },
-    { id: 'fileSet', label: 'Experiment / FileSet', step: 6, hint: 'Which library and sequencing run?', example: 'FileSet', domain: 'sequencing', types: 'FileSet', description: 'A FileSet connects libraries with sequencing metadata. Files reference their file sets, which provide the bridge from data to the experimental material. Some FileSets also reference CellSample directly.' },
-    { id: 'files', label: 'Data files', step: 7, hint: 'Where are the reads and results?', example: 'File and subtypes', domain: 'files', types: 'File SubmittedFile OutputFile UnalignedReads AlignedReads VariantCalls HistologyImage SupplementaryFile ExternalOutputFile DonorSpecificAssembly', description: 'Files represent reads, variants, images and other data. File subtypes connect to file sets, analysis context and quality metrics. The exact fields and available links depend on the subtype.' },
-    { id: 'analysis', label: 'Analysis context', hint: 'Which donor and tissue were analyzed?', example: 'AnalysisRun', domain: 'workflows', types: 'AnalysisRun', description: 'AnalysisRun collects analysis-level donor and tissue context. File subtypes can reference analysis runs through analysis_runs. Workflow execution is represented separately by WorkflowRun and MetaWorkflowRun.' },
-    { id: 'workflow', label: 'Workflow execution', hint: 'Which files went in and came out?', example: 'WorkflowRun · Workflow', domain: 'workflows', types: 'WorkflowRun Workflow MetaWorkflowRun MetaWorkflow', description: 'Workflow runs record execution and input/output file references. Workflow definitions describe the processing method. Input and output roles are retained in the exact field names shown below.' },
-    { id: 'quality', label: 'Quality assessment', hint: 'How was data quality measured?', example: 'QualityMetric', domain: 'files', types: 'QualityMetric ExternalQualityMetric', description: 'Files reference quality measurements through quality_metrics and external_quality_metrics. These records describe quality rather than biological provenance.' },
-    { id: 'sequencing', label: 'Sequencing', hint: 'How was the library sequenced?', example: 'Sequencing', domain: 'sequencing', types: 'Sequencing', description: 'Sequencing metadata records the run configuration, sequencer and preparation kits. FileSet.sequencing links an experiment to this information.' },
+    { id: 'donor', label: 'Donor', step: 1, hint: 'Who donated the material?', domain: 'donors', types: 'Donor ProtectedDonor AbstractDonor', description: 'Donor metadata identifies the individual who supplied the biological material. Clinical history and protected details provide additional context.' },
+    { id: 'material', label: 'Source material', step: 2, hint: 'Which tissue or culture?', domain: 'samples', types: 'SampleSource Tissue CellCulture CellLine CellCultureMixture', description: 'Source material is the tissue or cultured material from which specimens originate. Tissue and CellLine records can reference a donor directly; CellCulture and CellLine records can also reference the tissue samples they were derived from (tissue_samples), so a culture can appear both before and after a sample in the workflow.' },
+    { id: 'sample', label: 'Sample', step: 3, hint: 'Which specimen was used?', domain: 'samples', types: 'Sample TissueSample CellSample CellCultureSample', description: 'A sample is the specimen used for an experiment. Its sample_sources field references source material. TissueSample, CellSample and CellCultureSample share the Sample model.' },
+    { id: 'analyte', label: 'Analyte', step: 4, hint: 'What material was extracted?', domain: 'sequencing', types: 'Analyte AnalytePreparation', description: 'An analyte is biological material prepared from one or more samples. The samples field preserves those source specimens; analyte_preparation records how the material was prepared.' },
+    { id: 'library', label: 'Library', step: 5, hint: 'What was prepared for sequencing?', domain: 'sequencing', types: 'Library LibraryPreparation', description: 'A library references its source analytes and its library preparation. Following analytes links the sequencing material back to the original specimens.' },
+    { id: 'fileSet', label: 'Experiment / FileSet', step: 6, hint: 'Which library and sequencing run?', domain: 'sequencing', types: 'FileSet', description: 'A FileSet connects libraries with sequencing metadata. Files reference their file sets, which provide the bridge from data to the experimental material. Some FileSets also reference CellSample directly.' },
+    { id: 'files', label: 'Data files', step: 7, hint: 'Where are the reads and results?', domain: 'files', types: 'File SubmittedFile OutputFile UnalignedReads AlignedReads VariantCalls HistologyImage SupplementaryFile ExternalOutputFile DonorSpecificAssembly', description: 'Files represent reads, variants, images and other data. File subtypes connect to file sets, analysis context and quality metrics. The exact fields and available links depend on the subtype.' },
+    { id: 'analysis', label: 'Analysis context', hint: 'Which donor and tissue were analyzed?', domain: 'workflows', types: 'AnalysisRun', description: 'AnalysisRun collects analysis-level donor and tissue context. File subtypes can reference analysis runs through analysis_runs. Workflow execution is represented separately by WorkflowRun and MetaWorkflowRun.' },
+    { id: 'workflow', label: 'Workflow execution', hint: 'Which files went in and came out?', domain: 'workflows', types: 'WorkflowRun Workflow MetaWorkflowRun MetaWorkflow', description: 'Workflow runs record execution and input/output file references. Workflow definitions describe the processing method. Input and output roles are retained in the exact field names shown below.' },
+    { id: 'quality', label: 'Quality assessment', hint: 'How was data quality measured?', domain: 'files', types: 'QualityMetric ExternalQualityMetric', description: 'Files reference quality measurements through quality_metrics and external_quality_metrics. These records describe quality rather than biological provenance.' },
+    { id: 'sequencing', label: 'Sequencing', hint: 'How was the library sequenced?', domain: 'sequencing', types: 'Sequencing', description: 'Sequencing metadata records the run configuration, sequencer and preparation kits. FileSet.sequencing links an experiment to this information.' },
 ];
 // Concepts outside the numbered path hang off one of its steps, and sit beside it on the map:
 // [step, column offset, row offset].
@@ -49,7 +49,7 @@ export function buildResearchMap(index, available, viewport = { width: 1200, hei
             owners.get(edge.to) === connection.to && connection.fields.includes(edge.field));
         if (actual.length) edges.push({ ...connection, key: `${connection.from}-${connection.to}`, kind: 'linkTo', edges: actual });
     }
-    const nodeWidth = 216, nodeHeight = 104;
+    const nodeWidth = 216, nodeHeight = 84;
     const columns = viewport.width >= 1080 ? 4 : viewport.width >= 810 ? 3 : 2;
     // The numbered steps read like newspaper columns: down each column, then on from the top of the next one.
     // Each branch takes the cell beside its step, or the nearest free cell when that one is taken or off the grid.
@@ -114,12 +114,16 @@ export function researchLabels(graph, routes, { avoidRoutes = false } = {}) {
         }).sort((a, b) => b.length - a.length);
         let chosen;
         for (const { a, b } of segments) {
-            for (const fraction of [0.5, 0.35, 0.65]) {
+            // The .61/.39 positions also cover tight horizontal gaps where a
+            // centered label misses the few pixels available beside a card.
+            for (const fraction of [0.5, 0.61, 0.39, 0.35, 0.65]) {
                 const x = a.x + (b.x - a.x) * fraction, y = a.y + (b.y - a.y) * fraction;
                 // A vertical run through a narrow column gap only fits a label slid sideways
                 // while it still covers the line, so those shifts are tried last.
                 const shifts = Array.from({ length: Math.floor(width / 8) }, (_, i) => (i + 1) * 4).flatMap((dx) => [[-dx, 0], [dx, 0]]);
-                const offsets = a.y === b.y ? [[0, -17], [0, 17], [0, 0]] : [[width / 2 + 8, 0], [-width / 2 - 8, 0], [0, 0], ...shifts];
+                // Keep labels clear of horizontal connectors so the complete
+                // line and its direction remain visible at a glance.
+                const offsets = a.y === b.y ? [[0, -24], [0, 24]] : [[width / 2 + 8, 0], [-width / 2 - 8, 0], [0, 0], ...shifts];
                 for (const [dx, dy] of offsets) {
                     const box = { left: x + dx - width / 2, top: y + dy - height / 2, width, height };
                     if (obstacles.some((obstacle) => intersects(box, obstacle, 3)) || crosses(box, edge.key)) continue;

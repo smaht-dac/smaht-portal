@@ -235,8 +235,6 @@
     .se-research-node { cursor: pointer; .se-research-card { fill: #fff; stroke: rgba(0, 0, 0, .2); stroke-width: 1; } .se-research-diagram-action:hover .se-research-card, .se-research-diagram-action:focus .se-research-card, &.se-research-selected .se-research-card { fill: $slate-20; stroke: $cobalt-70; stroke-width: 2; } }
     .se-research-title { fill: $homepage-header-text-color; font-size: 16px; font-weight: 600; }
     .se-research-hint { fill: #5d5e63; font-size: 12px; }
-    .se-research-overview-action { cursor: pointer; rect { fill: transparent; } text { fill: $primary; font-size: 10px; font-weight: 500; } &:hover text, &:focus text { text-decoration: underline; } &:focus rect { stroke: $primary; } }
-    .se-research-example { fill: $homepage-card-text-color; font-size: 11px; }
     // Workflow steps and concept accents use one portal colour; a concept's group is named, not colour-coded.
     .se-research-step-badge { fill: $cobalt-70; }
     .se-research-step { fill: white; font-size: 11px; text-anchor: middle; font-weight: 600; }

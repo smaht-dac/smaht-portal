@@ -142,7 +142,6 @@ function MapGuide() {
             <p>Schema diagrams use the reference direction instead: arrows point to the referenced schema.</p>
             <h4>Explore the relationships</h4>
             <p><b>Box</b> opens its schema diagram · <b>Arrow</b> opens relationship details.</p>
-            <p><b>Summary</b> explains the concept.</p>
             <h4>Move around</h4>
             <p>Drag to pan · Scroll to zoom</p>
         </InfoPopover>
@@ -311,7 +310,7 @@ export default function ResearchOverview({ index, nodes, onAllTypes, onDetail, o
                             <button type="button" className="se-canvas-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onClick={() => setFull(!full)}><i className={`icon icon-fw fas ${full ? 'icon-compress-alt' : 'icon-expand-alt'}`} aria-hidden="true" /></button>
                             <svg ref={svg} id="research-svg" className="se-canvas" style={full ? undefined : { height: fitHeight }} role="group" aria-label="Donor to data relationship map" tabIndex={0}
                                 onPointerDown={(event) => {
-                                    if (event.button !== 0 || event.target.closest('[data-concept], [data-reference], [data-overview]')) return;
+                                    if (event.button !== 0 || event.target.closest('[data-concept], [data-reference]')) return;
                                     drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
                                     event.currentTarget.setPointerCapture(event.pointerId);
                                 }}
@@ -362,15 +361,7 @@ export default function ResearchOverview({ index, nodes, onAllTypes, onDetail, o
                                                     <rect className="se-research-card" width={graph.nodeWidth} height={graph.nodeHeight} rx="4" />
                                                     <text className="se-research-title" x="14" y="26">{node.label}</text>
                                                     {lines(node.hint).map((line, i) => <text className="se-research-hint" key={line} x="14" y={47 + i * 15}>{line}</text>)}
-                                                    <text className="se-research-example" x="14" y="89">{node.example}</text>
                                                     {node.step && <g><circle className="se-research-step-badge" cx={graph.nodeWidth - 16} cy="16" r="10" /><text className="se-research-step" x={graph.nodeWidth - 16} y="20">{node.step}</text></g>}
-                                                </g>
-                                                <g data-overview={node.id} className="se-research-overview-action" role="button" tabIndex={0}
-                                                    aria-label={`${node.label} summary`}
-                                                    onClick={() => openConcept(node.id)}
-                                                    onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openConcept(node.id); } }}>
-                                                    <rect x={graph.nodeWidth - 94} y="108" width="84" height="22" rx="4" />
-                                                    <text x={graph.nodeWidth - 14} y="123" textAnchor="end">Summary →</text>
                                                 </g>
                                             </g>
                                         );

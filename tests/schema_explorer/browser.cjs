@@ -135,9 +135,6 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  const normalPaint=await cardPaint();
  await sourceConcept.locator('.se-research-diagram-action').hover();
  assert.notDeepEqual(await cardPaint(),normalPaint,'Hovering the diagram action highlights its card');
- await sourceConcept.locator('[data-overview]').hover();
- assert.deepEqual(await cardPaint(),normalPaint,'Overview hover does not highlight the diagram action');
- assert.equal(await sourceConcept.locator('[data-overview] text').evaluate(node=>getComputedStyle(node).textDecorationLine),'underline','Overview has its own hover treatment');
  await page.locator('h2').first().hover();
  // The reading guide sits behind the info icon beside the map title, like the portal's chart titles.
  assert.equal(await page.locator('.se-research-legend').count(),0,'No separate guide grid above the map');
@@ -159,7 +156,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  const stepper=page.getByRole('navigation',{name:'Place in the donor-to-data workflow',exact:true});
  const goToConcept=label=>stepper.getByRole('button',{name:new RegExp(`${label.replace(/[/]/g,'\\/')}$`)}).click();
  const conceptHeading=()=>page.locator('.se-concept-heading h3').textContent();
- await page.locator('#research-svg [data-concept="sample"] > g[role="button"]:not([data-overview])').click();
+ await page.locator('#research-svg [data-concept="sample"] > g[role="button"]').click();
  assert.ok(await page.locator('#entity-svg [data-entity="Sample"]').count(),'A concept card opens its connections directly');
  assert.equal(search(),'#concepts/sample','A concept page has its own URL');
  // One schema search, in the same place on every view.
@@ -203,7 +200,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await fileGroup.getAttribute('aria-expanded'),'false');
  assert.equal(await page.locator('[data-entity="AlignedReads"]').count(),0);
  await diagramBack().click();
- await page.locator('[data-overview="sample"]').click();
+ await page.locator('#research-svg [data-concept="sample"] > g[role="button"]').click();
  assert.match(await page.getByRole('region',{name:'Sample details',exact:true}).textContent(),/sample_sources/);
  assert.equal(await page.locator('#research-map-context').count(),0,'A concept page replaces the overview map');
  assert.equal(search(),'#concepts/sample');
