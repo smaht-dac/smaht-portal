@@ -188,7 +188,7 @@ export async function exportPNG(svg, name) {
 }
 
 // Summary and Map are two views of one concept; the tabs make the switch read as staying on the same page.
-// Reading help behind an info icon, as on the portal's chart titles; it opens on click and closes on outside click or Escape.
+// Reading help behind an info icon, as on the portal's chart titles; hover opens it and focus keeps it keyboard-accessible.
 export function InfoPopover({ id, label, title, className = '', placement = 'bottom-start', children }) {
     const popover = (
         <Popover id={id} className={`se-info-popover ${className}`}>
@@ -197,7 +197,7 @@ export function InfoPopover({ id, label, title, className = '', placement = 'bot
         </Popover>
     );
     return (
-        <OverlayTrigger trigger="click" placement={placement} overlay={popover} rootClose rootCloseEvent="click">
+        <OverlayTrigger trigger={['hover', 'focus']} placement={placement} overlay={popover}>
             <button type="button" className="se-info-tooltip" aria-label={label}><i className="icon icon-info-circle fas" aria-hidden="true" /></button>
         </OverlayTrigger>
     );

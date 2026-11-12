@@ -138,12 +138,12 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.locator('h2').first().hover();
  // The reading guide sits behind the info icon beside the map title, like the portal's chart titles.
  assert.equal(await page.locator('.se-research-legend').count(),0,'No separate guide grid above the map');
- await page.getByRole('button',{name:'How to read the map',exact:true}).click();
+ await page.getByRole('button',{name:'How to read the map',exact:true}).hover();
  const guide=page.locator('.se-map-guide-popover');
  await guide.waitFor();
  for(const text of ['Follow the numbered workflow forward','Read each arrow as a sentence','arrows point to the referenced schema','opens its schema diagram','Drag to pan'])assert.ok((await guide.textContent()).includes(text),`The guide keeps: ${text}`);
  await guide.screenshot({path:path.join(output,'map-reading-guide.png')});
- await page.keyboard.press('Escape');await page.locator('h2').first().click({position:{x:2,y:2}});
+ await page.locator('h2').first().hover();
  await guide.waitFor({state:'detached'});
  await page.locator('#research-svg').screenshot({path:path.join(output,'research-overview.png')});
  assert.equal(await page.getByRole('button',{name:/^(Whole model|Trace a file to its donor)$/}).count(),0,'The overview has one mode');
