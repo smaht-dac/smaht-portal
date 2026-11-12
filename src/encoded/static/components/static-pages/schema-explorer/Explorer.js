@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Modal from 'react-bootstrap/esm/Modal';
+import { navigate } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/navigate';
 import Diagram from './Diagram';
+import ExplorerNav from './ExplorerNav';
+import SchemaFinder from './SchemaFinder';
+import { domains, domainFor } from './domains';
+import { concepts } from './research-map';
+import SlidingSidebarLayout from '../../shared/SlidingSidebarLayout';
+import { overviewRoute, parseRoute, routeHash, sameRoute, isMapRoute } from './explorer-route';
 import SchemaCatalog from './SchemaCatalog';
 import { explorerIndex } from './explorer-scope';
 import RelationshipDetails from './RelationshipDetails';
@@ -14,6 +21,14 @@ import {
     portalRequest,
     shortValue,
 } from './shared';
+
+// Puts the explorer's place in the page URL's hash through the portal's own navigation, which keeps the page
+// without a new request; outside the portal app (tests, embeds) the History API does the same.
+function pushLocation(hash) {
+    const href = `${window.location.pathname}${window.location.search}${hash}`;
+    try { navigate(href, { skipRequest: true }); }
+    catch { window.history.pushState(window.history.state, '', href); }
+}
 
 // Short class names, qualified by their module when two bases share a name (base.Item, resources.Item).
 function baseLabel(id, bases) {
@@ -33,13 +48,15 @@ const fieldFilters = [
     ['required', 'Required', (field) => field.required],
 ];
 
-function Inspector({ model, index, query, onDetail, onSource, live }) {
-    const [tab, setTab] = useState('fields'),
+// A schema's contents. `links` is its links on the map, the first tab when the schema is selected there.
+function Inspector({ model, index, query, onDetail, onSource, live, links }) {
+    const [tab, setTab] = useState(links ? 'links' : 'fields'),
         [filter, setFilter] = useState('all'),
         [queries, setQueries] = useState({
             fields: '',
             embeds: '',
             diagnostics: '',
+            links: '',
         });
     const local = queries[tab].toLowerCase();
     const match = (value) => {
@@ -55,17 +72,18 @@ function Inspector({ model, index, query, onDetail, onSource, live }) {
     const totals = { fields: model.fields.length, embeds: model.embeds.length, diagnostics: index.warnings.length };
     const shown = { fields: fields.length, embeds: embeds.length, diagnostics: warnings.length }[tab];
     const total = tab === 'fields' ? model.fields.filter(accepts).length : totals[tab];
-    const labels = { fields: 'Fields', embeds: 'Embeds', diagnostics: 'Diagnostics' };
+    const labels = { ...(links ? { links: 'Links' } : {}), fields: 'Fields', embeds: 'Embeds', diagnostics: 'Diagnostics' };
     return (
         <section className="se-inspector" aria-label={`${model.name} contents`}>
             <div className="se-inspector-tabs" role="tablist" aria-label="Schema contents">
                 {Object.keys(labels).map((name) => (
                     <button type="button" role="tab" key={name} aria-selected={tab === name} onClick={() => setTab(name)}>
-                        {labels[name]} <span>{totals[name]}</span>
+                        {labels[name]} {name in totals && <span>{totals[name]}</span>}
                     </button>
                 ))}
             </div>
-            <div className="se-inspector-search">
+            {tab === 'links' && <div className="se-inspector-links">{links}</div>}
+            <div className="se-inspector-search" hidden={tab === 'links'}>
                 <input
                     type="search"
                     aria-label={`Search ${tab}`}
@@ -84,7 +102,7 @@ function Inspector({ model, index, query, onDetail, onSource, live }) {
                     ))}
                 </div>
             )}
-            <div className="se-inspector-list">
+            <div className="se-inspector-list" hidden={tab === 'links'}>
                 {tab === 'fields' && fields.map((field) => {
                     const targets = linkTargets(field.schema),
                         row = live?.model === model.name ? live.rows.find((r) => r.name === field.name) : null;
@@ -166,13 +184,40 @@ export default function Explorer() {
         [error, setError] = useState(''),
         [loading, setLoading] = useState(true);
     const [refresh, setRefresh] = useState(0),
-        [mode, setMode] = useState('map'),
-        [selected, setSelected] = useState(''),
         [query, setQuery] = useState('');
-    const [history, setHistory] = useState({ entries: [], position: -1 });
-    const [returnToMap, setReturnToMap] = useState(false);
-    const [groupRequest, setGroupRequest] = useState(null);
+    // Where the reader is (see explorer-route.js). The map keeps its last place while schema details are open.
+    const [route, setRoute] = useState(overviewRoute),
+        [mapRoute, setMapRoute] = useState(overviewRoute);
+    const mode = isMapRoute(route) ? 'map' : 'item';
     const explorerRoot = useRef();
+    const show = (next) => {
+        setRoute(next);
+        if (isMapRoute(next)) setMapRoute(next);
+    };
+    // The URL is read after mounting (the server renders no location) and again on Back/Forward.
+    useEffect(() => {
+        const sync = () => show(parseRoute(window.location.hash));
+        sync();
+        window.addEventListener('popstate', sync);
+        window.addEventListener('hashchange', sync);
+        return () => { window.removeEventListener('popstate', sync); window.removeEventListener('hashchange', sync); };
+    }, []);
+    // A schema shares its group's page: selecting schemas on one group map stays on that page.
+    const page = (r) => (r.view === 'schema' ? `group:${domainFor(r.schema)}` : `${r.view}:${r.concept || r.group || ''}`);
+    // `reveal` scrolls to a schema's details when it is opened from elsewhere (search, catalog, links).
+    function go(next, { reveal = false } = {}) {
+        if (sameRoute(next, route)) return;
+        const samePage = page(next) === page(route);
+        show(next);
+        pushLocation(routeHash(next));
+        // A search belongs to the page it was typed on (it also filters the catalog), so a new page starts clear.
+        if (!samePage) setQuery('');
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (reveal && next.view === 'schema') explorerRoot.current?.querySelector('#entity-details')?.scrollIntoView({ block: 'start' });
+            // A new page starts at the explorer's top.
+            else if (!samePage && explorerRoot.current?.getBoundingClientRect().top < 0) explorerRoot.current.scrollIntoView({ block: 'start' });
+        }));
+    }
     const [planner, setPlanner] = useState(null),
         [detail, setDetail] = useState(null),
         [bundle, setBundle] = useState(null);
@@ -203,55 +248,17 @@ export default function Explorer() {
         []
     );
     const isAdmin = index?.can_view_items === true;
-    const model = index?.models.find((m) => m.name === selected);
     const live = useMemo(
         () => (index && bundle ? describe(bundle, index) : null),
         [index, bundle]
     );
-    // Opening details from the map remembers it, so the item view can lead back to the same map state.
-    function openFromMap(name) {
-        setReturnToMap(true);
-        select(name, true);
-        requestAnimationFrame(() => explorerRoot.current?.scrollIntoView({ block: 'start' }));
-    }
-    // The map's "all schemas" entries open the catalog on the Schema details tab.
-    function browseAll() {
-        setReturnToMap(true);
-        setSelected('');
-        setMode('item');
-        requestAnimationFrame(() => explorerRoot.current?.scrollIntoView({ block: 'start' }));
-    }
-    function openGroupMap(id) {
-        setGroupRequest({ id, at: Date.now() });
-        setMode('map');
-        requestAnimationFrame(() => explorerRoot.current?.scrollIntoView({ block: 'start' }));
-    }
-    function backToMap() {
-        setReturnToMap(false);
-        setMode('map');
-        requestAnimationFrame(() => explorerRoot.current?.querySelector('#entity-details, .se-diagram')?.scrollIntoView({ block: 'start' }));
-    }
-    function select(name, showItem = false) {
-        setSelected(name);
-        setHistory((h) =>
-            h.entries[h.position] === name
-                ? h
-                : {
-                    entries: [
-                        ...h.entries.slice(0, h.position + 1),
-                        name,
-                    ].slice(-100),
-                    position: Math.min(h.position + 1, 99),
-                }
-        );
-        if (showItem) setMode('item');
-    }
-    function travel(delta) {
-        const position = history.position + delta;
-        if (position < 0 || position >= history.entries.length) return;
-        setHistory({ ...history, position });
-        setSelected(history.entries[position]);
-    }
+    const select = (name) => go(name ? { view: 'schema', schema: name } : { view: 'schemas' }, { reveal: true });
+    // In-page links keep their URL for new tabs; a plain click moves within the explorer.
+    const follow = (event, next) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+        event.preventDefault();
+        go(next);
+    };
     async function source(location) {
         if (!location) return;
         sourceController.current?.abort();
@@ -289,6 +296,72 @@ export default function Explorer() {
                 setDetail({ title: 'Source unavailable', value: err.message });
         }
     }
+    // A schema is shown on its group map: selecting it there opens these details under the map, with its links
+    // on the map as the first tab beside its fields, embeds and diagnostics.
+    const renderSchema = (name, links) => {
+        const model = index.models.find((m) => m.name === name);
+        if (!model) return links;
+        const modelConcept = concepts.find((concept) => concept.types.split(' ').includes(model.name));
+        return (
+            <>
+                <header id="heading" className="se-diagram-header">
+                    <div className="se-diagram-heading">
+                        {/* Embed paths start from a schema, so the tool lives on the schema it starts from. */}
+                        <button type="button" id="open-path-finder" className="se-heading-action"
+                            title={`Find how ${model.name} can embed fields from another schema`}
+                            onClick={() => setPlanner({ source: model.name })}>
+                            Find embed path…
+                        </button>
+                        {/* Where this schema sits: its catalog group, like the portal's breadcrumbs. */}
+                        <nav className="se-schema-trail" aria-label="Schema location">
+                            <a href={routeHash({ view: 'schemas' })} onClick={(event) => follow(event, { view: 'schemas' })}>All schemas</a>
+                            <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" />
+                            <a href={routeHash({ view: 'group', group: domainFor(model.name) })} onClick={(event) => follow(event, { view: 'group', group: domainFor(model.name) })}>
+                                {domains.find((d) => d.id === domainFor(model.name))?.label}
+                            </a>
+                            <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" />
+                            <span aria-current="page">{model.name}</span>
+                        </nav>
+                        <h2>{model.name}</h2>
+                        {/* Field counts live on the inspector's tab and filters below; a description that
+                    only restates the name (e.g. death_circumstances) adds nothing under the title. */}
+                        {hasOwnDescription(model) && <p className="se-diagram-question">{model.schema.description}</p>}
+                        {modelConcept && (
+                            <p className="se-schema-concept">
+                                On the metadata map:{' '}
+                                <a href={routeHash({ view: 'concept', concept: modelConcept.id })}
+                                    onClick={(event) => follow(event, { view: 'concept', concept: modelConcept.id })}>
+                                    {modelConcept.step ? `${modelConcept.step} · ` : ''}{modelConcept.label}
+                                </a>
+                            </p>
+                        )}
+                        <div className="se-inheritance-chain" aria-label="Schema sources and inheritance">
+                            <button type="button" onClick={() => source(model.source)}>Python source <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" /></button>
+                            {model.schemaSource && <button type="button" onClick={() => source(model.schemaSource)}>JSON schema <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" /></button>}
+                            {model.bases.length > 0 && (
+                                <span className="se-inheritance-bases" aria-label="Inheritance (method resolution order)">
+                                    <span className="se-inheritance-label">Inherits from</span>
+                                    {model.bases.map((base, i) => (
+                                        <React.Fragment key={base.id}>
+                                            {i > 0 && <span aria-hidden="true">›</span>}
+                                            <button type="button" title={`${base.id} · open source`} onClick={() => source(base.source)}>{baseLabel(base.id, model.bases)} <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" /></button>
+                                        </React.Fragment>
+                                    ))}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </header>
+                {isAdmin && (
+                    <details className="se-live-panel">
+                        <summary>Inspect a live {model.name} item <small>Admin only · loads current portal data</small></summary>
+                        <LiveItem index={index} query="" onSelect={select} onBundle={setBundle} onDetail={setDetail} />
+                    </details>
+                )}
+                <Inspector key={model.name} {...{ model, index, live, links }} query="" onDetail={setDetail} onSource={source} />
+            </>
+        );
+    };
     const closeDetail = () => {
         sourceController.current?.abort();
         setDetail(null);
@@ -303,134 +376,31 @@ export default function Explorer() {
         );
     return (
         <div className="schema-explorer" data-schema-explorer="" ref={explorerRoot}>
-            <div className="se-actions">
-                <div className="se-view-switch" role="group" aria-label="Explorer view">
-                    <button type="button"
-                        id={mode === 'item' ? 'open-entity' : undefined}
-                        aria-pressed={mode === 'map'}
-                        onClick={() => setMode('map')}>
-                        <i className="icon icon-fw icon-diagram-project fas" aria-hidden="true" /> Metadata map
-                    </button>
-                    <button type="button"
-                        id={mode === 'map' ? 'open-entity' : undefined}
-                        aria-pressed={mode === 'item'}
-                        onClick={() => setMode('item')}>
-                        <i className="icon icon-fw icon-table fas" aria-hidden="true" /> Schema details
-                    </button>
-                </div>
-                <span className="se-actions-tools">
-                    <button type="button"
-                        id="open-path-finder"
-                        className="se-tool-button"
-                        title="Find how one schema can embed fields from another"
-                        onClick={() => setPlanner({ source: selected })}>
-                        Find embed path…
-                    </button>
-                    <button type="button"
-                        className="se-tool-button se-tool-quiet"
-                        disabled={loading}
-                        onClick={() => setRefresh((n) => n + 1)}
-                        title="Reload the deployed snapshot. Source changes require a server restart or a rebuilt artifact.">
-                        <i className="icon icon-fw icon-sync-alt fas" aria-hidden="true" /> {loading ? 'Reloading…' : 'Reload snapshot'}
-                    </button>
-                </span>
-            </div>
-            {error && (
-                <p role="alert" className="alert alert-warning">
-                    {error}
-                </p>
-            )}
-            <div hidden={mode !== 'map'}>
-                <Diagram
-                    index={index}
-                    onExplore={openFromMap}
-                    onBrowseAll={browseAll}
-                    groupRequest={groupRequest}
-                    onPlanner={(name) => setPlanner({ source: name })}
-                    onDetail={setDetail}
-                />
-            </div>
-            <div hidden={mode !== 'item'} className="se-item-view">
-                <nav className="se-item-nav" aria-label="Schema navigation">
-                    {returnToMap && <button type="button" className="se-back-to-map" onClick={backToMap}><i className="icon icon-fw icon-arrow-left fas" aria-hidden="true" /> Back to schema map</button>}
-                    {history.entries.length > 1 && (
-                        <span className="se-item-history">
-                            <button type="button" disabled={history.position <= 0} onClick={() => travel(-1)}
-                                title={history.position > 0 ? `Previously viewed: ${history.entries[history.position - 1]}` : 'No previous schema'}>
-                                ‹ {history.position > 0 ? history.entries[history.position - 1] : 'Previous'}
-                            </button>
-                            <button type="button" disabled={history.position >= history.entries.length - 1} onClick={() => travel(1)}
-                                title={history.position < history.entries.length - 1 ? `Next viewed: ${history.entries[history.position + 1]}` : 'No next schema'}>
-                                {history.position < history.entries.length - 1 ? history.entries[history.position + 1] : 'Next'} ›
-                            </button>
-                        </span>
+            <SlidingSidebarLayout>
+                <ExplorerNav route={route} onNavigate={go} />
+                <div className="se-main">
+                    <SchemaFinder index={index} query={query} onQuery={setQuery} onOpen={select} />
+                    {error && (
+                        <p role="alert" className="alert alert-warning">
+                            {error}
+                        </p>
                     )}
-                </nav>
-                <div className="se-diagram-controls se-item-controls">
-                    <label>Schema
-                        <select id="types" value={selected} onChange={(e) => select(e.target.value)}>
-                            <option value="">All schemas</option>
-                            {index.models.map((m) => <option key={m.name}>{m.name}</option>)}
-                        </select>
-                    </label>
-                    <input aria-label="Search fields" type="search" placeholder="Search fields, relationships or embeds…"
-                        value={query} onChange={(e) => setQuery(e.target.value)} />
-                    <span className="se-item-meta">{index.models.length} schemas · {index.warnings.length} diagnostics</span>
+                    <div hidden={mode !== 'map'}>
+                        <Diagram
+                            index={index}
+                            route={mapRoute}
+                            onNavigate={go}
+                            renderSchema={renderSchema}
+                            onBrowseAll={() => go({ view: 'schemas' })}
+                            onPlanner={(name) => setPlanner({ source: name })}
+                            onDetail={setDetail}
+                        />
+                    </div>
+                    <div hidden={mode !== 'item'} className="se-item-view">
+                        <SchemaCatalog index={index} query={query} onOpen={select} onOpenGroup={(id) => go({ view: 'group', group: id })} />
+                    </div>
                 </div>
-                {model ? (
-                    <>
-                        <header id="heading" className="se-diagram-header">
-                            <div className="se-diagram-heading">
-                                <span className="se-diagram-eyebrow">Schema details</span>
-                                <h2>{model.name}</h2>
-                                {/* Field counts live on the inspector's tab and filters below; a description that
-                                    only restates the name (e.g. death_circumstances) adds nothing under the title. */}
-                                {hasOwnDescription(model) && <p className="se-diagram-question">{model.schema.description}</p>}
-                                <div className="se-inheritance-chain" aria-label="Schema sources and inheritance">
-                                    <button type="button" onClick={() => source(model.source)}>Python source <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" /></button>
-                                    {model.schemaSource && <button type="button" onClick={() => source(model.schemaSource)}>JSON schema <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" /></button>}
-                                    {model.bases.length > 0 && (
-                                        <span className="se-inheritance-bases" aria-label="Inheritance (method resolution order)">
-                                            <span className="se-inheritance-label">Inherits from</span>
-                                            {model.bases.map((base, i) => (
-                                                <React.Fragment key={base.id}>
-                                                    {i > 0 && <span aria-hidden="true">›</span>}
-                                                    <button type="button" title={`${base.id} · open source`} onClick={() => source(base.source)}>{baseLabel(base.id, model.bases)} <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" /></button>
-                                                </React.Fragment>
-                                            ))}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </header>
-                        {isAdmin && (
-                            <details className="se-live-panel">
-                                <summary>Inspect a live {model.name} item <small>Admin only · loads current portal data</small></summary>
-                                <LiveItem {...{ index, query }} onSelect={select} onBundle={setBundle} onDetail={setDetail} />
-                            </details>
-                        )}
-                        <div className="se-columns">
-                            <section aria-label={`${model.name} relationships`}>
-                                <Diagram
-                                    key={model.name}
-                                    compact
-                                    focus={model.name}
-                                    index={index}
-                                    onExplore={(name) => select(name, true)}
-                                    onDetail={setDetail}
-                                />
-                            </section>
-                            <Inspector
-                                {...{ model, index, query, live }}
-                                onDetail={setDetail}
-                                onSource={source}
-                            />
-                        </div>
-                    </>
-                ) : (
-                    <SchemaCatalog index={index} query={query} onOpen={(name) => select(name)} onOpenGroup={openGroupMap} />
-                )}
-            </div>
+            </SlidingSidebarLayout>
             {planner && (
                 <Planner
                     index={index}
@@ -453,7 +423,7 @@ export default function Explorer() {
                 <Modal.Body id="detail-content">
                     {detail?.relationship ? (
                         <RelationshipDetails references={detail.relationship} index={index}
-                            intro={detail.intro} sources={detail.sources} onSource={source} />
+                            intro={detail.intro} meaning={detail.meaning} sources={detail.sources} onSource={source} />
                     ) : (
                         <>
                             {detail?.intro && <p>{detail.intro}</p>}

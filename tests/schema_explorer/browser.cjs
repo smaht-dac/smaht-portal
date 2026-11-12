@@ -11,6 +11,12 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  try {
  const shell=await browser.newPage({viewport:{width:1500,height:1000},acceptDownloads:true});
  let page=shell;
+ // The explorer's one schema search: type, then pick a suggestion.
+ const finder=()=>page.locator('#schema-finder');
+ const finderNames=async(text)=>{await finder().fill(text);const names=await page.locator('#schema-finder-results [role="option"] strong').allTextContents();await finder().fill('');return names;};
+ const openSchema=async(name)=>{await finder().fill(name);await page.locator('#schema-finder-results [role="option"]').filter({has:page.locator('strong',{hasText:new RegExp('^'+name+'$')})}).click();await page.locator('#heading h2',{hasText:new RegExp('^'+name+'$')}).waitFor();};
+ // A schema's address is its group map with the schema selected and its details underneath.
+ const selectOnGroupMap=openSchema;
  const selectSetting = async (label, value) => {
   const field=page.getByLabel(label,{exact:true});
   if(!await field.isVisible())await page.locator('.se-map-settings > summary').click();
@@ -87,12 +93,12 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  });
  await page.goto('https://portal.test/schema-explorer');
  await shell.waitForURL('https://portal.test/schema-explorer');
- await page.waitForFunction(()=>document.getElementById('types')?.options.length>30);
+ await page.waitForFunction(()=>!!document.getElementById('schema-finder'));
  assert.equal(await shell.locator('iframe').count(),0,'Explorer must not use an iframe');
  assert.ok(await shell.locator('.navbar').isVisible(),'Portal navigation must remain visible');
  assert.equal(await shell.getByText('Loading Schema Explorer…',{exact:true}).count(),0);
  assert.equal(await shell.getByRole('heading',{name:'Schema Explorer',exact:true}).count(),1);
- assert.equal(await page.locator('#types').inputValue(),'');
+ assert.equal(await finder().inputValue(),'');
  assert.equal(await page.locator('[data-schema-explorer]').evaluate(el=>el.shadowRoot),null);
  assert.equal(await page.getByRole('heading',{name:'From donor to data',exact:true}).count(),1);
  assert.equal(await page.locator('#research-svg [data-concept]').count(),11);
@@ -116,7 +122,13 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.locator('#research-svg').evaluate(svg=>{const b=svg.getBoundingClientRect();return [...svg.querySelectorAll('[data-concept]')].every(n=>{const r=n.getBoundingClientRect();return r.left>=b.left && r.right<=b.right && r.top>=b.top && r.bottom<=b.bottom;});}),true,'The first view fits all concepts at readable size');
 
  assert.equal(await page.locator('#entity-svg').count(),0,'Opening view explains relationships rather than listing all types');
- for(const name of excludedSchemas)assert.equal(await page.locator('#types option').filter({hasText:new RegExp('^'+name+'$')}).count(),0,`${name} is excluded from the schema selector`);
+ for(const name of excludedSchemas)assert.ok(!(await finderNames(name)).includes(name),`${name} is excluded from the schema search`);
+ // The search suggests by name first and works from the keyboard.
+ assert.equal((await finderNames('tissue'))[0],'Tissue','Names that start with the text come first');
+ await finder().fill('tissuesam');await page.keyboard.press('ArrowDown');await page.keyboard.press('ArrowUp');await page.keyboard.press('Enter');
+ assert.equal(new URL(page.url()).hash,'#schemas/TissueSample','Enter opens the highlighted schema');
+ assert.equal(await finder().inputValue(),'','Choosing a schema clears the search');
+ await page.goBack();
  const sourceConcept=page.locator('[data-concept]').filter({has:page.locator('[aria-label^="Explore Source material connections:"]')});
  const cardPaint=()=>sourceConcept.locator('.se-research-card').evaluate(node=>({fill:getComputedStyle(node).fill,stroke:getComputedStyle(node).stroke}));
  await page.locator('h2').first().hover();
@@ -139,15 +151,35 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.locator('#research-svg').screenshot({path:path.join(output,'research-overview.png')});
  assert.equal(await page.getByRole('button',{name:/^(Whole model|Trace a file to its donor)$/}).count(),0,'The overview has one mode');
  // Concept navigation: a map card opens its diagram, Summary/Map tabs switch views, the stepper moves between concepts.
- const diagramBack=()=>page.locator('.se-research-detail .se-diagram-back');
+ // The side menu is the explorer's one navigation, and every place is in the page URL.
+ const sideNav=page.getByRole('navigation',{name:'Schema Explorer',exact:true});
+ const navTo=name=>sideNav.getByRole('link',{name,exact:true}).click();
+ const search=()=>new URL(page.url()).hash;
+ const diagramBack=()=>sideNav.getByRole('link',{name:'Overview',exact:true});
  const stepper=page.getByRole('navigation',{name:'Place in the donor-to-data workflow',exact:true});
  const goToConcept=label=>stepper.getByRole('button',{name:new RegExp(`${label.replace(/[/]/g,'\\/')}$`)}).click();
- const conceptTab=(label,name)=>page.getByRole('tablist',{name:`${label} views`,exact:true}).getByRole('tab',{name,exact:true}).click();
- const conceptHeading=()=>page.locator('.se-research-detail h3').textContent();
+ const conceptHeading=()=>page.locator('.se-concept-heading h3').textContent();
  await page.locator('#research-svg [data-concept="sample"] > g[role="button"]:not([data-overview])').click();
  assert.ok(await page.locator('#entity-svg [data-entity="Sample"]').count(),'A concept card opens its connections directly');
+ assert.equal(search(),'#concepts/sample','A concept page has its own URL');
+ // One schema search, in the same place on every view.
+ const finderBox=async()=>finder().evaluate(input=>{const r=input.getBoundingClientRect(),m=input.closest('.se-main').getBoundingClientRect();return [Math.round(r.left-m.left),Math.round(r.top-m.top),Math.round(r.width)];});
+ const conceptFinder=await finderBox();
+ assert.equal(await sideNav.locator('[aria-current="page"]').textContent(),'Sample','The side menu marks the open concept');
+ assert.equal(await sideNav.getByRole('link',{name:'Samples, Tissue & Cell Lines'}).count(),0,'The menu holds one grouping, the donor-to-data path; schema groups live in the catalog');
+ // The menu collapses with the portal's sliding sidebar arrow, as on the benchmarking data pages.
+ await page.getByRole('button',{name:'Toggle Side Navigation',exact:true}).click();
+ assert.equal(await sideNav.isVisible(),false,'The side menu collapses');
+ await page.getByRole('button',{name:'Toggle Side Navigation',exact:true}).click();
+ assert.equal(await sideNav.isVisible(),true,'The side menu opens again');
+ await page.goBack();
+ assert.equal(search(),'','The browser Back button returns to the overview');
+ await page.locator('#research-svg').waitFor();
+ await page.goForward();
+ await page.locator('#entity-svg [data-entity="Sample"]').waitFor();
  await diagramBack().click();
  assert.ok(await page.locator('#research-map-context').isVisible(),'Back from a map card returns to the map');
+ assert.equal(search(),'','The overview is the bare page URL');
  assert.equal(await page.getByRole('region',{name:'Sample details',exact:true}).count(),0,'Back does not unexpectedly open concept details');
  await page.locator('[data-concept="fileSet"] .se-research-diagram-action').click();
  await page.locator('[data-external-group]').first().waitFor();
@@ -173,27 +205,48 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await diagramBack().click();
  await page.locator('[data-overview="sample"]').click();
  assert.match(await page.getByRole('region',{name:'Sample details',exact:true}).textContent(),/sample_sources/);
- assert.equal(await page.locator('#research-map-context').isVisible(),false,'Selecting a concept promotes the detail workspace and folds the overview');
+ assert.equal(await page.locator('#research-map-context').count(),0,'A concept page replaces the overview map');
+ assert.equal(search(),'#concepts/sample');
  await page.waitForFunction(()=>document.activeElement?.textContent==='Sample');
  assert.equal(await page.evaluate(()=>document.activeElement.textContent),'Sample','Selection focuses the main detail heading');
- const relationshipRows=()=>page.locator('.se-research-detail .se-relationship-table tbody tr');
+ // One page per concept: its map, with the concept's relationships underneath while nothing is selected.
+ const relationshipRows=()=>page.locator('#concept-summary .se-relationship-table tbody tr');
  assert.ok(await relationshipRows().count()>=2);
+ assert.equal(await page.getByRole('tablist').count(),0,'No Summary/Map tabs: the concept page is one view');
+ assert.ok(await page.locator('#entity-svg [data-entity="TissueSample"]').count(),'The concept page draws its map');
+ // Pointing at a table row traces its arrow on the map.
+ await relationshipRows().filter({hasText:'sample_sources[]'}).hover();
+ assert.ok(await page.locator('#entity-svg .se-traced-edge').count()>0,'A table row traces its references on the map');
+ await page.mouse.move(0,0);
+ assert.equal(await page.locator('#entity-svg .se-traced-edge').count(),0);
+ // Selecting a schema swaps the concept's relationships for the schema's own; clearing brings them back.
+ await page.locator('[data-entity="TissueSample"]').focus();await page.keyboard.press('Enter');
+ assert.equal(await page.locator('#concept-summary').count(),0,'A selected schema replaces the concept relationships');
+ assert.ok(await page.locator('#entity-details').isVisible());
+ await page.getByRole('button',{name:/^Clear selection of /}).click();
+ assert.ok(await page.locator('#concept-summary').isVisible(),'Clearing the selection shows the concept relationships again');
+ await relationshipRows().first().getByRole('button',{name:/^Details/}).click();
+ assert.ok(await page.getByRole('dialog').isVisible(),'A table row opens its details');
+ await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
+ await page.locator('.modal-backdrop').waitFor({state:'detached'});
  await page.locator('.se-research-detail').screenshot({path:path.join(output,'sample-workspace.png')});
  await goToConcept('Library');
  assert.equal(await conceptHeading(),'Library');
  assert.ok(await relationshipRows().filter({hasText:'analytes[]'}).count(),'Library summary lists its source analytes');
  // Measured once the stepper's smooth scroll has settled.
- const conceptTop=()=>page.locator('.se-research-detail h3').evaluate(heading=>new Promise(done=>{
+ const conceptTop=()=>page.locator('.se-concept-heading h3').evaluate(heading=>new Promise(done=>{
   let last=NaN;const settle=()=>{if(scrollY===last)done(Math.round(heading.getBoundingClientRect().top));else{last=scrollY;setTimeout(settle,100);}};settle();
  }));
- const summaryTop=await conceptTop();
- const mapBoxes=await page.locator('#research-svg [data-concept]').count();
- await conceptTab('Library','Map');
- assert.equal(await conceptTop(),summaryTop,'Switching tabs changes only the tab content; the concept heading stays in place');
- assert.ok(await page.locator('.se-research-map-toggle').isVisible(),'The folded metadata map stays above the Map tab too');
- await page.locator('.se-research-map-toggle').click();
- assert.equal(await page.locator('#research-svg [data-concept]').count(),mapBoxes,'Unfolded above the Map tab, the metadata map still draws every concept');
- await page.locator('.se-research-map-toggle').click();
+ assert.ok(await conceptTop()>-1000);
+ assert.equal(search(),'#concepts/library');
+ // The path under the heading moves between concepts, and Overview leads back to the whole map.
+ assert.ok(await stepper.isVisible());
+ await goToConcept('Analyte');
+ assert.equal(search(),'#concepts/analyte','Moving along the path opens that concept');
+ await page.goBack();
+ assert.equal(search(),'#concepts/library');
+ assert.ok(await stepper.getByRole('button',{name:'Overview',exact:true}).isVisible(),'The path starts with a way back to the overview');
+ assert.equal(await page.locator('#research-svg').count(),0,'A concept page does not repeat the overview map');
  assert.equal(await page.locator('.se-concept-diagram .se-diagram-header').count(),0,'The diagram does not repeat the concept heading');
  const visibleSchemas=()=>page.locator('#entity-svg .entity-node').evaluateAll(nodes=>nodes.map(node=>node.dataset.entity).sort());
  assert.equal(await page.locator('#entity-svg .entity-node:not(:has(.se-context-domain))').count(),11,'Library opens the entire group directly');
@@ -206,7 +259,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await diagramGuide.waitFor();
  assert.ok((await diagramGuide.locator('.se-diagram-legend').textContent()).includes('In focus: Library'),'The legend explains the outlined concept schemas');
  assert.match(await diagramGuide.textContent(),/Highlighted schemas belong to Library/,'The reading note moved into the guide');
- await page.keyboard.press('Escape');await page.locator('.se-research-detail h3').click();
+ await page.keyboard.press('Escape');await page.locator('.se-concept-heading h3').click();
  await diagramGuide.waitFor({state:'detached'});
  for(const pair of ['Library to Analyte','FileSet to Library','Library to LibraryPreparation'])assert.ok(await page.locator(`#entity-svg .se-edge[aria-label="${pair}"]`).count(),'The overview connections and additional preparation metadata are present');
  await page.locator('.se-concept-diagram').screenshot({path:path.join(output,'library-simplified-entry.png')});
@@ -214,12 +267,9 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.getByRole('button',{name:/Show entire group/}).count(),0,'No redundant scope toggle');
  assert.equal(await page.locator('.se-diagram-controls details[open]').count(),0,'Technical controls are folded on entry');
  assert.ok(await page.locator('#entity-svg').evaluate(svg=>svg.getBoundingClientRect().top < innerHeight / 2),'The diagram is visible immediately on entry');
- await conceptTab('Library','Summary');
- assert.equal(await conceptTop(),summaryTop,'Returning to Summary keeps the heading in place');
- assert.equal(await conceptHeading(),'Library','The Summary tab restores the concept instead of the whole-model overview');
+ assert.equal(await conceptHeading(),'Library');
  await goToConcept('Analyte');
  for(const field of ['samples[]','analyte_preparation','analytes[]'])assert.ok(await page.locator('.se-relationship-field code').filter({hasText:field}).count(),`Analyte summary retains ${field}`);
- await conceptTab('Analyte','Map');
  assert.equal(await page.locator('#entity-svg .entity-node:not(:has(.se-context-domain))').count(),11,'Analyte uses the same full group view');
  assert.equal(await page.locator('#entity-svg .se-domain-frame').count(),1,'External context does not introduce an entire additional group');
  assert.match(await page.locator('[data-entity="Sample"] .se-context-domain').textContent(),/Other group/);
@@ -242,9 +292,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.locator('#entity-svg').screenshot({path:path.join(output,'sample-neighborhood.png')});
  await page.locator('#entity-show-neighborhood').click();
  await relationshipSummary().filter({hasText:'Relationships 1/3'}).waitFor({timeout:5000}); // Leaving the neighborhood restores the group filter.
- await conceptTab('Analyte','Summary');
  await goToConcept('Data files');
- await conceptTab('Data files','Map');
  assert.equal(await page.locator('#entity-svg .se-domain-frame').count(),1,'Data files must not expand all related domains');
  assert.equal(await page.locator('#entity-svg .entity-node').count(),17,'The approved file stages and support schemas remain intact');
  assert.equal(await page.locator('#entity-svg .entity-node .se-subtitle').count(),17,'Every file schema retains its description in concept view');
@@ -259,6 +307,11 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.locator('[data-entity="UnalignedReads"]').focus();await page.keyboard.press('Enter');
  assert.equal(await page.locator('#entity-svg .se-cross-group-cue').count(),0,'The cue is hidden while links to other groups are drawn');
  assert.ok(await page.locator('#entity-details .se-selected-table').filter({hasText:'FileSet'}).count(),'The selected panel lists links drawn through a collapsed external group');
+ // The embed path finder starts from the selected schema, so it sits on its panel (and on its details page).
+ await page.locator('#entity-details').getByRole('button',{name:'Find embed path…',exact:true}).click();
+ assert.equal(await page.locator('#path-source').inputValue(),await page.locator('#entity-details #heading h2').textContent(),'The finder opens on the selected schema');
+ await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
+ await page.locator('.modal-backdrop').waitFor({state:'detached'});
  const externalToggle=page.getByLabel('Links to other groups',{exact:true});
  await externalToggle.uncheck();
  await page.locator('[data-entity="UnalignedReads"]').focus();await page.keyboard.press('Enter');
@@ -269,32 +322,53 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.getByRole('button',{name:'Close external connections',exact:true}).click();
  await externalToggle.check();
  assert.equal(await page.locator('.se-cross-group-popover').count(),0,'Drawing external links closes the cue panel');
- await conceptTab('Data files','Summary');
  assert.equal(await conceptHeading(),'Data files');
  await goToConcept('Donor');
- assert.deepEqual(await page.locator('.se-concept-schema').evaluateAll(cards=>cards.map(card=>card.dataset.schema)),['AbstractDonor','Donor','ProtectedDonor']);
- assert.equal(await page.locator('.se-concept-schema').first().getAttribute('data-abstract'),'true');
- assert.equal(await page.locator('.se-concept-schema-abstract .se-concept-abstract-badge').textContent(),'Abstract');
- assert.equal(await page.locator('.se-concept-schema-abstract').evaluate(card=>getComputedStyle(card).borderTopStyle),'dashed');
- await page.locator('.se-concept-schemas').screenshot({path:path.join(output,'abstract-donor-schemas.png')});
+ // The concept's schemas are its outlined cards on the map; the abstract base keeps its dashed look there.
+ assert.deepEqual(await page.locator('#entity-svg .entity-node.se-concept-center').evaluateAll(nodes=>nodes.map(n=>n.dataset.entity).sort()),['AbstractDonor','Donor','ProtectedDonor']);
+ assert.equal(await page.locator('[data-entity="AbstractDonor"].se-node-abstract').count(),1);
+ // Selecting a schema on a concept page shows its full details under the map and keeps the concept open.
+ await page.locator('[data-entity="ProtectedDonor"]').focus();await page.keyboard.press('Enter');
+ assert.equal(search(),'#concepts/donor','Selecting a concept schema keeps the concept page');
+ assert.equal(await page.locator('#entity-details #heading h2').textContent(),'ProtectedDonor');
+ assert.equal(await page.locator('#entity-details').getByRole('tab',{name:'Links',exact:true}).getAttribute('aria-selected'),'true','Its links come first');
+ await page.locator('#entity-details').getByRole('tab',{name:/^Fields/}).click();
+ assert.ok(await page.locator('#entity-details .se-inspector-list button.se-field').count()>5,'Its fields are one tab away');
+ assert.equal(await page.locator('.se-schema-trail').textContent(),'All schemasDonor & Clinical HistoryProtectedDonor','A schema page names its catalog group');
+ assert.equal(await page.locator('.se-schema-concept a').textContent(),'1 · Donor','A schema page links its place on the metadata map');
+ assert.deepEqual(await finderBox(),conceptFinder,'The schema search sits in the same place on concept and schema pages');
+ await page.getByRole('button',{name:/^Clear selection of /}).click();
+ assert.ok(await page.locator('#concept-summary').isVisible());
+ assert.equal(await conceptHeading(),'Donor');
+ // A schema has no page of its own: its address opens its group map with it selected.
+ await openSchema('ProtectedDonor');
+ assert.equal(search(),'#schemas/ProtectedDonor');
+ assert.equal(await page.getByLabel('Schema group',{exact:true}).inputValue(),'donors','A schema opens on its group map');
+ assert.equal(await page.locator('[data-entity="ProtectedDonor"].selected').count(),1);
+ await page.locator('[data-entity="Donor"]').focus();await page.keyboard.press('Enter');
+ assert.equal(search(),'#schemas/Donor','Selecting on a group map moves to that schema');
+ await page.goBack();
+ assert.equal(search(),'#schemas/ProtectedDonor');
+ await page.locator('#entity-details #heading h2',{hasText:/^ProtectedDonor$/}).waitFor({timeout:5000}); // Back reselects the previous schema.
+ await page.getByRole('button',{name:/^Clear selection of /}).click();
+ assert.equal(search(),'#groups/donors','Clearing a selection returns to the group map');
 
- await goToConcept('Data files');
+ await navTo('Data files');
+ await page.locator('#concept-summary').waitFor();
  assert.ok(await relationshipRows().count()>=4);
- assert.equal(await page.locator('.se-concept-schema').count(),10);
+ assert.equal(await page.locator('#entity-svg .entity-node.se-concept-center').count(),10);
  const fileSetRow=relationshipRows().filter({hasText:'Which experiment is this file associated with?'});
  assert.match(await fileSetRow.textContent(),/file_sets\[\]/);
  assert.match(await fileSetRow.textContent(),/on 7 schemas/,'Every file subtype that stores file_sets is counted');
  await page.locator('.se-research-detail').screenshot({path:path.join(output,'data-files-workspace.png')});
- await goToConcept('Sample');
- await page.locator('.se-research-map-toggle').click();
- assert.equal(await page.locator('#research-map-context').isVisible(),true);
+ await diagramBack().click();
+ assert.equal(await page.locator('#research-map-context').isVisible(),true,'The side menu leads back to the overview map');
 
  const coreEdge=page.locator('#research-svg [data-reference="sample-material"] .se-research-edge');
  await coreEdge.focus();await page.keyboard.press('Enter');
  assert.match(await page.getByRole('dialog').textContent(),/sample_sources/);
  await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
  await page.locator('.modal-backdrop').waitFor({state:'detached'});
- await page.locator('.se-research-detail .se-diagram-back').click();
  const researchDownload=page.waitForEvent('download');await page.getByRole('button',{name:'Export PNG',exact:true}).click();
  await (await researchDownload).saveAs(path.join(output,'research-overview-export.png'));
  await page.getByRole('button',{name:'Enter full screen',exact:true}).click();
@@ -304,6 +378,8 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.getByRole('button',{name:/^All \d+ schemas$/}).click();
  const catalog=page.getByRole('region',{name:'All schemas',exact:true});
  assert.ok(await catalog.isVisible(),'All schemas opens the catalog');
+ assert.equal(search(),'#schemas');
+ assert.match(await sideNav.locator('[aria-current="page"]').textContent(),/^All schemas$/,'The side menu marks the catalog');
  assert.equal(await catalog.locator('.se-catalog-group').count(),6);
  assert.ok(await catalog.getByRole('region',{name:'Admin, Content & Ontology',exact:true}).count(),'The catalog and external cards share one group name');
  await catalog.screenshot({path:path.join(output,'schema-catalog.png')});
@@ -512,15 +588,14 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
    await outsideRegion.locator('details[data-domain="workflows"] summary').click();
    await outsideRegion.getByRole('button',{name:'WorkflowRun',exact:true}).click();
    assert.equal(await page.getByLabel('Schema group',{exact:true}).inputValue(),'workflows','External schema navigation opens its group');
-   assert.ok(await page.locator('[data-entity="WorkflowRun"].selected').count());
+   await page.locator('[data-entity="WorkflowRun"].selected').waitFor({timeout:5000});
+   assert.equal(search(),'#schemas/WorkflowRun','An external schema opens at its own address');
   }
 
  }
- // The group map's back button; the page tab carries the same name.
- await page.locator('.se-diagram-header .se-diagram-back').click();
+ await diagramBack().click();
  assert.equal(await page.locator('.se-research-overview').count(),1);
- await page.getByLabel('Search schemas',{exact:true}).fill('Donor');
- await page.getByRole('button',{name:'Donor',exact:true}).click();
+ await selectOnGroupMap('Donor');
  assert.equal(await page.getByLabel('Schema group',{exact:true}).inputValue(),'donors');
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  const beforeClearing=await page.locator('#entity-svg > g').getAttribute('transform');
@@ -528,8 +603,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.locator('#entity-svg > g').getAttribute('transform'),beforeClearing,'Clear selection preserves the current group camera');
 
 
- await page.getByLabel('Search schemas',{exact:true}).fill('TissueSample');
- await page.getByRole('button',{name:'TissueSample',exact:true}).click();
+ await selectOnGroupMap('TissueSample');
  assert.equal(await page.getByLabel('Schema group',{exact:true}).inputValue(),'samples');
  await selectSetting('Diagram layout','network');
  assert.equal(await page.locator('.se-domain-frame').count(),0);
@@ -537,8 +611,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.locator('.se-domain-frame').count(),1);
  await selectSetting('Schema group','');
  assert.equal(await page.locator('.se-research-overview').count(),1,'Leaving every group returns to the metadata map');
- await page.getByLabel('Search schemas',{exact:true}).fill('File');
- await page.getByRole('button',{name:'File',exact:true}).click();
+ await selectOnGroupMap('File');
  assert.equal(await page.getByLabel('Schema group',{exact:true}).inputValue(),'files');
  await page.getByRole('button',{name:/^Clear selection of /}).click();
  await page.getByRole('button',{name:'Zoom in',exact:true}).click();
@@ -550,14 +623,19 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.ok(await page.locator('#entity-svg .entity-node').count()>1);
  await page.locator('#entity-show-neighborhood').click();
  assert.equal(await page.locator('#entity-show-neighborhood').getAttribute('aria-pressed'),'false');
- await page.locator('#open-entity').click(); // Switch from the default schema map to item view.
+ const mapPlace=search();
+ const toCatalog=()=>sideNav.getByRole('link',{name:/^All schemas/}).click();
+ await toCatalog(); // Leave the map for schema details through the side menu.
  // Live item loading is folded into an admin-only panel under the schema heading.
  const openLivePanel=async()=>{if(!await page.locator('.se-live-panel').evaluate(panel=>panel.open))await page.locator('.se-live-panel > summary').click();};
- await page.selectOption('#types','ProtectedDonor');
+ await openSchema('ProtectedDonor');
  await openLivePanel();
  assert.equal(await page.locator('#environments').isDisabled(),true);
  assert.equal(await page.locator('#environments option').count(),1);
- await page.locator('#open-entity').click();await page.waitForSelector('#entity-svg .entity-node');
+ assert.equal(search(),'#schemas/ProtectedDonor','Choosing a schema puts it in the URL');
+ await page.goBack();await page.goBack(); // Back to the map exactly as it was left.
+ assert.equal(search(),mapPlace);
+ await page.waitForSelector('#entity-svg .entity-node');
  await page.locator('#entity-fullscreen').click();
  assert.equal(await page.locator('#entity-fullscreen').getAttribute('aria-pressed'),'true');
  await clickDiagramEdge();
@@ -569,7 +647,8 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  const dl=shell.waitForEvent('download');await page.locator('#entity-export').click();const download=await dl;
  await download.saveAs(path.join(output,'schema-map.png'));
  assert.deepEqual([...fs.readFileSync(path.join(output,'schema-map.png')).subarray(0,8)],[137,80,78,71,13,10,26,10]);
- await page.locator('#open-entity').click();
+ await page.goForward();await page.goForward();
+ assert.equal(search(),'#schemas/ProtectedDonor','Forward returns to the schema');
  await page.locator('#heading button').filter({hasText:'Python'}).click();
  await page.waitForFunction(()=>document.querySelector('#detail-content pre')?.textContent.includes('class ProtectedDonor'));
  await page.getByRole('dialog').getByRole('button', {name:'Close',exact:true}).click();
@@ -594,24 +673,25 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.getByRole('dialog').getByRole('button', {name:'Close',exact:true}).click();
  const before=calls.filter(url=>new URL(url).pathname==='/schema-explorer/model').length;
  await page.evaluate(()=>window.unmountExplorer());
- assert.equal(await page.locator('#types').count(),0);
+ assert.equal(await finder().count(),0);
  await page.evaluate(()=>window.mountExplorer());
- await page.waitForFunction(()=>document.getElementById('types')?.options.length>30);
+ await page.waitForFunction(()=>!!document.getElementById('schema-finder'));
  assert.equal(calls.filter(url=>new URL(url).pathname==='/schema-explorer/model').length,before+1);
- await page.locator('#open-entity').click();
- assert.equal(await page.locator('#item-heading').count(),0,'Remounting does not restore a previously loaded item');
+ assert.equal(await page.locator('#heading h2').textContent(),decodeURIComponent(search().split('/')[1]),'Remounting reopens the schema named in the URL');
+ assert.equal(await page.locator('#item-heading h3').count(),0,'Remounting does not restore a previously loaded item');
+ await diagramBack().click();
  assert.deepEqual(errors,[]);
  isAdmin=false;
  await page.evaluate(()=>{window.unmountExplorer();window.mountExplorer();});
- await page.waitForFunction(()=>document.getElementById('types')?.options.length>30);
- assert.equal(await page.locator('#types').isVisible(),false);
- await page.locator('#open-entity').click();
- assert.equal(await page.locator('#types').isVisible(),true);
- await page.locator('#types').selectOption('File');
+ await page.waitForFunction(()=>!!document.getElementById('schema-finder'));
+ assert.equal(await page.locator('.se-item-view').isVisible(),false);
+ await toCatalog();
+ assert.equal(await page.locator('.se-item-view').isVisible(),true);
+ await openSchema('File');
  assert.equal(await page.locator('#heading h2').textContent(),'File');
  assert.equal(await page.locator('.se-live-panel').count(),0,'Live item loading is admin only');
- await page.locator('#open-entity').click();
- assert.equal(await page.locator('#types').isVisible(),false);
+ await diagramBack().click();
+ assert.equal(await page.locator('.se-item-view').isVisible(),false);
  // Now use the real portal bootstrap (browser.js), not the isolated component harness.
  const userInfo={details:{email:'admin@example.org',first_name:'Schema',last_name:'Admin',groups:['admin'],uuid:'test-admin'},user_actions:[]};
  isAdmin=true;
@@ -622,9 +702,9 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  fullMarkup=full.stdout.slice(full.stdout.indexOf('<!DOCTYPE html>'));
  for(let reload=0;reload<3;reload++){
   if(reload===0)await page.goto('https://portal.test/schema-explorer');else await page.reload();
-  await page.waitForFunction(()=>document.getElementById('types')?.options.length>30,null,{timeout:20000}).catch(async error=>{console.log('Portal bootstrap errors:',errors,'Recent requests:',calls.slice(-15));await page.screenshot({path:path.join(output,'bootstrap-failure.png')});throw error;});
+  await page.waitForFunction(()=>!!document.getElementById('schema-finder'),null,{timeout:20000}).catch(async error=>{console.log('Portal bootstrap errors:',errors,'Recent requests:',calls.slice(-15));await page.screenshot({path:path.join(output,'bootstrap-failure.png')});throw error;});
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('user_info'))?.details?.email),'admin@example.org');
-  assert.equal(await page.locator('#types').inputValue(),'');
+  assert.equal(await finder().inputValue(),'');
   await page.waitForSelector('#research-svg [data-concept]');
   assert.equal(await page.locator('#research-svg .se-research-edge').count(),10,'The real portal bootstrap opens the relationship map');
  }

@@ -202,12 +202,3 @@ export function InfoPopover({ id, label, title, className = '', placement = 'bot
         </OverlayTrigger>
     );
 }
-
-export function ConceptTabs({ active, label, onSummary, onMap }) {
-    return (
-        <div className="se-concept-tabs" role="tablist" aria-label={`${label} views`}>
-            <button type="button" role="tab" aria-selected={active === 'summary'} onClick={active === 'summary' ? undefined : onSummary}>Summary</button>
-            <button type="button" role="tab" aria-selected={active === 'map'} onClick={active === 'map' ? undefined : onMap}>Map</button>
-        </div>
-    );
-}

@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { buildResearchMap, researchLabels, traceProvenance, overviewFlow, conceptIcons, branchOf } from './research-map';
 import { routeEdges } from './routing';
-import { abstractTypes, domains } from './domains';
-import { conceptConnections } from './concept-connections';
-import { exportPNG, ConceptTabs, InfoPopover } from './shared';
+import { domains } from './domains';
+import { exportPNG, InfoPopover } from './shared';
 
 function lines(text) {
     const result = [''];
@@ -20,17 +19,26 @@ function listLabel(names, limit = 2) {
     return names.length > limit ? `${names.slice(0, limit).join(', ')} +${names.length - limit}` : names.join(', ');
 }
 
-// One table row per relationship: the schema on the other side, what the link means and the field that stores it.
-function RelationshipRow({ edge, section, graph, onInspect }) {
+// A title such as "Donors" for donors[] adds nothing next to the field itself.
+const restatesField = (title = '', fields) => {
+    const plain = (text) => text.toLowerCase().replace(/[^a-z]/g, '');
+    return fields.some((field) => plain(field.split('.').pop()) === plain(title));
+};
+
+// One table row per relationship, scanned rather than read: the schema on the other side, its one-line meaning and
+// the field that stores it. The longer explanation opens with Details.
+function RelationshipRow({ edge, section, graph, onInspect, onTrace }) {
     const from = edge.fromLabel || nodeLabel(graph, edge.from), to = edge.toLabel || nodeLabel(graph, edge.to);
     const sources = (edge.sources || [edge.from]).map((id) => nodeLabel(graph, id));
     const other = section === 'incoming' ? listLabel(sources) : section === 'outgoing' ? to : `${listLabel(sources)} → ${to}`;
     const fields = [...new Set(edge.edges.map((reference) => reference.field))];
     const owners = [...new Set(edge.edges.map((reference) => reference.from))];
+    // Pointing at a row traces its references on the map above.
+    const trace = onTrace ? { onMouseEnter: () => onTrace(edge.edges), onMouseLeave: () => onTrace(null), onFocus: () => onTrace(edge.edges), onBlur: () => onTrace(null) } : {};
     return (
-        <tr>
+        <tr {...trace}>
             <th scope="row" className="se-relationship-other">{other}</th>
-            <td className="se-relationship-meaning"><span>{edge.question}</span>{edge.explanation && <small>{edge.explanation}</small>}</td>
+            <td className="se-relationship-meaning">{restatesField(edge.question, fields) ? <span className="se-relationship-none" aria-label="No separate meaning">—</span> : <span>{edge.question}</span>}</td>
             <td className="se-relationship-field">
                 {fields.slice(0, 2).map((field) => <code key={field}>{field}</code>)}
                 {fields.length > 2 && <small>+{fields.length - 2} more</small>}
@@ -75,7 +83,7 @@ function relationshipSections(edges, concept) {
 
 const visibleRelationships = 6;
 
-function RelationshipSection({ section, graph, onInspect }) {
+function RelationshipSection({ section, graph, onInspect, onTrace }) {
     const [expanded, setExpanded] = useState(false);
     const hidden = section.edges.length - visibleRelationships;
     const edges = expanded || hidden <= 0 ? section.edges : section.edges.slice(0, visibleRelationships);
@@ -84,10 +92,43 @@ function RelationshipSection({ section, graph, onInspect }) {
             <h5 className="se-relationship-section-title">{section.label} <span>{section.edges.length}</span></h5>
             <table className="se-relationship-table">
                 <thead><tr><th scope="col">{section.column}</th><th scope="col">Meaning</th><th scope="col">Stored in field</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
-                <tbody>{edges.map((edge) => <RelationshipRow key={edge.key} edge={edge} section={section.key} graph={graph} onInspect={onInspect} />)}</tbody>
+                <tbody>{edges.map((edge) => <RelationshipRow key={edge.key} edge={edge} section={section.key} graph={graph} onInspect={onInspect} onTrace={onTrace} />)}</tbody>
             </table>
             {hidden > 0 && <button type="button" className="se-relationship-more" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{expanded ? 'Show fewer' : `Show ${hidden} more`}</button>}
         </div>
+    );
+}
+
+// The relationship dialog for a concept link, shared by the map's arrows and the concept's tables.
+export function researchDetail(edge, graph, index) {
+    return {
+        title: `${graph.nodes.find((node) => node.id === edge.from)?.label || edge.fromLabel || edge.from} → ${graph.nodes.find((node) => node.id === edge.to)?.label || edge.toLabel || edge.to}`,
+        intro: 'The entry map follows biological progression. These exact schema references retain reference direction; [] denotes an array.',
+        // The concept tables keep one line per link; the longer, link-specific explanation is shown here.
+        meaning: edge.explanation,
+        value: edge.edges,
+        relationship: edge.edges,
+        sources: edge.edges.flatMap((e) => index.models.find((model) => model.name === e.from)?.fields.find((field) => field.name === e.field.split('.')[0].replaceAll('[]', ''))?.sources || []),
+    };
+}
+
+// Under a concept's map while no schema is selected: the concept's links, gathered across its schemas, by direction.
+// Selecting a schema on the map replaces it with that schema's own links.
+export function ConceptSummary({ concept, connections, graph, index, onDetail, onTrace }) {
+    const sections = relationshipSections(connections, concept);
+    const inspect = (edge) => onDetail(researchDetail(edge, graph, index));
+    return (
+        <section id="concept-summary" className="se-selected-panel se-concept-summary" aria-label={`${concept.label} relationships`}>
+            <header>
+                <div>
+                    <span className="se-diagram-eyebrow">Relationships</span>
+                    <h3>How {concept.label.toLowerCase()} connects</h3>
+                    <p>Across its schemas. Point at a link to trace it on the map; select a schema on the map for its own links.</p>
+                </div>
+            </header>
+            {sections.map((section) => <RelationshipSection key={`${concept.id}-${section.key}`} section={section} graph={graph} onInspect={inspect} onTrace={onTrace} />)}
+            {!sections.length && <p className="se-flow-note">No links to other metadata.</p>}
+        </section>
     );
 }
 
@@ -110,15 +151,23 @@ function MapGuide() {
 
 
 // The whole donor-to-data path with the current concept marked, so its place reads at a glance.
-function WorkflowStepper({ concept, graph, onConcept }) {
+// It sits under every concept's heading, on both tabs, so the reader always sees where the concept sits and can go back to the
+// whole map (Overview) or on to the next step in one move.
+function WorkflowStepper({ concept, graph, onConcept, onOverview }) {
     const steps = graph.nodes.filter((node) => node.step).sort((a, b) => a.step - b.step);
     const anchor = concept.step ? concept.id : branchOf[concept.id];
     const parent = graph.nodes.find((node) => node.id === anchor);
-    // Branch concepts are listed under the step they hang off, so every concept is reachable from here.
+    // Branch concepts are listed under the current step, so its side topics are one click away.
     const branches = (id) => graph.nodes.filter((node) => branchOf[node.id] === id);
     return (
         <nav className="se-stepper" aria-label="Place in the donor-to-data workflow">
             <ol>
+                <li className="se-step-overview">
+                    <button type="button" onClick={onOverview}>
+                        <span className="se-step-number"><i className="icon icon-diagram-project fas" aria-hidden="true" /></span>
+                        <span className="se-step-label">Overview</span>
+                    </button>
+                </li>
                 {steps.map((node) => {
                     const current = node.id === anchor;
                     return (
@@ -127,7 +176,8 @@ function WorkflowStepper({ concept, graph, onConcept }) {
                                 <span className="se-step-number">{node.step}</span>
                                 <span className="se-step-label">{node.label}</span>
                             </button>
-                            {branches(node.id).length > 0 && (
+                            {/* Only the current step lists its branches; the others are in the side menu and on the map. */}
+                            {current && branches(node.id).length > 0 && (
                                 <ul className="se-step-branches" aria-label={`Branches off ${node.label}`}>
                                     {branches(node.id).map((branch) => (
                                         <li key={branch.id}>
@@ -149,15 +199,14 @@ function WorkflowStepper({ concept, graph, onConcept }) {
     );
 }
 
-// The Summary and Map tabs of a concept share everything above the tab content: the collapsed metadata
-// map and the concept heading. `mapTab` is the Map tab's content; without it the Summary tab is shown.
-export default function ResearchOverview({ index, nodes, onType, onAllTypes, onDetail, onConnections, initialConcept = '', focusMap = false,
-    mapTab = null, onSummary, onLeaveMap }) {
+// Without `conceptId` this is the metadata map; with it, that concept's page: its heading, its place on the path and
+// `mapTab`, the concept's map with its relationships underneath. The explorer's side menu and the page URL hold where
+// the reader is, so every move goes through `onNavigate`.
+export default function ResearchOverview({ index, nodes, onAllTypes, onDetail, onNavigate, conceptId = '', mapTab = null }) {
     const [size, setSize] = useState({ width: 1200, height: 650 });
     const [camera, setCamera] = useState({ x: 20, y: 20, scale: 1 });
-    const [selected, setSelected] = useState(initialConcept);
-    const [mapExpanded, setMapExpanded] = useState(!initialConcept);
-    const [query, setQuery] = useState('');
+    const selected = conceptId;
+    const showMap = !conceptId;
     const [full, setFull] = useState(false);
     const [exporting, setExporting] = useState(false);
     const [error, setError] = useState('');
@@ -169,12 +218,6 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
     const labels = useMemo(() => researchLabels(flow, routes), [flow, routes]);
     const trace = useMemo(() => traceProvenance(graph, selected), [graph, selected]);
     const concept = graph.nodes.find((node) => node.id === selected);
-    const detailConnections = useMemo(() => conceptConnections(index, concept, graph, nodes), [index, concept, graph, nodes]);
-    const schemaGroups = concept ? [
-        { label: 'Abstract types', abstract: true, members: concept.members.filter((name) => abstractTypes.has(name)) },
-        { label: 'Concrete types', abstract: false, members: concept.members.filter((name) => !abstractTypes.has(name)) },
-    ].filter((group) => group.members.length) : [];
-    const hasAbstract = schemaGroups.some((group) => group.abstract);
     const bounds = useMemo(() => {
         const points = graph.nodes.flatMap((node) => {
             const p = graph.positions[node.id];
@@ -201,17 +244,21 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
             return { scale, x: x - (x - c.x) * scale / c.scale, y: y - (y - c.y) * scale / c.scale };
         });
     }, [size]);
+    // The canvas is as tall as the map at the width-fitted scale, so a narrower page (beside the side menu)
+    // shows every row instead of cutting the last one off.
+    const fitHeight = Math.round((bounds.bottom - bounds.top) * Math.max(0.85, Math.min(1.25, size.width / (bounds.right - bounds.left))));
     useEffect(() => { fit(); }, [fit, full]);
     useEffect(() => {
         const observer = new ResizeObserver(([entry]) => {
             const { width, height } = entry.contentRect;
             if (width && height) setSize((s) => s.width === width && s.height === height ? s : { width, height });
         });
-        observer.observe(svg.current);
+        if (svg.current) observer.observe(svg.current);
         return () => observer.disconnect();
-    }, []);
+    }, [showMap]);
     useEffect(() => {
         const element = svg.current;
+        if (!element) return undefined;
         const wheel = (event) => {
             event.preventDefault();
             const box = element.getBoundingClientRect();
@@ -219,7 +266,7 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
         };
         element.addEventListener('wheel', wheel, { passive: false });
         return () => element.removeEventListener('wheel', wheel);
-    }, [zoom]);
+    }, [zoom, showMap]);
     useEffect(() => {
         if (!full) return undefined;
         const { overflow } = document.body.style;
@@ -228,220 +275,147 @@ export default function ResearchOverview({ index, nodes, onType, onAllTypes, onD
         document.addEventListener('keydown', escape);
         return () => { document.body.style.overflow = overflow; document.removeEventListener('keydown', escape); };
     }, [full]);
-    const inspect = useCallback((edge) => onDetail({
-        title: `${graph.nodes.find((node) => node.id === edge.from)?.label || edge.fromLabel || edge.from} → ${graph.nodes.find((node) => node.id === edge.to)?.label || edge.toLabel || edge.to}`,
-        intro: 'The entry map follows biological progression. These exact schema references retain reference direction; [] denotes an array.',
-        value: edge.edges,
-        relationship: edge.edges,
-        sources: edge.edges.flatMap((e) => index.models.find((model) => model.name === e.from)?.fields.find((field) => field.name === e.field.split('.')[0].replaceAll('[]', ''))?.sources || []),
-    }), [graph, index, onDetail]);
-    const scrollToDetail = () => requestAnimationFrame(() => {
-        detailHeading.current?.focus({ preventScroll: true });
-        detail.current?.scrollIntoView({ block: 'start' });
-    });
-    // Opens a concept's Map tab under the same heading. Switching tabs keeps the heading where it is;
-    // only a concept opened from the map scrolls to it.
-    const openMap = (node, origin) => {
-        if (node.id !== selected) scrollToDetail();
-        setSelected(node.id);
-        setMapExpanded(false);
-        onConnections({ ...node, origin, connections: conceptConnections(index, node, graph, nodes) });
-    };
-    const choose = (id) => {
-        if (mapTab) onSummary(id);
-        setSelected(id);
-        setMapExpanded(false);
-        requestAnimationFrame(() => {
-            detailHeading.current?.focus({ preventScroll: true });
-            detail.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-        });
-    };
-    useEffect(() => { if (initialConcept) scrollToDetail(); }, [initialConcept]);
-    useEffect(() => {
-        if (focusMap) requestAnimationFrame(() => {
-            svg.current?.focus({ preventScroll: true });
-            svg.current?.scrollIntoView({ block: 'center', behavior: 'instant' });
-        });
-    }, [focusMap]);
-    const returnToMap = () => {
-        if (mapTab) onLeaveMap();
-        setSelected('');
-        setMapExpanded(true);
-        requestAnimationFrame(() => { svg.current?.focus({ preventScroll: true }); svg.current?.scrollIntoView({ block: 'center' }); });
-    };
+    const inspect = useCallback((edge) => onDetail(researchDetail(edge, graph, index)), [graph, index, onDetail]);
+    // Opening a concept puts keyboard and screen-reader focus on its heading; switching its tabs does not.
+    useEffect(() => { if (conceptId) detailHeading.current?.focus({ preventScroll: true }); }, [conceptId]);
+    const openConcept = (id) => onNavigate({ view: 'concept', concept: id });
     const dimNode = (id) => selected && !trace.nodes.has(id) &&
         (!graph.edges.some((edge) => (edge.from === selected && edge.to === id) || (edge.to === selected && edge.from === id)));
     const dimEdge = (edge) => selected && !trace.edges.has(edge.key) && (edge.from !== selected && edge.to !== selected);
     return (
         <section className={`se-research-overview${full ? ' se-fullscreen' : ''}`} aria-label="Metadata relationship overview">
-            <div className="se-research-heading">
-                <div><div className="se-research-title"><h2>From donor to data</h2><MapGuide /></div><p>How specimens, experiments and files connect in the SMaHT metadata model.</p></div>
-                <button type="button" onClick={onAllTypes}>All {nodes.length} schemas</button>
-            </div>
-            <div className="se-research-toolbar">
-                <input aria-label="Search schemas" type="search" placeholder="Find a specific schema…" value={query} onChange={(event) => setQuery(event.target.value)} />
-                <button type="button" hidden={!mapExpanded} disabled={exporting} onClick={async () => {
-                    setExporting(true);
-                    try { await exportPNG(svg.current, 'metadata-relationships'); }
-                    catch (err) { setError(err.message || 'PNG export failed.'); }
-                    finally { setExporting(false); }
-                }}>{exporting ? 'Exporting…' : 'Export PNG'}
-                </button>
-                <div className="se-zoom-controls" hidden={!mapExpanded} role="group" aria-label="Zoom controls">
-                    <button type="button" onClick={() => fit(false)}>Fit all</button>
-                    <button type="button" aria-label="Zoom out" onClick={() => zoom(0.8)}>−</button>
-                    <span>{Math.round(camera.scale * 100)}%</span>
-                    <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
-                </div>
-            </div>
-            {query && <div className="se-toolbar">{nodes.filter((node) => node.name.toLowerCase().includes(query.toLowerCase())).slice(0, 8).map((node) => <button type="button" key={node.name} onClick={() => onType(node.name)}>{node.name}</button>)}</div>}
-            {concept && (
-                <button type="button" className="se-research-map-toggle" aria-expanded={mapExpanded} aria-controls="research-map-context" onClick={() => setMapExpanded(!mapExpanded)}>
-                    <span>Metadata map <span aria-hidden="true">/</span> {concept.label}</span><span>{mapExpanded ? 'Hide map' : 'Show map'} <i className={`icon icon-fw fas ${mapExpanded ? 'icon-angle-up' : 'icon-angle-down'}`} aria-hidden="true" /></span>
-                </button>
-            )}
-            <div id="research-map-context" hidden={!mapExpanded}>
-                {error && <p role="alert">{error}</p>}
-                <div className="se-canvas-wrap">
-                    <button type="button" className="se-canvas-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onClick={() => setFull(!full)}><i className={`icon icon-fw fas ${full ? 'icon-compress-alt' : 'icon-expand-alt'}`} aria-hidden="true" /></button>
-                    <svg ref={svg} id="research-svg" className="se-canvas" role="group" aria-label="Donor to data relationship map" tabIndex={0}
-                        onPointerDown={(event) => {
-                            if (event.button !== 0 || event.target.closest('[data-concept], [data-reference], [data-overview]')) return;
-                            drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
-                            event.currentTarget.setPointerCapture(event.pointerId);
-                        }}
-                        onPointerMove={(event) => {
-                            const d = drag.current;
-                            if (!d || d.id !== event.pointerId) return;
-                            const dx = event.clientX - d.x, dy = event.clientY - d.y;
-                            d.x = event.clientX; d.y = event.clientY;
-                            setCamera((c) => {return { ...c, x: c.x + dx, y: c.y + dy };});
-                        }}
-                        onPointerUp={(event) => { drag.current = null; if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}
-                        onPointerCancel={() => { drag.current = null; }}
-                        onKeyDown={(event) => {
-                            if (event.target !== event.currentTarget) return;
-                            const delta = { ArrowLeft: [40, 0], ArrowRight: [-40, 0], ArrowUp: [0, 40], ArrowDown: [0, -40] }[event.key];
-                            if (delta) { event.preventDefault(); setCamera((c) => {return { ...c, x: c.x + delta[0], y: c.y + delta[1] };}); }
-                        }}>
-                        <defs>
-                            {[['research-arrow', '#888'], ['research-arrow-traced', '#079483' /* $seafoam-60 */]].map(([id, color]) => (
-                                <marker key={id} id={id} viewBox="0 0 10 8" refX="10" refY="4" markerWidth="10" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
-                                    <path d="M0,0 L10,4 L0,8 Z" fill={color} />
-                                </marker>
-                            ))}
-                        </defs>
-                        <g data-world="" transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
-                            {graph.edges.map((edge) => {
-                                const route = routes[edge.key];
-                                if (!route) return null;
-                                return (
-                                    <g key={edge.key} data-reference={edge.key} className={dimEdge(edge) ? 'se-research-dim' : ''}>
-                                        <path className={`se-research-edge${trace.edges.has(edge.key) ? ' se-research-traced' : ''}`} d={route.d} role="button" tabIndex={0}
-                                            markerEnd={`url(#${trace.edges.has(edge.key) ? 'research-arrow-traced' : 'research-arrow'})`}
-                                            aria-label={`${flowByKey.get(edge.key).label}: ${graph.nodes.find((node) => node.id === flowByKey.get(edge.key).from)?.label} → ${graph.nodes.find((node) => node.id === flowByKey.get(edge.key).to)?.label}. Open schema references`}
-                                            onClick={() => inspect(edge)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); inspect(edge); } }}>
-                                            <title>{`Schema references (reference direction):\n${edge.edges.map((e) => `${e.from}.${e.field} → ${e.to}`).join('\n')}`}</title>
-                                        </path>
-                                    </g>
-                                );
-                            })}
-                            {graph.nodes.map((node) => {
-                                const p = graph.positions[node.id];
-                                return (
-                                    <g key={node.id} data-concept={node.id} className={`se-research-node${dimNode(node.id) ? ' se-research-dim' : ''}${selected === node.id ? ' se-research-selected' : ''}`}
-                                        transform={`translate(${p.x - graph.nodeWidth / 2},${p.y - graph.nodeHeight / 2})`}>
-                                        <g className="se-research-diagram-action" role="button" tabIndex={0}
-                                            aria-label={`Explore ${node.label} connections: ${node.hint}`} aria-pressed={selected === node.id} onClick={() => openMap(node, 'map')}
-                                            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openMap(node, 'map'); } }}>
-                                            <rect className="se-research-card" width={graph.nodeWidth} height={graph.nodeHeight} rx="4" />
-                                            <text className="se-research-title" x="14" y="26">{node.label}</text>
-                                            {lines(node.hint).map((line, i) => <text className="se-research-hint" key={line} x="14" y={47 + i * 15}>{line}</text>)}
-                                            <text className="se-research-example" x="14" y="89">{node.example}</text>
-                                            {node.step && <g><circle className="se-research-step-badge" cx={graph.nodeWidth - 16} cy="16" r="10" /><text className="se-research-step" x={graph.nodeWidth - 16} y="20">{node.step}</text></g>}
-                                        </g>
-                                        <g data-overview={node.id} className="se-research-overview-action" role="button" tabIndex={0}
-                                            aria-label={`${node.label} summary`}
-                                            onClick={() => choose(node.id)}
-                                            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choose(node.id); } }}>
-                                            <rect x={graph.nodeWidth - 94} y="108" width="84" height="22" rx="4" />
-                                            <text x={graph.nodeWidth - 14} y="123" textAnchor="end">Summary →</text>
-                                        </g>
-                                    </g>
-                                );
-                            })}
-                            {graph.edges.map((edge) => {
-                                const label = labels[edge.key];
-                                if (!label) return null;
-                                return (
-                                    <g key={`label-${edge.key}`} data-reference={edge.key} className={`se-research-label${dimEdge(edge) ? ' se-research-dim' : ''}`} onClick={() => inspect(edge)}>
-                                        <rect x={label.left} y={label.top} width={label.width} height={label.height} rx="4" />
-                                        <text x={label.left + label.width / 2} y={label.top + 15}>{flowByKey.get(edge.key).label}</text>
-                                    </g>
-                                );
-                            })}
-                            {!graph.nodes.length && <text x="20" y="35">No enabled schemas in the core model. Open All schemas to change type visibility.</text>}
-                        </g>
-                    </svg>
-                </div>
-            </div>
+            {showMap && (
+                <>
+                    <div className="se-research-heading">
+                        <div><div className="se-research-title"><h2>From donor to data</h2><MapGuide /></div><p>How specimens, experiments and files connect in the SMaHT metadata model.</p></div>
+                        <button type="button" onClick={onAllTypes}>All {nodes.length} schemas</button>
+                    </div>
+                    <div className="se-research-toolbar">
+                        <button type="button" disabled={exporting} onClick={async () => {
+                            setExporting(true);
+                            try { await exportPNG(svg.current, 'metadata-relationships'); }
+                            catch (err) { setError(err.message || 'PNG export failed.'); }
+                            finally { setExporting(false); }
+                        }}>{exporting ? 'Exporting…' : 'Export PNG'}
+                        </button>
+                        <div className="se-zoom-controls" role="group" aria-label="Zoom controls">
+                            <button type="button" onClick={() => fit(false)}>Fit all</button>
+                            <button type="button" aria-label="Zoom out" onClick={() => zoom(0.8)}>−</button>
+                            <span>{Math.round(camera.scale * 100)}%</span>
+                            <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
+                        </div>
+                    </div>
+                    <div id="research-map-context">
+                        {error && <p role="alert">{error}</p>}
+                        <div className="se-canvas-wrap">
+                            <button type="button" className="se-canvas-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onClick={() => setFull(!full)}><i className={`icon icon-fw fas ${full ? 'icon-compress-alt' : 'icon-expand-alt'}`} aria-hidden="true" /></button>
+                            <svg ref={svg} id="research-svg" className="se-canvas" style={full ? undefined : { height: fitHeight }} role="group" aria-label="Donor to data relationship map" tabIndex={0}
+                                onPointerDown={(event) => {
+                                    if (event.button !== 0 || event.target.closest('[data-concept], [data-reference], [data-overview]')) return;
+                                    drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+                                    event.currentTarget.setPointerCapture(event.pointerId);
+                                }}
+                                onPointerMove={(event) => {
+                                    const d = drag.current;
+                                    if (!d || d.id !== event.pointerId) return;
+                                    const dx = event.clientX - d.x, dy = event.clientY - d.y;
+                                    d.x = event.clientX; d.y = event.clientY;
+                                    setCamera((c) => {return { ...c, x: c.x + dx, y: c.y + dy };});
+                                }}
+                                onPointerUp={(event) => { drag.current = null; if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}
+                                onPointerCancel={() => { drag.current = null; }}
+                                onKeyDown={(event) => {
+                                    if (event.target !== event.currentTarget) return;
+                                    const delta = { ArrowLeft: [40, 0], ArrowRight: [-40, 0], ArrowUp: [0, 40], ArrowDown: [0, -40] }[event.key];
+                                    if (delta) { event.preventDefault(); setCamera((c) => {return { ...c, x: c.x + delta[0], y: c.y + delta[1] };}); }
+                                }}>
+                                <defs>
+                                    {[['research-arrow', '#888'], ['research-arrow-traced', '#079483' /* $seafoam-60 */]].map(([id, color]) => (
+                                        <marker key={id} id={id} viewBox="0 0 10 8" refX="10" refY="4" markerWidth="10" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+                                            <path d="M0,0 L10,4 L0,8 Z" fill={color} />
+                                        </marker>
+                                    ))}
+                                </defs>
+                                <g data-world="" transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
+                                    {graph.edges.map((edge) => {
+                                        const route = routes[edge.key];
+                                        if (!route) return null;
+                                        return (
+                                            <g key={edge.key} data-reference={edge.key} className={dimEdge(edge) ? 'se-research-dim' : ''}>
+                                                <path className={`se-research-edge${trace.edges.has(edge.key) ? ' se-research-traced' : ''}`} d={route.d} role="button" tabIndex={0}
+                                                    markerEnd={`url(#${trace.edges.has(edge.key) ? 'research-arrow-traced' : 'research-arrow'})`}
+                                                    aria-label={`${flowByKey.get(edge.key).label}: ${graph.nodes.find((node) => node.id === flowByKey.get(edge.key).from)?.label} → ${graph.nodes.find((node) => node.id === flowByKey.get(edge.key).to)?.label}. Open schema references`}
+                                                    onClick={() => inspect(edge)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); inspect(edge); } }}>
+                                                    <title>{`Schema references (reference direction):\n${edge.edges.map((e) => `${e.from}.${e.field} → ${e.to}`).join('\n')}`}</title>
+                                                </path>
+                                            </g>
+                                        );
+                                    })}
+                                    {graph.nodes.map((node) => {
+                                        const p = graph.positions[node.id];
+                                        return (
+                                            <g key={node.id} data-concept={node.id} className={`se-research-node${dimNode(node.id) ? ' se-research-dim' : ''}${selected === node.id ? ' se-research-selected' : ''}`}
+                                                transform={`translate(${p.x - graph.nodeWidth / 2},${p.y - graph.nodeHeight / 2})`}>
+                                                <g className="se-research-diagram-action" role="button" tabIndex={0}
+                                                    aria-label={`Explore ${node.label} connections: ${node.hint}`} aria-pressed={selected === node.id} onClick={() => openConcept(node.id)}
+                                                    onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openConcept(node.id); } }}>
+                                                    <rect className="se-research-card" width={graph.nodeWidth} height={graph.nodeHeight} rx="4" />
+                                                    <text className="se-research-title" x="14" y="26">{node.label}</text>
+                                                    {lines(node.hint).map((line, i) => <text className="se-research-hint" key={line} x="14" y={47 + i * 15}>{line}</text>)}
+                                                    <text className="se-research-example" x="14" y="89">{node.example}</text>
+                                                    {node.step && <g><circle className="se-research-step-badge" cx={graph.nodeWidth - 16} cy="16" r="10" /><text className="se-research-step" x={graph.nodeWidth - 16} y="20">{node.step}</text></g>}
+                                                </g>
+                                                <g data-overview={node.id} className="se-research-overview-action" role="button" tabIndex={0}
+                                                    aria-label={`${node.label} summary`}
+                                                    onClick={() => openConcept(node.id)}
+                                                    onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openConcept(node.id); } }}>
+                                                    <rect x={graph.nodeWidth - 94} y="108" width="84" height="22" rx="4" />
+                                                    <text x={graph.nodeWidth - 14} y="123" textAnchor="end">Summary →</text>
+                                                </g>
+                                            </g>
+                                        );
+                                    })}
+                                    {graph.edges.map((edge) => {
+                                        const label = labels[edge.key];
+                                        if (!label) return null;
+                                        return (
+                                            <g key={`label-${edge.key}`} data-reference={edge.key} className={`se-research-label${dimEdge(edge) ? ' se-research-dim' : ''}`} onClick={() => inspect(edge)}>
+                                                <rect x={label.left} y={label.top} width={label.width} height={label.height} rx="4" />
+                                                <text x={label.left + label.width / 2} y={label.top + 15}>{flowByKey.get(edge.key).label}</text>
+                                            </g>
+                                        );
+                                    })}
+                                    {!graph.nodes.length && <text x="20" y="35">No enabled schemas in the core model. Open All schemas to change type visibility.</text>}
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
 
+                    <p className="se-research-support">
+                        Not every schema is on this map.
+                        <button type="button" onClick={onAllTypes}>Browse all {nodes.length} schemas by group <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button>
+                    </p>
+                </>
+            )}
             {concept && (
                 <section ref={detail} className="se-research-detail" aria-label={`${concept.label} details`}>
                     {/* Laid out like a portal item page header: entity icon, title, then a ruled label | value row. */}
                     <header className="se-concept-heading">
                         <span className="se-concept-icon" aria-hidden="true"><i className={`icon fas icon-${conceptIcons[concept.id] || 'circle'}`} /></span>
                         <div>
-                            <button type="button" className="se-diagram-back" onClick={returnToMap}><i className="icon icon-fw icon-arrow-left fas" aria-hidden="true" /> Metadata map</button>
                             <h3 ref={detailHeading} tabIndex={-1}>{concept.label}</h3>
                             <div className="se-concept-subtitle">
                                 <p className="se-concept-question">{concept.hint}</p>
                                 <span className="se-concept-meta"><span>Schema group</span><span className="se-concept-eyebrow">{domains.find((d) => d.id === concept.domain)?.label || 'Explore the metadata'}</span></span>
                             </div>
-                            <ConceptTabs active={mapTab ? 'map' : 'summary'} label={concept.label} onSummary={() => onSummary(concept.id)}
-                                onMap={() => openMap(concept, 'concept')} />
                         </div>
                     </header>
-                    {mapTab ? <div className="se-concept-map-tab">{mapTab}</div> : (
-                        <>
-                            <p className="se-concept-description">{concept.description}</p>
-                            <WorkflowStepper concept={concept} graph={graph} onConcept={choose} />
-                            <div className="se-concept-workspace">
-                                <section className="se-concept-relationships se-card" aria-labelledby="concept-relationships-heading">
-                                    <h4 className="se-card-header" id="concept-relationships-heading">Key relationships for {concept.label.toLowerCase()}</h4>
-                                    <div className="se-card-body">
-                                        <p className="se-concept-help">How {concept.label.toLowerCase()} connects to other metadata. Use Details to see every schema and field definition behind a link.</p>
-                                        {relationshipSections(detailConnections, concept).map((section) => <RelationshipSection key={`${concept.id}-${section.key}`} section={section} graph={graph} onInspect={inspect} />)}
-                                    </div>
-                                </section>
-                                <aside className="se-concept-schemas se-card" aria-labelledby="concept-schemas-heading">
-                                    <h4 className="se-card-header" id="concept-schemas-heading">Schemas in this concept <span>{concept.members.length}</span></h4>
-                                    <div className="se-card-body">
-                                        <p>Choose a schema to explore its fields and model details.</p>
-                                        {hasAbstract && <p className="se-concept-inheritance-help">Abstract types define shared fields for the concrete schemas below.</p>}
-                                        {schemaGroups.map((group) => (
-                                            <div className="se-concept-schema-group" key={group.label}>
-                                                {hasAbstract && <h5>{group.label}</h5>}
-                                                {group.members.map((name) => (
-                                                    <button className={`se-concept-schema${group.abstract ? ' se-concept-schema-abstract' : ''}`} data-schema={name} data-abstract={group.abstract} type="button" key={name} onClick={() => onType(name)}>
-                                                        <span className="se-concept-schema-name"><span>{name}</span>{group.abstract && <span className="se-concept-abstract-badge">Abstract</span>}<i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></span>
-                                                        <span className="se-concept-schema-description">{index.models.find((model) => model.name === name)?.schema.description || `Explore the ${name} schema and its fields.`}</span>
-                                                        {group.abstract && <span className="se-concept-abstract-note">Shared base definition</span>}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </aside>
-                            </div>
-                        </>
-                    )}
+                    <WorkflowStepper concept={concept} graph={graph} onOverview={() => onNavigate({ view: 'overview' })}
+                        onConcept={(id) => onNavigate({ view: 'concept', concept: id })} />
+                    <p className="se-concept-description">{concept.description}</p>
+                    <div className="se-concept-map-tab">{mapTab}</div>
                 </section>
             )}
-            <p className="se-research-support">
-                Not every schema is on this map.
-                <button type="button" onClick={onAllTypes}>Browse all {nodes.length} schemas by group <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button>
-            </p>
         </section>
     );
 }

@@ -10,10 +10,12 @@ import { domains, domainFor, hierarchicalLayout, abstractTypes } from './domains
 import { routeEdges } from './routing';
 import { groupRelationships, sharedRelationships } from './relationship-view';
 import { nodePresentation, stageAccent } from './node-presentation';
-import ResearchOverview from './ResearchOverview';
+import ResearchOverview, { ConceptSummary } from './ResearchOverview';
 import { explorerIndex } from './explorer-scope';
 import { externalContextGroups } from './external-context';
-import { mapSentence, researchLabels } from './research-map';
+import { mapSentence, researchLabels, buildResearchMap } from './research-map';
+import { conceptConnections } from './concept-connections';
+import { overviewRoute } from './explorer-route';
 import { neighborhoodLayout } from './neighborhood';
 import CrossGroupConnections, { outsideConnections } from './CrossGroupConnections';
 import { Badge, Filters, visibleEdge, edgeLabel, exportPNG, InfoPopover } from './shared';
@@ -22,30 +24,23 @@ const defaults = [];
 const colors = { linkTo: '#2368aa', calculated: '#7952a3', reverse: '#986019' };
 export default function Diagram({
     index: sourceIndex,
-    focus = '',
-    compact = false,
-    onExplore,
     onDetail,
     onPlanner,
     onBrowseAll,
-    groupRequest,
+    route = overviewRoute,
+    onNavigate,
+    renderSchema,
 }) {
     const index = useMemo(() => explorerIndex(sourceIndex), [sourceIndex]);
-    const [selected, setSelected] = useState(focus);
+    const [selected, setSelected] = useState('');
     const [outsideOpen, setOutsideOpen] = useState(false);
     const [expandedExternal, setExpandedExternal] = useState([]);
-    const [domain, setDomain] = useState('');
-    const [conceptContext, setConceptContext] = useState(null);
     const [showExternal, setShowExternal] = useState(false);
-    useEffect(() => { setShowExternal(!!conceptContext); }, [conceptContext?.id]);
-    useEffect(() => { setExpandedExternal([]); }, [conceptContext?.id, domain]);
-    const [returnConcept, setReturnConcept] = useState('');
-    const [focusReturnedMap, setFocusReturnedMap] = useState(false);
     const [arrangement, setArrangement] = useState('hierarchical');
     const [crossLinks, setCrossLinks] = useState(true);
     const [connectionMode, setConnectionMode] = useState('shared');
-    const [hidden, setHidden] = useState(compact ? [] : defaults);
-    const [kinds, setKinds] = useState(compact ? ['linkTo', 'calculated', 'reverse'] : ['linkTo']);
+    const [hidden, setHidden] = useState(defaults);
+    const [kinds, setKinds] = useState(['linkTo']);
     // A neighborhood answers "what is this schema connected to", so it opens with every relationship kind;
     // leaving it restores the filter the group map had, which stays deliberately sparse.
     const kindsBeforeNeighborhood = useRef(null);
@@ -53,8 +48,7 @@ export default function Diagram({
     const [hoverEdge, setHoverEdge] = useState(null);
     const [neighbors, setNeighbors] = useState(false),
         [full, setFull] = useState(false);
-    const [query, setQuery] = useState(''),
-        [typeQuery, setTypeQuery] = useState('');
+    const [typeQuery, setTypeQuery] = useState('');
     const [moves, setMoves] = useState({}),
         [camera, setCamera] = useState({ x: 0, y: 0, scale: 1 });
     const [size, setSize] = useState({ width: 1000, height: 600 });
@@ -67,7 +61,7 @@ export default function Diagram({
     }, []);
     const [exporting, setExporting] = useState(false),
         [error, setError] = useState('');
-    const markerPrefix = compact ? 'graph-arrow' : 'entity-arrow';
+    const markerPrefix = 'entity-arrow';
     const svg = useRef(),
         drag = useRef(),
         relationshipMenu = useRef(),
@@ -89,26 +83,46 @@ export default function Diagram({
         for (const edge of index.edges)
             for (const name of [edge.from, edge.to])
                 if (!models.has(name)) models.set(name, null);
-        let names = [...models.keys()].sort();
-        if (compact) {
-            const related = new Set([
-                focus,
-                ...index.edges.filter((e) => e.from === focus).map((e) => e.to),
-            ]);
-            names = names.filter((n) => related.has(n));
-        }
-        return names.map((name) => {return { name, model: models.get(name) };});
-    }, [index, compact, focus]);
+        return [...models.keys()].sort().map((name) => {return { name, model: models.get(name) };});
+    }, [index]);
+    // The metadata map always draws the whole model, also above a concept's Map tab where `visible` is one group.
+    const overviewNodes = useMemo(() => nodes.filter((n) => !hidden.includes(n.name)), [nodes, hidden]);
+    // The explorer's route says which group, concept or schema is shown.
+    const conceptGraph = useMemo(() => buildResearchMap(index, overviewNodes), [index, overviewNodes]);
+    const conceptContext = useMemo(() => {
+        if (route.view !== 'concept') return null;
+        const node = conceptGraph.nodes.find((n) => n.id === route.concept);
+        return node ? { id: node.id, label: node.label, hint: node.hint, domain: node.domain, members: node.members,
+            connections: conceptConnections(index, node, conceptGraph, overviewNodes), origin: 'concept' } : null;
+    }, [route.view, route.concept, conceptGraph, index, overviewNodes]);
+    const domain = route.view === 'group' ? route.group : route.view === 'schema' ? domainFor(route.schema)
+        : conceptContext?.domain || '';
+    useEffect(() => { setShowExternal(!!conceptContext); }, [conceptContext?.id]);
+    useEffect(() => { setExpandedExternal([]); }, [conceptContext?.id, domain]);
+    // Moving to another group or concept starts from its whole map. A schema's address is its group map with the
+    // schema selected, so moving between schemas of one group keeps the map as it is and only changes the selection.
+    const routeKey = route.view === 'concept' ? `concept:${route.concept}` : `${domain ? 'group' : route.view}:${domain}`;
+    useEffect(() => {
+        if (route.view !== 'schema') setSelected('');
+    }, [route.view, route.concept, route.group]);
+    useEffect(() => {
+        if (route.view === 'schema') setSelected(route.schema);
+    }, [route.view, route.schema]);
+    useEffect(() => {
+        setNeighbors(false);
+        setMoves({});
+        setConnectionMode('shared');
+        if (route.view === 'concept') setArrangement('hierarchical');
+    }, [routeKey]);
     const edges = useMemo(
         () =>
             index.edges.filter(
-                (e) => visibleEdge(e, kinds) && (!compact || e.from === focus)
+                (e) => visibleEdge(e, kinds)
             ),
-        [index, kinds, compact, focus]
+        [index, kinds]
     );
     useEffect(() => { setOutsideOpen(false); }, [selected, domain, neighbors, showExternal]);
     useEffect(() => {
-        if (compact) return;
         if (neighbors && !kindsBeforeNeighborhood.current) {
             kindsBeforeNeighborhood.current = kinds;
             setKinds(['linkTo', 'calculated', 'reverse']);
@@ -135,14 +149,14 @@ export default function Diagram({
     // The neighborhood draws only the selected schema's own links. With shared definitions, a reference
     // inherited by several subtypes is drawn once from the base that defines it, as in the group map.
     const neighborhood = useMemo(() => {
-        if (!neighborhoodSelection || compact) return null;
+        if (!neighborhoodSelection) return null;
         const candidates = new Set([...connected].filter((name) => !hidden.includes(name)));
         const incident = groupRelationships(edges.filter((e) => (e.from === neighborhoodSelection || e.to === neighborhoodSelection) &&
             candidates.has(e.from) && candidates.has(e.to)));
         const collapsed = connectionMode === 'shared' ? sharedRelationships(index, incident, candidates) : { groups: incident, inherited: {} };
         return { candidates, groups: collapsed.groups, inherited: collapsed.inherited,
             names: new Set([neighborhoodSelection, ...collapsed.groups.flatMap((g) => [g.from, g.to])]) };
-    }, [neighborhoodSelection, compact, connected, hidden, edges, connectionMode, index]);
+    }, [neighborhoodSelection, connected, hidden, edges, connectionMode, index]);
     const visibleConnected = neighbors ? neighborhood?.names || connected : null;
     const conceptMembers = useMemo(() => new Set(conceptContext?.members || []), [conceptContext]);
     const contextReferences = useMemo(() => conceptContext?.connections?.flatMap((connection) => connection.edges) || [], [conceptContext]);
@@ -164,8 +178,6 @@ export default function Diagram({
         (n) => !hidden.includes(n.name) && (visibleConnected ? visibleConnected.has(n.name) : (!domain || domainFor(n.name) === domain || externalContextNames.has(n.name)))
     ), [nodes, hidden, visibleConnected, domain, externalContextNames]);
     const names = useMemo(() => new Set(visible.map((n) => n.name)), [visible]);
-    // The metadata map always draws the whole model, also above a concept's Map tab where `visible` is one group.
-    const overviewNodes = useMemo(() => nodes.filter((n) => !hidden.includes(n.name)), [nodes, hidden]);
     const groups = useMemo(() => groupRelationships(edges), [edges]);
     const edgeLanes = useMemo(() => {
         const pairs = new Map();
@@ -184,14 +196,16 @@ export default function Diagram({
         });
         return lanes;
     }, [groups]);
-    const showDomains = !compact && !neighbors && arrangement === 'hierarchical';
+    const showDomains = !neighbors && arrangement === 'hierarchical';
     // Without a group the hierarchical view is the curated research map; every other view is a group map.
     const researchOverview = showDomains && !domain;
+    // The metadata map overview draws its own canvas, so canvas listeners attach again when a group or concept opens.
+    const canvasShown = !researchOverview;
     const cardWidth = width, cardHeight = height;
-    // Group maps and the item page's relationship map shrink the canvas to their content, so layout and
+    // Group maps shrink the canvas to their content, so layout and
     // fitting use the full canvas budget (65vh, min 400px as in the stylesheet) rather than the measured height.
     const groupMap = showDomains && !researchOverview;
-    const fitToContent = groupMap || compact;
+    const fitToContent = groupMap;
     const budgetHeight = Math.max(400, windowHeight * 0.65);
     const layoutSize = useMemo(() => fitToContent ? { width: size.width, height: budgetHeight } : size,
         [fitToContent, size.width, fitToContent ? budgetHeight : size.height]);
@@ -273,9 +287,9 @@ export default function Diagram({
             : !showDomains ? 'Drag the background to pan, scroll to zoom, or drag a type to move it. Select a type to highlight its neighbors; select an edge to inspect its fields.'
                 : summarize ? 'Inherited references are drawn once at their visible base type. Select a type for its exact links, including self-references, or choose All references.'
                     : 'All references are expanded. Select a type to focus its connections, or choose Shared definitions to combine inherited links.';
-    const title = compact ? 'Relationships' : neighbors ? selected
+    const title = neighbors ? selected
         : singleFrame?.label || domains.find((d) => d.id === domain)?.label || 'All schemas';
-    const eyebrow = compact ? '' : neighbors ? 'Schema neighborhood' : domain ? 'Schema group' : '';
+    const eyebrow = neighbors ? 'Schema neighborhood' : domain ? 'Schema group' : '';
     // Routed views draw orthogonal arrows around cards and headings: group maps and neighborhoods.
     const routed = showDomains || !!neighborhoodView;
     const headings = useMemo(() => neighborhoodView ? neighborhoodView.panels : showDomains ? [
@@ -337,7 +351,7 @@ export default function Diagram({
         ? Math.min(budgetHeight, Math.max(280, Math.ceil((bounds.bottom - bounds.top) * fitScale() + 32))) : undefined;
     // Selecting a node only highlights it in the full map. Refit selection
     // changes only when they replace the displayed neighborhood.
-    const layoutFocus = neighbors ? selected : focus;
+    const layoutFocus = neighbors ? selected : '';
     useEffect(() => {
         fit();
     }, [index, hidden, kinds, neighbors, layoutFocus, size, full, domain, arrangement, connectionMode, conceptContext, expandedExternal]);
@@ -351,7 +365,7 @@ export default function Diagram({
         });
         observer.observe(svg.current);
         return () => observer.disconnect();
-    }, [researchOverview]);
+    }, [canvasShown]);
     useEffect(() => {
         if (!full) return undefined;
         const escape = (e) => {
@@ -388,19 +402,21 @@ export default function Diagram({
         };
         element.addEventListener('wheel', wheel, { passive: false });
         return () => element.removeEventListener('wheel', wheel);
-    }, [researchOverview]);
+    }, [canvasShown]);
+    // Choosing a schema on a group map opens its address (its group map with it selected). On a concept page a
+    // schema of the concept's group is selected in place, so the concept stays open.
     const choose = useCallback((name) => {
-        if (!neighbors && !externalContextNames.has(name) && (domain || showDomains) && domainFor(name) !== domain) {
-            setConceptContext(null);
-            setDomain(domainFor(name));
-            setMoves({});
-        }
         if (hidden.includes(name)) setHidden(hidden.filter((n) => n !== name));
-        setQuery('');
+        if (!neighbors && !externalContextNames.has(name) && (domain || showDomains)
+            && (route.view !== 'concept' || domainFor(name) !== domain)) {
+            // Selected at once, so the map answers the click without waiting for the address to change.
+            if (domainFor(name) === domain) setSelected(name);
+            onNavigate({ view: 'schema', schema: name });
+            return;
+        }
         setSelected(name);
         if (neighbors) setMoves({});
-        if (compact) onExplore(name);
-    }, [neighbors, domain, showDomains, hidden, compact, onExplore, externalContextNames]);
+    }, [neighbors, domain, showDomains, hidden, externalContextNames, onNavigate, route.view]);
     const setVisibility = (next) => {
         setHidden(next);
         setMoves({});
@@ -428,38 +444,10 @@ export default function Diagram({
                         )?.sources || []
             ),
         });
-    const chooseDomain = useCallback((id) => {
-        setConceptContext(null);
-        setReturnConcept('');
-        setDomain(id);
-        setConnectionMode('shared');
-        setSelected('');
-        setNeighbors(false);
-        setMoves({});
-    }, []);
-    const exploreConcept = (concept) => {
-        setConceptContext({ id: concept.id, label: concept.label, hint: concept.hint, domain: concept.domain, members: concept.members, connections: concept.connections, origin: concept.origin || 'concept' });
-        setFocusReturnedMap(false);
-        setDomain(concept.domain);
-        setSelected('');
-        setNeighbors(false);
-        setMoves({});
-        setArrangement('hierarchical');
-    };
-    // Leaves the concept's Map tab: `summary` names the concept whose Summary tab opens, otherwise the metadata map is shown.
-    const backToConcept = (summary = '') => {
-        setReturnConcept(summary);
-        setFocusReturnedMap(!summary);
-        setConceptContext(null);
-        setDomain('');
-        setSelected('');
-        setNeighbors(false);
-        setMoves({});
-    };
-    // The catalog's "Open group map" asks the map to show that group.
-    useEffect(() => { if (groupRequest) chooseDomain(groupRequest.id); }, [groupRequest, chooseDomain]);
+    const chooseDomain = useCallback((id) => onNavigate(id ? { view: 'group', group: id } : overviewRoute), [onNavigate]);
     const clearSelection = () => {
         setSelected('');
+        if (route.view === 'schema') onNavigate({ view: 'group', group: domain });
         setNeighbors(false);
         setMoves({});
     };
@@ -491,12 +479,6 @@ export default function Diagram({
             drawnNames.has(e.from) &&
             drawnNames.has(e.to)
     );
-    // Schema descriptions that only restate the name ("Death Circumstances") add nothing under the title.
-    const selectedDescription = useMemo(() => {
-        if (!selected) return '';
-        const { description } = nodePresentation(selected, index.models.find((m) => m.name === selected));
-        return description.replace(/[\s_.-]/g, '').toLowerCase() === selected.toLowerCase() ? '' : description;
-    }, [selected, index]);
     // The first tooltip line names the arrow as drawn (a shared base or a collapsed group can stand in
     // for the exact endpoints); the exact schema references follow.
     const edgeTooltip = (g) => {
@@ -555,21 +537,64 @@ export default function Diagram({
         if (!hoverEdge?.shared) return new Set();
         return new Set(hoverEdge.edges.map((e) => e.from).filter((name) => name !== hoverEdge.from));
     }, [hoverEdge]);
+    // A row of the concept's relationship tables traces the map arrows that carry its references (a collapsed
+    // group card's arrow when the other end is folded into it).
+    const traceReferences = useCallback((references) => {
+        const wanted = new Set((references || []).map((e) => `${e.from}.${e.field}>${e.to}`));
+        const traced = shownGroups.filter((g) => g.edges.some((e) => wanted.has(`${e.from}.${e.field}>${e.to}`)));
+        setHoverEdge(traced.length ? { key: 'concept-trace', keys: new Set(traced.map((g) => g.key)),
+            ends: new Set(traced.flatMap((g) => [g.from, g.to])), edges: traced.flatMap((g) => g.edges) } : null);
+    }, [shownGroups]);
     const tracedEnds = useMemo(() => new Set(hoverEdge ? hoverEdge.ends || [hoverEdge.from, hoverEdge.to] : []), [hoverEdge]);
     const drawnGroups = shownGroups;
     const showAllTypes = useCallback(() => onBrowseAll?.(), [onBrowseAll]);
-    const overviewProps = { index, nodes: overviewNodes, onType: choose, onAllTypes: showAllTypes, onDetail, onConnections: exploreConcept };
-    if (researchOverview) return <ResearchOverview {...overviewProps} initialConcept={returnConcept} focusMap={focusReturnedMap} />;
+    const overviewProps = { index, nodes: overviewNodes, onAllTypes: showAllTypes, onDetail, onNavigate };
+    if (researchOverview) return <ResearchOverview {...overviewProps} />;
+    // The selected schema's links on this map: an inheritance note, then its links by direction.
+    const schemaLinks = selected && (
+        <>
+            {shared.inherited[selected] && <p className="se-inheritance-detail">{shared.inherited[selected].fields.size} reference fields inherited from { [...shared.inherited[selected].owners].join(', ') }. Their shared definitions are drawn at the base types in the group overview.</p>}
+            {[
+                { key: 'out', title: 'Links from this schema', rows: incident.filter((e) => e.from === selected), column: 'Links to' },
+                { key: 'in', title: 'Links to this schema', rows: incident.filter((e) => e.from !== selected), column: 'Linked from' },
+            ].filter((part) => part.rows.length).map((part) => (
+                <div className="se-relationship-section" key={part.key}>
+                    <h5 className="se-relationship-section-title">{part.title} <span>{part.rows.length}</span></h5>
+                    <table className="se-selected-table">
+                        <colgroup><col className="se-col-schema" /><col /><col className="se-col-kind" /><col className="se-col-action" /></colgroup>
+                        <thead><tr><th scope="col">{part.column}</th><th scope="col">Field</th><th scope="col">Kind</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
+                        <tbody>
+                            {part.rows.map((e) => (
+                                <tr key={`${e.from}-${e.field}-${e.to}-${e.kind}`}>
+                                    <th scope="row">
+                                        <button type="button" className="se-selected-schema" onClick={() => choose(part.key === 'out' ? e.to : e.from)}>{part.key === 'out' ? e.to : e.from}</button>
+                                    </th>
+                                    <td><code>{e.field}</code></td>
+                                    <td><Badge kind={e.kind}>{edgeLabel(e)}</Badge></td>
+                                    <td className="se-selected-action"><button type="button" onClick={() => inspect({ ...e, edges: [e] })}>Details <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button></td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ))}
+            {!incident.length && (
+                <p className="se-flow-note">{domain && !neighbors && !showExternal && externalGroups.length
+                    ? 'No links inside this group. Its links go to other groups: turn on Links to other groups, or open External connections on the schema.'
+                    : 'No visible links. Turn on more relationship kinds under Relationships, or show more types.'}
+                </p>
+            )}
+        </>
+    );
     const diagram = (
         <section
-            className={`se-diagram${compact ? ' se-compact' : ''}${conceptContext ? ' se-concept-diagram' : ''}${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}`}
+            className={`se-diagram${conceptContext ? ' se-concept-diagram' : ''}${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}`}
             aria-label={
-                compact ? 'Item relationships' : 'All schema relationships'
+                'All schema relationships'
             }>
             {/* A concept's heading and tabs are drawn by the metadata map above this diagram. */}
             {!conceptContext && (
                 <header className="se-diagram-header">
-                    {domain && !compact && <button type="button" className="se-diagram-back" onClick={() => chooseDomain('')}><i className="icon icon-fw icon-arrow-left fas" aria-hidden="true" /> Metadata map</button>}
                     <div className="se-diagram-heading">
                         {eyebrow && <span className="se-diagram-eyebrow">{eyebrow}</span>}
                         <h2>{title}</h2>
@@ -577,15 +602,6 @@ export default function Diagram({
                 </header>
             )}
             <div className="se-diagram-controls">
-                {!compact && (
-                    <input
-                        type="search"
-                        aria-label="Search schemas"
-                        placeholder="Search schemas…"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                    />
-                )}
                 <div className="se-map-tool-section" role="group" aria-label="Diagram filters">
                     <span className="se-control-label">Show</span>
                     {(showDomains || neighborhoodView) && (
@@ -604,47 +620,43 @@ export default function Diagram({
                         <summary>Relationships {kinds.length}/3</summary>
                         <div className="se-link-filter-popover"><Filters kinds={kinds} onChange={setKinds} /></div>
                     </details>
-                    {!compact && (
-                        <details className="se-type-picker" ref={typePicker}>
-                            <summary>Types {nodes.filter((n) => !hidden.includes(n.name)).length}/{nodes.length}</summary>
-                            <div className="se-type-popover">
-                                <input aria-label="Filter types" placeholder="Filter types…" value={typeQuery} onChange={(e) => setTypeQuery(e.target.value)} />
-                                <div className="se-toolbar">
-                                    <button type="button" onClick={() => setVisibility([])}>Show all</button>
-                                    <button type="button" onClick={() => setVisibility(nodes.map((n) => n.name))}>Hide all</button>
-                                    <button type="button" onClick={() => setVisibility(defaults)}>Defaults</button>
-                                </div>
-                                <div>
-                                    {nodes.filter((n) => n.name.toLowerCase().includes(typeQuery.toLowerCase())).map((n) => (
-                                        <label key={n.name}>
-                                            <input type="checkbox" checked={!hidden.includes(n.name)} onChange={(e) => setVisibility(e.target.checked ? hidden.filter((v) => v !== n.name) : [...hidden, n.name])} />
-                                            {n.name}
-                                        </label>
-                                    ))}
-                                </div>
+                    <details className="se-type-picker" ref={typePicker}>
+                        <summary>Types {nodes.filter((n) => !hidden.includes(n.name)).length}/{nodes.length}</summary>
+                        <div className="se-type-popover">
+                            <input aria-label="Filter types" placeholder="Filter types…" value={typeQuery} onChange={(e) => setTypeQuery(e.target.value)} />
+                            <div className="se-toolbar">
+                                <button type="button" onClick={() => setVisibility([])}>Show all</button>
+                                <button type="button" onClick={() => setVisibility(nodes.map((n) => n.name))}>Hide all</button>
+                                <button type="button" onClick={() => setVisibility(defaults)}>Defaults</button>
                             </div>
-                        </details>
-                    )}
-                    {!compact && (
-                        <details className="se-map-settings" ref={mapSettings}>
-                            <summary>Map settings</summary>
-                            <div className="se-map-settings-popover">
-                                <label>Group
-                                    <select aria-label="Schema group" value={domain} onChange={(e) => chooseDomain(e.target.value)}>
-                                        <option value="">All groups</option>
-                                        {domains.filter((d) => nodes.some((n) => domainFor(n.name) === d.id)).map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
-                                    </select>
-                                </label>
-                                <label>Layout
-                                    <select aria-label="Diagram layout" value={arrangement} onChange={(e) => { setArrangement(e.target.value); setMoves({}); }}>
-                                        <option value="hierarchical">Hierarchical</option>
-                                        <option value="network">Network</option>
-                                    </select>
-                                </label>
-                                {showDomains && <label className="se-map-cross-links"><input type="checkbox" checked={crossLinks} onChange={(e) => setCrossLinks(e.target.checked)} />Include cross-group links for the selected schema</label>}
+                            <div>
+                                {nodes.filter((n) => n.name.toLowerCase().includes(typeQuery.toLowerCase())).map((n) => (
+                                    <label key={n.name}>
+                                        <input type="checkbox" checked={!hidden.includes(n.name)} onChange={(e) => setVisibility(e.target.checked ? hidden.filter((v) => v !== n.name) : [...hidden, n.name])} />
+                                        {n.name}
+                                    </label>
+                                ))}
                             </div>
-                        </details>
-                    )}
+                        </div>
+                    </details>
+                    <details className="se-map-settings" ref={mapSettings}>
+                        <summary>Map settings</summary>
+                        <div className="se-map-settings-popover">
+                            <label>Group
+                                <select aria-label="Schema group" value={domain} onChange={(e) => chooseDomain(e.target.value)}>
+                                    <option value="">All groups</option>
+                                    {domains.filter((d) => nodes.some((n) => domainFor(n.name) === d.id)).map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
+                                </select>
+                            </label>
+                            <label>Layout
+                                <select aria-label="Diagram layout" value={arrangement} onChange={(e) => { setArrangement(e.target.value); setMoves({}); }}>
+                                    <option value="hierarchical">Hierarchical</option>
+                                    <option value="network">Network</option>
+                                </select>
+                            </label>
+                            {showDomains && <label className="se-map-cross-links"><input type="checkbox" checked={crossLinks} onChange={(e) => setCrossLinks(e.target.checked)} />Include cross-group links for the selected schema</label>}
+                        </div>
+                    </details>
                 </div>
                 <div className="se-map-tool-section se-canvas-actions" role="group" aria-label="Canvas controls">
                     <div className="se-zoom-controls" role="group" aria-label="Zoom controls">
@@ -654,34 +666,17 @@ export default function Diagram({
                         <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
                     </div>
                     <button type="button" onClick={() => { setMoves({}); fit(); }}>Reset layout</button>
-                    <button type="button" id={compact ? 'graph-export' : 'entity-export'} disabled={exporting} onClick={async () => {
+                    <button type="button" id="entity-export" disabled={exporting} onClick={async () => {
                         setExporting(true);
-                        try { await exportPNG(svg.current, compact ? `${focus}-relationships` : 'schema-map'); }
+                        try { await exportPNG(svg.current, 'schema-map'); }
                         catch (err) { setError(err.message || 'PNG export failed.'); }
                         finally { setExporting(false); }
                     }}>{exporting ? 'Exporting…' : 'Export PNG'}
                     </button>
                 </div>
             </div>
-            {query && (
-                <div className="se-toolbar">
-                    {nodes
-                        .filter(
-                            (n) =>
-                                n.name
-                                    .toLowerCase()
-                                    .includes(query.toLowerCase())
-                        )
-                        .slice(0, 12)
-                        .map((n) => (
-                            <button type="button" key={n.name} onClick={() => choose(n.name)}>
-                                {n.name}
-                            </button>
-                        ))}
-                </div>
-            )}
             {error && <p role="alert">{error}</p>}
-            {!compact && selected && (
+            {selected && (
                 <div className="se-selection-bar" role="status" aria-label="Selected schema">
                     <span className="se-selection-label">Selected</span>
                     <strong>{selected}</strong>
@@ -692,14 +687,16 @@ export default function Diagram({
                             else { setMoves({}); setNeighbors(false); }
                         }}>{neighbors ? 'Back to the whole group' : 'Show only its connections'}
                         </button>
-                        <button type="button" onClick={() => onExplore(selected)}>Open schema details <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button>
+                        <button type="button" onClick={() => svg.current?.closest('.se-diagram')?.querySelector('#entity-details')?.scrollIntoView({ block: 'start', behavior: 'smooth' })}>
+                            Go to details <i className="icon icon-fw icon-angle-down fas" aria-hidden="true" />
+                        </button>
                         <button type="button" className="se-selection-clear" onClick={clearSelection} aria-label={`Clear selection of ${selected}`}><i className="icon icon-fw icon-times fas" aria-hidden="true" /> Clear</button>
                     </span>
                 </div>
             )}
             <div className="se-canvas-wrap">
                 {/* The reading note and legend sit behind an info icon, as on the portal's charts. */}
-                <span className={`se-canvas-info${compact ? ' se-canvas-info-compact' : ''}`}>
+                <span className="se-canvas-info">
                     <InfoPopover id="se-diagram-guide-popover" className="se-diagram-guide-popover" label="How to read this diagram" title="Reading the diagram" placement="bottom-end">
                         {guideNote && <p>{guideNote}</p>}
                         {legend.length > 0 && (
@@ -709,14 +706,12 @@ export default function Diagram({
                         )}
                     </InfoPopover>
                 </span>
-                {!compact && (
-                    <button type="button" className="se-canvas-fullscreen" id="entity-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} title={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onPointerDown={(e) => e.stopPropagation()} onClick={() => setFull(!full)}>
-                        <i className={`icon icon-fw fas ${full ? 'icon-compress-alt' : 'icon-expand-alt'}`} aria-hidden="true" />
-                    </button>
-                )}
+                <button type="button" className="se-canvas-fullscreen" id="entity-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} title={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onPointerDown={(e) => e.stopPropagation()} onClick={() => setFull(!full)}>
+                    <i className={`icon icon-fw fas ${full ? 'icon-compress-alt' : 'icon-expand-alt'}`} aria-hidden="true" />
+                </button>
                 <svg
                     ref={svg}
-                    id={compact ? 'graph' : 'entity-svg'}
+                    id="entity-svg"
                     className="se-canvas"
                     style={canvasHeight ? { height: canvasHeight, minHeight: 0 } : undefined}
                     tabIndex={0}
@@ -898,7 +893,6 @@ export default function Diagram({
                                             {edgeCaption(g)}
                                         </text>
                                     ) : (neighbors ||
-                                    compact ||
                                     (!showDomains && visible.length <= 12)) && (
                                         <text
                                             className="se-edge-label"
@@ -1009,7 +1003,7 @@ export default function Diagram({
                             );
                         })}
                         {/* With links to other groups drawn, the external cards already show this; the cue would only repeat it. */}
-                        {!compact && domain && !neighbors && !showExternal && selected && positions[selected] && externalGroups.length > 0 && (
+                        {domain && !neighbors && !showExternal && selected && positions[selected] && externalGroups.length > 0 && (
                             <g className="se-cross-group-cue" transform={`translate(${positions[selected].x},${positions[selected].y + cardHeight / 2})`}>
                                 <path className="se-cross-group-stem" d="M0,0 V7" />
                                 <g role="button" tabIndex={0} aria-controls="cross-group-connections"
@@ -1035,7 +1029,7 @@ export default function Diagram({
                         </text>
                     )}
                 </svg>
-                {!compact && domain && !neighbors && !showExternal && outsideOpen && externalGroups.length > 0 && (
+                {domain && !neighbors && !showExternal && outsideOpen && externalGroups.length > 0 && (
                     <div className="se-cross-group-popover" style={{ left: outsideLeft, top: outsideTop, width: outsideWidth, maxHeight: outsideHeight }}
                         onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeOutside(); } }}>
                         <CrossGroupConnections key={selected} selected={selected} groups={externalGroups} sectionRef={outsidePanel}
@@ -1043,62 +1037,19 @@ export default function Diagram({
                     </div>
                 )}
             </div>
-            {selected && (
-                <section id={compact ? 'relations' : 'entity-details'} className="se-selected-panel" aria-label={`${selected} relationships`}>
-                    {/* On the item page the focused schema is already the page heading, so only its links are listed. */}
-                    {!(compact && selected === focus) && (
-                        <header>
-                            <div>
-                                <span className="se-diagram-eyebrow">Selected schema</span>
-                                <h3>{selected}</h3>
-                                {selectedDescription && <p>{selectedDescription}</p>}
-                            </div>
-                            {!compact
-                                ? <button type="button" className="se-selected-open" onClick={() => onExplore(selected)}>Open schema details <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button>
-                                : <button type="button" onClick={clearSelection}>Clear selection</button>}
-                        </header>
-                    )}
-                    {shared.inherited[selected] && <p className="se-inheritance-detail">{shared.inherited[selected].fields.size} reference fields inherited from { [...shared.inherited[selected].owners].join(', ') }. Their shared definitions are drawn at the base types in the group overview.</p>}
-                    {[
-                        { key: 'out', title: 'Links from this schema', rows: incident.filter((e) => e.from === selected), column: 'Links to' },
-                        { key: 'in', title: 'Links to this schema', rows: incident.filter((e) => e.from !== selected), column: 'Linked from' },
-                    ].filter((part) => part.rows.length).map((part) => (
-                        <div className="se-relationship-section" key={part.key}>
-                            <h5 className="se-relationship-section-title">{part.title} <span>{part.rows.length}</span></h5>
-                            <table className="se-selected-table">
-                                <colgroup><col className="se-col-schema" /><col /><col className="se-col-kind" /><col className="se-col-action" /></colgroup>
-                                <thead><tr><th scope="col">{part.column}</th><th scope="col">Field</th><th scope="col">Kind</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
-                                <tbody>
-                                    {part.rows.map((e) => (
-                                        <tr key={`${e.from}-${e.field}-${e.to}-${e.kind}`}>
-                                            <th scope="row">
-                                                <button type="button" className="se-selected-schema" onClick={() => choose(part.key === 'out' ? e.to : e.from)}>{part.key === 'out' ? e.to : e.from}</button>
-                                            </th>
-                                            <td><code>{e.field}</code></td>
-                                            <td><Badge kind={e.kind}>{edgeLabel(e)}</Badge></td>
-                                            <td className="se-selected-action"><button type="button" onClick={() => inspect({ ...e, edges: [e] })}>Details <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button></td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ))}
-                    {!incident.length && (
-                        <p className="se-flow-note">{!compact && domain && !neighbors && !showExternal && externalGroups.length
-                            ? 'No links inside this group. Its links go to other groups: turn on Links to other groups, or open External connections on the schema.'
-                            : 'No visible links. Turn on more relationship kinds under Relationships, or show more types.'}
-                        </p>
-                    )}
+            {selected ? (
+                <section id="entity-details" className="se-selected-panel" aria-label={`${selected} details`}>
+                    {renderSchema ? renderSchema(selected, schemaLinks) : schemaLinks}
                 </section>
+            ) : conceptContext && (
+                <ConceptSummary concept={conceptContext} connections={conceptContext.connections} graph={conceptGraph} index={index}
+                    onDetail={onDetail} onTrace={traceReferences} />
             )}
         </section>
     );
-    // A concept's Map tab sits under the same metadata map and concept heading as its Summary tab.
-    if (conceptContext && !compact) {
-        return (
-            <ResearchOverview {...overviewProps} mapTab={diagram}
-                onSummary={backToConcept} onLeaveMap={() => backToConcept()} />
-        );
+    // A concept's Summary and Map tabs share its heading; the Map tab's content is this diagram.
+    if (conceptContext) {
+        return <ResearchOverview {...overviewProps} conceptId={conceptContext.id} mapTab={diagram} />;
     }
     return diagram;
 }

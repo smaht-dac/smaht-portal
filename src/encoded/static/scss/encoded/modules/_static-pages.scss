@@ -3172,6 +3172,146 @@ body[data-pathname^='/data'] {
 /***
 Unique styling for benchmarking pages
 **/
+// Side menu links of the benchmarking data pages; the Schema Explorer's side menu uses the same look.
+@mixin benchmarking-side-nav {
+    .benchmarking-nav-section {
+        &-title {
+            padding: 0px 8px;
+        }
+    }
+
+    .accordion > ul {
+        list-style-type: none;
+        padding-left: 0;
+        gap: 5px;
+        display: flex;
+        flex-direction: column;
+
+        .title-toggle-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            &.active {
+                .title {
+                    color: #343741;
+                    font-weight: 600;
+
+                    &:hover {
+                        font-weight: 600;
+                        background-color: transparent;
+                        cursor: default;
+                    }
+                }
+            }
+
+            .title {
+                flex: 1;
+                color: #717378;
+                border-radius: 4px 0px 0px 4px;
+                padding: 4px 8px;
+
+                &:hover {
+                    color: #343741;
+                    cursor: pointer;
+                    background-color: whitesmoke;
+                    text-decoration: none;
+                    font-weight: 500;
+                }
+            }
+
+            i {
+                color: #717378;
+                padding: 8px;
+                border-radius: 0px 4px 4px 0px;
+
+                &:hover {
+                    color: #343741;
+                    background-color: whitesmoke;
+                    cursor: pointer;
+                }
+            }
+        }
+
+        > li > div.collapse > ul,
+        > li > div.collapsing > ul {
+            list-style-type: none;
+            padding-left: 0;
+            > li {
+                span {
+                    padding-left: 15px;
+                }
+            }
+        }
+
+        li.sidenav-link {
+            font-family: Inter;
+            font-size: 0.875rem;
+            font-weight: 400;
+            display: flex;
+            border: 1px solid transparent;
+
+            > a {
+                flex: 1;
+                color: #717378;
+                border-radius: 4px;
+                padding: 2px 5px;
+                font-size: 1rem;
+
+                &:hover {
+                    cursor: pointer;
+                    background-color: whitesmoke;
+                    text-decoration: none;
+                    font-weight: 500;
+                    color: #343741;
+                }
+            }
+
+            &.top {
+                // flex: 1;
+                // color: #717378;
+                // border-radius: 4px;
+                // padding: 2px 5px;
+                // font-size: 1rem;
+
+                &:hover {
+                    // cursor: pointer;
+                    // background-color: whitesmoke;
+                    // text-decoration: none;
+                    // font-weight: 500;
+
+                    // > a {
+                    // 	color: #343741;
+                    // }
+                }
+            }
+            &.active {
+                font-weight: 500;
+                border-radius: 4px;
+                border: 1px solid #e2ecf2;
+                background: #ebf3f9;
+
+                > a {
+                    color: #343741;
+                    text-decoration-color: $dark !important;
+                }
+            }
+        }
+
+        span.navlink-drop {
+            color: #717378;
+            font-size: 1rem;
+            font-weight: 400;
+            font-family: Inter;
+            text-align: left;
+            &.active {
+                color: #343741;
+                font-weight: 700;
+            }
+        }
+    }
+}
+
 body[data-pathname^='/data/benchmarking']:not([data-at-type*='Error']) {
     #post-navbar-container
         > #content.container:not(.error-page):not(.error-boundary) {
@@ -3469,142 +3609,7 @@ body[data-pathname^='/data/benchmarking']:not([data-at-type*='Error']) {
 
             // Side nav
             .sliding-sidebar-nav-container .sliding-sidebar-nav {
-                .benchmarking-nav-section {
-                    &-title {
-                        padding: 0px 8px;
-                    }
-                }
-
-                .accordion > ul {
-                    list-style-type: none;
-                    padding-left: 0;
-                    gap: 5px;
-                    display: flex;
-                    flex-direction: column;
-
-                    .title-toggle-container {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-
-                        &.active {
-                            .title {
-                                color: #343741;
-                                font-weight: 600;
-
-                                &:hover {
-                                    font-weight: 600;
-                                    background-color: transparent;
-                                    cursor: default;
-                                }
-                            }
-                        }
-
-                        .title {
-                            flex: 1;
-                            color: #717378;
-                            border-radius: 4px 0px 0px 4px;
-                            padding: 4px 8px;
-
-                            &:hover {
-                                color: #343741;
-                                cursor: pointer;
-                                background-color: whitesmoke;
-                                text-decoration: none;
-                                font-weight: 500;
-                            }
-                        }
-
-                        i {
-                            color: #717378;
-                            padding: 8px;
-                            border-radius: 0px 4px 4px 0px;
-
-                            &:hover {
-                                color: #343741;
-                                background-color: whitesmoke;
-                                cursor: pointer;
-                            }
-                        }
-                    }
-
-                    > li > div.collapse > ul,
-                    > li > div.collapsing > ul {
-                        list-style-type: none;
-                        padding-left: 0;
-                        > li {
-                            span {
-                                padding-left: 15px;
-                            }
-                        }
-                    }
-
-                    li.sidenav-link {
-                        font-family: Inter;
-                        font-size: 0.875rem;
-                        font-weight: 400;
-                        display: flex;
-                        border: 1px solid transparent;
-
-                        > a {
-                            flex: 1;
-                            color: #717378;
-                            border-radius: 4px;
-                            padding: 2px 5px;
-                            font-size: 1rem;
-
-                            &:hover {
-                                cursor: pointer;
-                                background-color: whitesmoke;
-                                text-decoration: none;
-                                font-weight: 500;
-                                color: #343741;
-                            }
-                        }
-
-                        &.top {
-                            // flex: 1;
-                            // color: #717378;
-                            // border-radius: 4px;
-                            // padding: 2px 5px;
-                            // font-size: 1rem;
-
-                            &:hover {
-                                // cursor: pointer;
-                                // background-color: whitesmoke;
-                                // text-decoration: none;
-                                // font-weight: 500;
-
-                                // > a {
-                                // 	color: #343741;
-                                // }
-                            }
-                        }
-                        &.active {
-                            font-weight: 500;
-                            border-radius: 4px;
-                            border: 1px solid #e2ecf2;
-                            background: #ebf3f9;
-
-                            > a {
-                                color: #343741;
-                                text-decoration-color: $dark !important;
-                            }
-                        }
-                    }
-
-                    span.navlink-drop {
-                        color: #717378;
-                        font-size: 1rem;
-                        font-weight: 400;
-                        font-family: Inter;
-                        text-align: left;
-                        &.active {
-                            color: #343741;
-                            font-weight: 700;
-                        }
-                    }
-                }
+                @include benchmarking-side-nav;
             }
             &.show-nav {
                 .sliding-sidebar-nav-container {

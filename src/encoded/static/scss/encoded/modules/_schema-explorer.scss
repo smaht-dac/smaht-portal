@@ -25,25 +25,35 @@
     .se-line-number { display: inline-block; width: 5ch; margin-right: 2ch; color: #5d5e63; user-select: none; }
     details > summary { cursor: pointer; padding: .5rem 0; }
     [hidden] { display: none !important; }
-    .se-toolbar, .se-actions, .se-filters, .se-sources { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+    .se-toolbar, .se-filters, .se-sources { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
     .se-toolbar { margin: .75rem 0; } .se-toolbar > input { flex: 1; min-width: 140px; }
-    .se-actions { justify-content: space-between; margin: 20px 0 1rem; }
-    .se-actions-tools { display: flex; align-items: center; gap: .35rem; margin-left: auto; }
-    button.se-tool-button.se-tool-quiet { color: #5d5e63; background: transparent; border-color: transparent; }
-    // The page-level views use the Data Matrix page's tab headers (.data-matrix-container .tab-header).
-    .se-view-switch { display: flex; flex: 1 1 100%; gap: 1rem;
-        button { display: flex; flex: 1 1 0; align-items: center; justify-content: center; gap: .5rem; min-height: 84px; padding: 0 15px; font-size: 1.2rem; font-weight: 600; line-height: 1.1; color: #1f2f44; background: white; border: 1px solid #d4e1ec; border-radius: 8px 8px 0 0;
-            .icon { color: #9fb8ce; font-size: .95em; }
-            &:hover:not([aria-pressed='true']) { background: white; }
-        }
-        button[aria-pressed='true'] { font-weight: 600; background: $baby-20; border-color: #bfd3e4; cursor: default; }
+    button.se-heading-action { float: right; margin-left: 1rem; }
+    // A schema's place, set like the portal's page-title breadcrumbs.
+    .se-schema-trail { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem; margin-bottom: .2rem; font-size: 13px; color: $gray-70;
+        a { color: $primary; } .icon { font-size: 10px; color: $gray-40; }
     }
+    .se-schema-concept { margin: .35rem 0 0; font-size: 13.5px; color: #5d5e63; a { font-weight: 500; color: $primary; } }
+    .se-selected-actions { display: flex; flex-shrink: 0; gap: .5rem; }
+    // A selected schema's details under its map: the panel's title band holds its heading, and its contents
+    // (links, fields, embeds, diagnostics) follow as one tabbed block rather than a sticky side column.
+    .se-selected-panel > header#heading { display: block; .se-diagram-heading { margin: 0; padding: 0; border: 0; background: none; } h2 { margin: 0; font-size: 24px; } }
+    .se-selected-panel .se-live-panel { margin: 0 0 .75rem; }
+    .se-selected-panel .se-inspector { position: static; max-height: none; overflow: visible; }
+    .se-inspector-links { padding: .25rem .75rem .75rem; }
+    // The side menu is the portal's SlidingSidebarLayout carrying the benchmarking data pages' menu links.
+    // The menu keeps the portal's 1rem base, not the explorer's denser 14px.
+    .sliding-sidebar-nav-container .sliding-sidebar-nav { font-size: 1rem; @include benchmarking-side-nav;
+        // Plain top-level links line up with the section and group titles (8px, less the row's 1px border), as most menu rows here are links.
+        .accordion > ul > li.sidenav-link > a { padding-left: 7px; }
+    }
+    // Popovers, full screen and sticky toolbars need the content column to stay unclipped.
+    .sliding-sidebar-layout-container { overflow: visible; min-width: 0; }
+    .se-main { min-width: 0; }
     .se-admin-action { position: relative; small { position: absolute; top: 100%; left: 0; right: 0; text-align: center; font-size: 11px; } }
     .se-badge { display: inline-block; border: 1px solid #ced4da; border-radius: .25rem; padding: .1rem .3rem; font-size: 12px; }
     .linkTo { color: #2368aa; } .calculated { color: #7952a3; } .reverse { color: #986019; } .stored { color: #137a66; }
     .se-sources { margin: .5rem 0; } .se-sources button { font-size: 12px; }
     .se-live { border: 1px solid #dee2e6; border-radius: 5px; padding: 1rem; margin: 1rem 0; }
-    .se-columns { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 1.5rem; }
     .se-diagram > .se-toolbar:first-child { justify-content: space-between; }
     .se-diagram-header { margin: .25rem 0 .75rem;
         button.se-diagram-back { margin-left: -.5rem; padding: .2rem .5rem; font-size: 13px; font-weight: 600; color: $primary; background: transparent; border-color: transparent; &:hover:not(:disabled), &:focus { background: transparent; text-decoration: underline; } }
@@ -75,13 +85,7 @@
     .se-field-live, .se-origin { flex-basis: 100%; color: #5d5e63; }
     .se-type-picker { position: relative; } .se-type-popover { position: absolute; z-index: 20; top: 100%; left: 0; width: 310px; max-width: 85vw; padding: .75rem; background: white; border: 1px solid #ced4da; border-radius: 5px; box-shadow: 0 4px 12px #0002; > div:last-child { max-height: 260px; overflow: auto; } label { display: flex; padding: .3rem 0; } }
     .se-canvas-wrap { position: relative; }
-    button.se-back-to-map { margin: 0 0 .75rem -.5rem; padding: .2rem .5rem; font-size: 13px; font-weight: 600; color: $primary; background: transparent; border-color: transparent; &:hover:not(:disabled), &:focus { background: transparent; text-decoration: underline; } }
-    // The item page embeds the map as one section among others, so its heading stays light.
-    .se-compact .se-diagram-header .se-diagram-heading { padding: 0; border: 0; background: none; h2 { font-size: 20px; } }
     // Schema details page: same visual language as the map (header card, control strip, quiet tables).
-    .se-item-nav { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .5rem; button.se-back-to-map { margin: 0 0 0 -.5rem; } }
-    .se-item-history { display: flex; gap: .35rem; margin-left: auto; button { padding: .2rem .55rem; font-size: 13px; color: $homepage-card-text-color; background: transparent; border-color: #dee2e6; &:disabled { color: $gray-40; } } }
-    .se-item-controls { margin-bottom: .75rem; select { min-width: 220px; } > input[type='search'] { max-width: none; } .se-item-meta { margin-left: auto; font-size: 12.5px; color: #5d5e63; } }
     .se-inheritance-chain { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: .6rem; font-size: 12.5px; color: $gray-40;
         button { padding: .1rem .45rem; font-size: 12.5px; color: $homepage-card-text-color; background: white; border: 1px solid #dee2e6; border-radius: 5px; &:hover, &:focus { border-color: $homepage-card-text-color; } }
     }
@@ -121,6 +125,12 @@
     .se-concept-heading h3 { font-size: 28px !important; }
     .se-concept-heading .se-concept-question { font-size: 16px !important; }
     .se-diagram-header .se-diagram-heading h2 { font-size: 28px; }
+    // Concept page order: heading, the path as a band, then the tabs right above their content.
+    // A plain strip under the heading: the heading stays the strongest element on the page.
+    .se-research-detail > .se-stepper { padding: .9rem 0 .8rem; background: white; border-bottom: 1px solid #dee2e6; }
+    // Overview is the way back to the whole map, not a step: an icon instead of a number, a dashed link to step 1.
+    .se-stepper li.se-step-overview { .se-step-number { color: $slate-60; border-color: $gray-40; background: white; .icon { font-size: 12px; } } }
+    .se-stepper li.se-step-overview + li::before { background: none; border-top: 2px dashed $gray-30; height: 0; }
     .se-stepper { padding: 1.25rem 1.75rem .25rem;
         ol { display: flex; margin: 0; padding: 0; list-style: none; }
         ol > li { position: relative; flex: 1; min-width: 0;
@@ -147,11 +157,6 @@
     .se-stepper-branch { margin: .9rem 0 0; font-size: 13.5px; color: $slate-60;
         button { padding: 0; font-weight: 600; color: $homepage-card-text-color; background: transparent; border: 0; &:hover, &:focus { text-decoration: underline; } }
     }
-    .se-concept-tabs { display: flex; gap: 0; border-bottom: 1px solid #dee2e6;
-        button { margin-bottom: -1px; padding: .5rem 1rem; font-size: 1rem; font-weight: 400; color: #5d5e63; background: transparent; border: 1px solid transparent; border-top-width: 4px; border-radius: 0; &:hover:not([aria-selected='true']):not([aria-pressed='true']) { color: $gray-70; background: transparent; } }
-        button[aria-selected='true'], button[aria-pressed='true'] { color: $gray-70; font-weight: 600; background: white; border-color: #dee2e6 #dee2e6 white; border-top-color: #e99415; cursor: default; }
-    }
-    .se-concept-tabs { margin-top: .9rem; }
     .se-concept-heading button.se-diagram-back { display: block; margin: 0 0 .5rem -.5rem; padding: .2rem .5rem; font-size: 13px; font-weight: 600; color: $primary; background: transparent; border-color: transparent; &:hover:not(:disabled), &:focus { background: transparent; text-decoration: underline; } }
     // Three groups per row, as in the former canvas overview; narrower screens step down to two and one.
     .se-catalog-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: start;
@@ -208,13 +213,23 @@
     // The map guide sits behind an info icon beside the title, like the portal's chart titles (.info-tooltip).
     // Diagram reading help: a square icon button in the canvas corner, beside the full-screen button.
     .se-canvas-info { position: absolute; z-index: 2; top: .75rem; right: calc(.75rem + 40px);
-        &.se-canvas-info-compact { right: .75rem; }
         button.se-info-tooltip { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; background: white; border: 2px solid #dee2e6; border-radius: 5px; }
     }
     button.se-info-tooltip { padding: 0 0 0 .4rem; font-size: 16px; line-height: 1; vertical-align: middle; color: #89a0bb; background: none; border: 0; &:hover, &:focus-visible, &[aria-describedby] { color: $homepage-card-text-color; background: none; } }
     .se-research-title { display: flex; align-items: center; }
     .se-research-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: .75rem 0; h2 { font-size: 24px; margin: 0 0 .25rem; } p { margin: 0; color: #5d5e63; } }
-    .se-research-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: .55rem; padding: .65rem 0; border-top: 1px solid #dee2e6; > input { flex: 1; min-width: 180px; } }
+    .se-research-toolbar { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: .55rem; padding: .65rem 0; border-top: 1px solid #dee2e6; }
+    // The one schema search, at the top of every view; its suggestions drop down like the portal's menus.
+    .se-finder { position: relative; margin-bottom: 1rem;
+        > .icon { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: $gray-40; pointer-events: none; }
+        > input { width: 100%; padding: .5rem .75rem .5rem 2.2rem; font-size: 15px; }
+    }
+    .se-finder-results { position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; right: 0; margin: 0; padding: 4px 0; list-style: none; background: white; border: 1px solid #dee2e6; border-radius: 5px; box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
+        li { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 0 .75rem; padding: .45rem .9rem; cursor: pointer;
+            strong { font-weight: 600; color: $gray-70; } span { justify-self: end; font-size: 12px; color: #5d5e63; } small { grid-column: 1 / -1; font-size: 12px; color: #5d5e63; }
+            &[aria-selected='true'] { background: $slate-20; }
+        }
+    }
     .se-research-paths { display: flex; gap: .3rem; }
 
     .se-research-node { cursor: pointer; .se-research-card { fill: #fff; stroke: rgba(0, 0, 0, .2); stroke-width: 1; } .se-research-diagram-action:hover .se-research-card, .se-research-diagram-action:focus .se-research-card, &.se-research-selected .se-research-card { fill: $slate-20; stroke: $cobalt-70; stroke-width: 2; } }
@@ -230,23 +245,19 @@
     .se-research-traced { stroke: $seafoam-60; stroke-width: 2.5; }
     .se-research-label { cursor: pointer; rect { fill: white; stroke: none; } text { fill: #5d5e63; font-size: 11.5px; text-anchor: middle; } }
     .se-research-dim { opacity: .22; }
-    .se-research-map-toggle { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 1rem; margin: .5rem 0; padding: .85rem 1rem !important; background: $slate-20 !important; color: $slate-60 !important; > span:last-child { font-weight: 600; } }
-    .se-research-detail { margin-top: 1rem; border: 1px solid #dee2e6; border-radius: 5px; background: white; scroll-margin-top: 90px; overflow: hidden; }
+    // No card around a concept page: like the portal's item pages, the page itself holds it, beside the side menu.
+    .se-research-detail { background: white; scroll-margin-top: 90px; }
         // Portal item-page header: circular entity icon, large title, then a ruled "label | value" row.
-    .se-concept-heading { display: flex; align-items: flex-start; gap: 1.75rem; padding: 1.4rem 1.75rem 0; background: white; border-bottom: 1px solid #dee2e6; h3 { font-size: 32px; line-height: 1.2; font-weight: 600; margin: .2rem 0 .5rem; color: $gray-70; } }
+    .se-concept-heading { display: flex; align-items: flex-start; gap: 1.75rem; padding: .4rem 0 1.2rem; background: white; border-bottom: 1px solid #dee2e6; h3 { font-size: 32px; line-height: 1.2; font-weight: 600; margin: .2rem 0 .5rem; color: $gray-70; } }
+    // Focus moves to the heading when a concept opens (for screen readers); it is not a control, so no ring.
+    .se-concept-heading h3:focus { outline: none; }
     .se-concept-icon { flex: none; display: grid; place-items: center; width: 104px; height: 104px; margin-top: 1.6rem; border-radius: 50%; background: $baby-20; border: 2px solid #bfd3e4; .icon { font-size: 44px; color: $homepage-card-text-color; } }
     .se-concept-subtitle { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1.5rem; padding: .5rem 0; border-top: 1px solid #dee2e6; border-bottom: 1px solid #dee2e6;
         .se-concept-question { margin: 0; font-size: 16px; line-height: 1.4; color: $gray-70; }
     }
     .se-concept-meta { display: inline-flex; align-items: center; font-size: 15px; > span:first-child { padding-right: .75rem; margin-right: .75rem; color: #5d5e63; border-right: 1px solid #dee2e6; } }
     .se-concept-eyebrow { color: $gray-70; font-size: 15px; font-weight: 400; }
-    .se-concept-description { font-size: 16px; line-height: 1.7; padding: 1.2rem 1.75rem 0; max-width: 100ch; }
-    .se-concept-workspace { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 1.5rem; align-items: start; padding: 1.5rem 1.75rem 1.75rem; }
-    // Panels follow the portal's .data-card: a light-blue title band over a bordered white body.
-    .se-card { display: flex; flex-direction: column; min-width: 0; background: white; border: 1px solid $mercury; }
-    h4.se-card-header { display: flex; align-items: center; gap: .5rem; min-height: 44px; margin: 0; padding: .5rem 15px; font-size: 1.063rem; line-height: 1.3; font-weight: 500; color: $gray-70; background: $baby-20; border-bottom: 1px solid $gray-30; }
-    .se-card-body { padding: 10px 15px 15px; }
-    .se-concept-help { font-size: 14px; color: #5d5e63; line-height: 1.6; }
+    .se-concept-description { font-size: 16px; line-height: 1.7; padding: 1.2rem 0 0; max-width: 100ch; }
     .se-relationship-section { margin-top: 1.1rem; }
     h5.se-relationship-section-title { margin: 0 0 .5rem; font-size: .75rem; font-weight: 500; color: #5d5e63; > span { display: inline-block; margin-left: .25rem; padding: 0 .35rem; border-radius: .25rem; background: #f2f2f2; font-weight: 600; } }
     .se-relationship-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid $mercury; border-radius: 0; background: white; font-size: 13px;
@@ -255,24 +266,15 @@
         thead th + th { background-image: linear-gradient(#c8c5d7 50%, transparent 0); background-size: 1px 4px; background-repeat: repeat-y; background-position: left center; }
         tbody tr:nth-child(even) > * { background: $gray-10; }
         th.se-relationship-other { width: 22%; font-weight: 600; color: $homepage-card-text-color; overflow-wrap: anywhere; }
-        .se-relationship-meaning { > span { display: block; font-weight: 600; color: $homepage-header-text-color; } small { display: block; margin-top: .15rem; font-size: 12.5px; line-height: 1.5; color: #5d5e63; } }
+        .se-relationship-meaning { > span { display: block; font-weight: 500; color: $gray-70; } .se-relationship-none { color: $gray-40; } }
         .se-relationship-field { width: 26%; code { display: inline-block; margin: 0 .3rem .2rem 0; padding: .05rem .35rem; font-size: 12px; color: $homepage-card-text-color; background: $slate-10; border: 1px solid #dee2e6; border-radius: .25rem; overflow-wrap: anywhere; } small { display: block; font-size: 12px; color: #5d5e63; } }
         .se-relationship-action { width: 1%; white-space: nowrap; button { padding: .15rem .5rem; font-size: 13px; font-weight: 600; color: $primary; background: transparent; border-color: transparent; &:hover:not(:disabled), &:focus { background: transparent; text-decoration: underline; } } }
     }
     button.se-relationship-more { margin-top: .4rem; padding: .25rem .6rem; font-size: 13px; font-weight: 600; color: $primary; background: transparent; border-color: transparent; &:hover:not(:disabled), &:focus { background: transparent; text-decoration: underline; } }
-    .se-concept-schemas { h4 > span { padding: 0 .4rem; font-size: 13px; font-weight: 600; border-radius: .25rem; background: white; border: 1px solid #bfd3e4; color: $homepage-card-text-color; } .se-card-body > p { color: #5d5e63; font-size: 13px; line-height: 1.6; } }
-    button.se-concept-schema { display: block; width: 100%; text-align: left; padding: .85rem; margin-top: .6rem; background: white; border-color: #dee2e6; &:hover { border-color: $homepage-card-text-color; background: $slate-20; } }
-    .se-concept-schema-name { display: flex; justify-content: space-between; gap: .5rem; font-size: 15px; font-weight: 600; color: $homepage-card-text-color; overflow-wrap: anywhere; }
-    .se-concept-schema-group > h5 { margin: 1.1rem 0 .3rem; font-size: 13px; font-weight: 600; color: #5d5e63; }
-    .se-concept-inheritance-help { margin-top: .7rem; font-size: 13px; color: #5d5e63; }
-    button.se-concept-schema-abstract { background: #f3f0fa; border: 1px dashed #a195ba; &:hover { background: #ece7f6; border-color: #75638e; } .se-concept-schema-name > span:first-child { font-style: italic; } }
-    .se-concept-abstract-badge { align-self: center; margin-left: auto; font-size: 11px; line-height: 1.4; padding: .15rem .4rem; border-radius: .25rem; color: #62517b; background: #e5dff0; font-weight: 600; font-style: normal; }
-    .se-concept-abstract-note { display: block; margin-top: .4rem; color: #75638e; font-size: 12px; }
-    .se-concept-schema-description { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; font-size: 13px; color: #5d5e63; line-height: 1.5; margin-top: .4rem; }
-    @media (max-width: 900px) { .se-concept-workspace { grid-template-columns: minmax(0, 1fr); padding: 1rem; } .se-concept-icon { display: none; } .se-concept-heading { padding: 1.2rem 1rem; flex-wrap: wrap; h3 { font-size: 28px; } } .se-concept-description { padding: 1rem 1rem 0; } }
+    @media (max-width: 900px) { .se-concept-icon { display: none; } .se-concept-heading { padding: .4rem 0 1rem; flex-wrap: wrap; h3 { font-size: 28px; } } .se-concept-description { padding: 1rem 0 0; } }
     .se-research-explanation { margin-top: .75rem; padding: .65rem 1rem; border-left: 3px solid $seafoam-60; background: $azure; }
     .se-research-support { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin: 0; padding: .8rem 0; font-size: 13.5px; color: #5d5e63; button { padding: .2rem .5rem; font-size: 13.5px; font-weight: 600; color: $primary; background: transparent; border-color: transparent; &:hover:not(:disabled), &:focus { background: transparent; text-decoration: underline; } } }
-    .se-research-overview .se-canvas { height: 55vh; min-height: 440px; max-height: 700px; }
+    .se-research-overview .se-canvas { min-height: 0; }
     .se-research-overview.se-fullscreen .se-canvas { height: calc(100vh - 210px); max-height: none; }
     .se-back-to-groups { margin-right: .5rem; }
     .se-stage-panel { fill: $slate-10; stroke: none; pointer-events: none; }
@@ -319,7 +321,7 @@
     .se-value-tree { max-height: 650px; overflow: auto; } .se-value-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; padding: .6rem 0; border-top: 1px solid #dee2e6; } .se-value { flex: 1; overflow-wrap: anywhere; } .se-value-children { padding-left: 1rem; border-left: 1px solid #dee2e6; }
     .se-planner-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; label { display: flex; flex-direction: column; align-items: stretch; } }
     .se-route { border: 1px solid #dee2e6; border-radius: 5px; padding: .75rem; margin: .5rem 0; } .se-chain { padding: .75rem 0; > div { margin: .5rem; } }
-    @media (max-width: 850px) { .se-columns, .se-planner-controls { grid-template-columns: 1fr; } .se-inspector { border-left: 0; padding-left: 0; } }
+    @media (max-width: 850px) { .se-planner-controls { grid-template-columns: 1fr; } }
 }
 .schema-explorer { padding: 0 24px 24px; }
 .schema-explorer > .se-toolbar { padding: 14px 0 22px; border-bottom: 1px solid #dee2e6; }
@@ -372,7 +374,7 @@
 }
 
 // The Map tab's diagram fills the concept card below its heading, like the Summary tab's content.
-.se-concept-map-tab { padding: .5rem 1.75rem 1.5rem; @media (max-width: 900px) { padding: .5rem 1rem 1rem; } }
+.se-concept-map-tab { padding: .5rem 0 1.5rem; }
 .schema-explorer .se-concept-diagram, .se-concept-diagram { scroll-margin-top: 85px; outline: none;
     .se-concept-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; margin: .6rem 0; > div:first-child { margin-right: auto; strong { display: block; color: $homepage-header-text-color; font-size: 18px; } > span { display: block; color: #5d5e63; font-size: 12px; margin-top: .2rem; } } > input { flex: 0 1 260px; min-width: 160px; } }
     > .se-toolbar > .text-muted { display: none; }
@@ -399,5 +401,19 @@
         .se-legend-covered { border: 2px solid $warning; background: #fff6ea; }
         .se-legend-bundle { background: $slate-10; border: 1.5px dashed $gray-40; }
         .se-legend-arrow { height: 0; border: 0; border-top: 1.5px solid #888; border-radius: 0; position: relative; &::after { content: ''; position: absolute; right: -2px; top: -5px; border: 4px solid transparent; border-left: 6px solid #888; } }
+    }
+}
+
+// Like the benchmarking data pages, the side menu starts at the page edge on wide screens: the static page
+// frame (wide container, page and section spacing) adds nothing around the explorer there.
+body[data-pathname^='/schema-explorer']:not([data-at-type*='Error']) {
+    @include media-breakpoint-up(lg) {
+        #content.container-wide { padding-left: 0; padding-right: 0; }
+        .static-page { margin: 0;
+            .static-section-entry { margin: 0;
+                > .section-content > section.container-fluid { padding: 0 !important; }
+            }
+        }
+        .schema-explorer { padding: 0; }
     }
 }
