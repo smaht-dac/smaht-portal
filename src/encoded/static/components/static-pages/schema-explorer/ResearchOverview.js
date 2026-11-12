@@ -408,11 +408,12 @@ export default function ResearchOverview({ index, nodes, onAllTypes, onDetail, o
                                 <p className="se-concept-question">{concept.hint}</p>
                                 <span className="se-concept-meta"><span>Schema group</span><span className="se-concept-eyebrow">{domains.find((d) => d.id === concept.domain)?.label || 'Explore the metadata'}</span></span>
                             </div>
+                            {/* What the concept covers, under its name like an item page's description. */}
+                            <p className="se-concept-description">{concept.description}</p>
                         </div>
                     </header>
                     <WorkflowStepper concept={concept} graph={graph} onOverview={() => onNavigate({ view: 'overview' })}
                         onConcept={(id) => onNavigate({ view: 'concept', concept: id })} />
-                    <p className="se-concept-description">{concept.description}</p>
                     <div className="se-concept-map-tab">{mapTab}</div>
                 </section>
             )}
