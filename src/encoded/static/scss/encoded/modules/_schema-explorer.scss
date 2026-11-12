@@ -276,6 +276,8 @@
     .se-research-overview.se-fullscreen .se-canvas { height: calc(100vh - 210px); max-height: none; }
     .se-back-to-groups { margin-right: .5rem; }
     .se-stage-panel { fill: $slate-10; stroke: none; pointer-events: none; }
+    // The open concept's panel on its group map.
+    .se-stage-panel.se-stage-current { fill: $baby-20; stroke: #bfd3e4; }
     .se-hierarchical .entity-node text { font-size: 14px; }
     .entity-node text.se-node-title { fill: $homepage-header-text-color; font-size: 13px; font-weight: 650; }
     .entity-node .se-subtitle { font-weight: 400; fill: #5d5e63; }

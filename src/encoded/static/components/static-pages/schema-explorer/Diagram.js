@@ -13,7 +13,7 @@ import { nodePresentation, stageAccent } from './node-presentation';
 import ResearchOverview, { ConceptSummary } from './ResearchOverview';
 import { explorerIndex } from './explorer-scope';
 import { externalContextGroups } from './external-context';
-import { mapSentence, researchLabels, buildResearchMap } from './research-map';
+import { mapSentence, researchLabels, buildResearchMap, concepts } from './research-map';
 import { conceptConnections } from './concept-connections';
 import { overviewRoute } from './explorer-route';
 import { neighborhoodLayout } from './neighborhood';
@@ -35,7 +35,7 @@ export default function Diagram({
     const [selected, setSelected] = useState('');
     const [outsideOpen, setOutsideOpen] = useState(false);
     const [expandedExternal, setExpandedExternal] = useState([]);
-    const [showExternal, setShowExternal] = useState(false);
+    const [showExternal, setShowExternal] = useState(true);
     const [arrangement, setArrangement] = useState('hierarchical');
     const [crossLinks, setCrossLinks] = useState(true);
     const [connectionMode, setConnectionMode] = useState('shared');
@@ -97,7 +97,8 @@ export default function Diagram({
     }, [route.view, route.concept, conceptGraph, index, overviewNodes]);
     const domain = route.view === 'group' ? route.group : route.view === 'schema' ? domainFor(route.schema)
         : conceptContext?.domain || '';
-    useEffect(() => { setShowExternal(!!conceptContext); }, [conceptContext?.id]);
+    // Group and concept maps open with their links to other groups drawn; each new map starts that way again.
+    useEffect(() => { setShowExternal(true); }, [conceptContext?.id, domain]);
     useEffect(() => { setExpandedExternal([]); }, [conceptContext?.id, domain]);
     // Moving to another group or concept starts from its whole map. A schema's address is its group map with the
     // schema selected, so moving between schemas of one group keeps the map as it is and only changes the selection.
@@ -213,7 +214,7 @@ export default function Diagram({
     const clustered = useMemo(() => {
         if (!showDomains) return { positions: {}, frames: [], layers: [] };
         if (researchOverview) return { positions: {}, frames: [], layers: [] };
-        const result = hierarchicalLayout(visible.filter((node) => !externalContextNames.has(node.name)), width, height, index.edges, layoutSize);
+        const result = hierarchicalLayout(visible.filter((node) => !externalContextNames.has(node.name)), width, height, index.edges, layoutSize, concepts);
         if (externalContextNames.size || externalBundles.length) {
             const right = Math.max(...result.frames.map((frame) => frame.left + frame.width));
             let row = 0;
@@ -335,7 +336,10 @@ export default function Diagram({
         );
         return Math.max(showDomains && readable ? externalBundles.length ? 0.65 : 0.85 : 0.05, fitted);
     }, [bounds.left, bounds.right, bounds.top, bounds.bottom, layoutSize, showDomains, externalBundles.length]);
+    // Set once the reader zooms, pans or drags, so automatic refits stop overriding their view.
+    const cameraTouched = useRef(false);
     const fit = useCallback((readable = true) => {
+        cameraTouched.current = false;
         const scale = fitScale(readable);
         const fitsX = (bounds.right - bounds.left) * scale <= layoutSize.width;
         const fitsY = (bounds.bottom - bounds.top) * scale <= layoutSize.height;
@@ -354,7 +358,12 @@ export default function Diagram({
     const layoutFocus = neighbors ? selected : '';
     useEffect(() => {
         fit();
-    }, [index, hidden, kinds, neighbors, layoutFocus, size, full, domain, arrangement, connectionMode, conceptContext, expandedExternal]);
+    }, [index, hidden, kinds, neighbors, layoutFocus, size, full, domain, arrangement, connectionMode, conceptContext, expandedExternal, showExternal]);
+    // A neighborhood settles over a few renders (relationship kinds, routes, the canvas growing to its own height);
+    // until the reader moves the view, it is refitted to whatever it finally measures.
+    useEffect(() => {
+        if (neighborhoodView && !cameraTouched.current) fit();
+    }, [neighborhoodView, fit]);
     useEffect(() => {
         if (!svg.current) return undefined;
         const observer = new ResizeObserver((entries) => {
@@ -379,7 +388,8 @@ export default function Diagram({
             document.body.style.overflow = previous;
         };
     }, [full]);
-    const zoom = (factor, x = size.width / 2, y = size.height / 2) =>
+    const zoom = (factor, x = size.width / 2, y = size.height / 2) => {
+        cameraTouched.current = true;
         setCamera((c) => {
             const scale = Math.max(0.05, Math.min(3, c.scale * factor));
             return {
@@ -388,6 +398,7 @@ export default function Diagram({
                 y: y - ((y - c.y) * scale) / c.scale,
             };
         });
+    };
     useEffect(() => {
         const element = svg.current;
         if (!element) return undefined;
@@ -740,6 +751,7 @@ export default function Diagram({
                             dy = e.clientY - d.y;
                         if (!dx && !dy) return;
                         d.moved = true;
+                        cameraTouched.current = true;
                         d.x = e.clientX;
                         d.y = e.clientY;
                         if (d.name)
@@ -776,6 +788,7 @@ export default function Diagram({
                         }[e.key];
                         if (delta) {
                             e.preventDefault();
+                            cameraTouched.current = true;
                             setCamera((c) => {return {
                                 ...c,
                                 x: c.x + delta[0],
@@ -812,7 +825,7 @@ export default function Diagram({
                             </g>
                         ))}
                         {showDomains && clustered.layers.map((layer) => (
-                            <rect key={`panel-${layer.id}`} className="se-stage-panel" x={layer.panel.left} y={layer.panel.top} width={layer.panel.width} height={layer.panel.height} rx="4" />
+                            <rect key={`panel-${layer.id}`} className={`se-stage-panel${conceptContext && layer.concept === conceptContext.id ? ' se-stage-current' : ''}`} x={layer.panel.left} y={layer.panel.top} width={layer.panel.width} height={layer.panel.height} rx="4" />
                         ))}
                         {showDomains && clustered.layers.map((layer) => (
                             <g key={layer.id}>

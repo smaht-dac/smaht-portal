@@ -2,7 +2,10 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.readFileSync(`src/encoded/static/components/static-pages/schema-explorer/${name}.js`, 'utf8')).toString('base64')}`);
 (async () => {
-    const { domains, domainFor, hierarchicalLayout, stages, abstractTypes } = await load('domains');
+    const { domains, domainFor, hierarchicalLayout: layoutWith, stages, abstractTypes } = await load('domains');
+    // Group maps are always laid out with the donor-to-data concepts, as in the explorer.
+    const { concepts } = await load('research-map');
+    const hierarchicalLayout = (nodes, width, height, edges, viewport) => layoutWith(nodes, width, height, edges, viewport, concepts);
     const { routeEdges, segmentClear } = await load('routing');
     assert.ok(abstractTypes.has('AbstractDonor') && abstractTypes.has('File') && abstractTypes.has('Sample'));
     assert.ok(!abstractTypes.has('Donor') && !abstractTypes.has('WorkflowRun'),'Concrete parent classes are not classified as abstract');
@@ -27,18 +30,28 @@ const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.
     const flow = ['donors', 'samples', 'sequencing', 'workflows', 'files'].map(id => frames.find(f => f.id === id));
     for (let i = 1; i < flow.length; i++) assert.ok(flow[i].top > flow[i-1].top + flow[i-1].height);
     assert.ok(frames.find(f => f.id === 'administrative').top > flow.at(-1).top, 'Support groups follow biological groups in the directory');
-    const donorStages = ['AbstractDonor', 'Donor', 'MedicalHistory', 'Diagnosis', 'TissueCollection'];
-    for (let i=0;i<donorStages.length;i++) {
-        const stage=layers.filter(l=>l.domain==='donors')[i];
-        assert.equal(stage.stage,i);
-        const point=positions[donorStages[i]], panel=stage.panel;
+    // One grouping per map: concept panels named and numbered as on the path, then unnumbered stages for the rest.
+    const labels = id => layers.filter(l => l.domain === id).map(l => l.label);
+    assert.deepEqual(labels('donors'), ['1. Donor', 'Clinical context', 'Clinical details', 'Collection']);
+    assert.deepEqual(labels('samples'), ['2. Source material', '3. Sample', 'Pathology'], 'No stage repeats a concept under another name or number');
+    assert.deepEqual(labels('sequencing'), ['4. Analyte', '5. Library', '6. Experiment / FileSet', 'Sequencing', 'Supporting types']);
+    assert.deepEqual(labels('files'), ['7. Data files', 'Quality assessment', 'Supporting types']);
+    assert.deepEqual(labels('administrative')[0], 'Base types', 'A group off the path keeps its stages, base types first');
+    for (const concept of concepts) {
+        const panel = layers.find(l => l.concept === concept.id);
+        assert.deepEqual([...panel.names].sort(), concept.types.split(' ').sort(), `${concept.label}: its panel holds exactly its schemas`);
+    }
+    assert.ok(layers.find(l => l.id === 'samples-Pathology').names.includes('PathologyReport'), 'A base type outside the concepts sits with its subtypes');
+    assert.ok(layers.find(l => l.id === 'sequencing-Supporting types').names.includes('Treatment'), 'A partly covered stage gives its rest to Supporting types');
+    for (const [name, label] of [['AbstractDonor', '1. Donor'], ['Donor', '1. Donor'], ['MedicalHistory', 'Clinical context'], ['Diagnosis', 'Clinical details'], ['TissueCollection', 'Collection']]) {
+        const point=positions[name], panel=layers.find(l=>l.domain==='donors' && l.label===label).panel;
         assert.ok(point.x>=panel.left && point.x<=panel.left+panel.width && point.y>=panel.top && point.y<=panel.top+panel.height);
     }
     const filtered = hierarchicalLayout(nodes.filter(n => ['Donor', 'TissueCollection'].includes(n.name)), 236, 66);
-    assert.deepEqual(filtered.layers.map(l => l.label), ['1. Donors', '2. Collection'], 'Empty layers collapse');
+    assert.deepEqual(filtered.layers.map(l => l.label), ['1. Donor', 'Collection'], 'Empty layers collapse');
     assert.deepEqual(hierarchicalLayout([], 236, 66), { positions: {}, frames: [], layers: [] });
     assert.deepEqual(hierarchicalLayout([...nodes].reverse(), 236, 66), { positions, frames, layers }, 'Input order does not affect placement');
-    assert.equal(layers.find(l => l.domain === 'other').label, '1. Other types');
+    assert.equal(layers.find(l => l.domain === 'other').label, 'Other types');
 
     function assertPanelSeparation(layout) {
         for (const layer of layout.layers) {

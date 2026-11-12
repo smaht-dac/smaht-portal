@@ -211,6 +211,9 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.ok(await relationshipRows().count()>=2);
  assert.equal(await page.getByRole('tablist').count(),0,'No Summary/Map tabs: the concept page is one view');
  assert.ok(await page.locator('#entity-svg [data-entity="TissueSample"]').count(),'The concept page draws its map');
+ // One grouping: the map's panels carry the path's own names and numbers, and the open concept's panel is marked.
+ assert.deepEqual(await page.locator('#entity-svg .se-stage-label').allTextContents(),['2. Source material','3. Sample','Pathology']);
+ assert.equal(await page.locator('#entity-svg .se-stage-panel.se-stage-current').count(),1,'The open concept has one marked panel');
  // Pointing at a table row traces its arrow on the map.
  await relationshipRows().filter({hasText:'sample_sources[]'}).hover();
  assert.ok(await page.locator('#entity-svg .se-traced-edge').count()>0,'A table row traces its references on the map');
@@ -286,6 +289,10 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
   return x('Analyte')<x('Sample');
  }),true,'Schemas linking to the selection sit to its left');
  assert.equal(await page.getByLabel('Connection detail',{exact:true}).isDisabled(),false,'The neighborhood can switch between shared definitions and all references');
+ // The neighborhood is fitted to the canvas it ends up with: inside it, filling one of its dimensions.
+ await page.waitForTimeout(300);
+ assert.ok(await page.locator('#entity-svg').evaluate(svg=>{const r=svg.getBoundingClientRect(),c=svg.querySelector(':scope > g').getBoundingClientRect();
+  return c.left>=r.left-1 && c.right<=r.right+1 && c.top>=r.top-1 && c.bottom<=r.bottom+1 && (c.width>=r.width*0.85 || c.height>=r.height*0.85);}),'The neighborhood fills its canvas');
  await page.locator('#entity-svg').screenshot({path:path.join(output,'sample-neighborhood.png')});
  await page.locator('#entity-show-neighborhood').click();
  await relationshipSummary().filter({hasText:'Relationships 1/3'}).waitFor({timeout:5000}); // Leaving the neighborhood restores the group filter.
@@ -387,13 +394,18 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.locator('.se-domain-frame').count(),1);
  assert.equal(await page.locator('[data-entity="File"]').count(),0);
  assert.equal(await page.locator('[data-entity="Donor"]').count(),1);
+ assert.equal(await page.getByLabel('Links to other groups',{exact:true}).isChecked(),true,'Group maps open with their links to other groups drawn');
+ assert.ok(await page.locator('[data-external-group]').count()>0);
+ // The checks below measure the group's own layout, so its links to other groups are set aside.
+ await page.getByLabel('Links to other groups',{exact:true}).uncheck();
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))); // The map refits on the next frame.
  await shell.screenshot({path:path.join(output,'hierarchical-donors.png')});
  const nodePositions=()=>page.locator('#entity-svg .entity-node').evaluateAll(nodes=>Object.fromEntries(nodes.map(n=>[n.dataset.entity,n.getAttribute('transform')])));
  const donorPositions=await nodePositions();
- assert.deepEqual(await page.locator('#entity-svg .se-stage-label').allTextContents(),['Base types','1. Donors','2. Clinical context','3. Clinical details','4. Collection']);
+ assert.deepEqual(await page.locator('#entity-svg .se-stage-label').allTextContents(),['1. Donor','Clinical context','Clinical details','Collection'],'Panels are the path concepts, then unnumbered stages');
  assert.ok(await page.locator('#entity-svg .entity-node text').first().evaluate(n=>Number.parseFloat(getComputedStyle(n).fontSize)*document.querySelector('#entity-svg > g').transform.baseVal.consolidate().matrix.a)>=10.5,'Selected group type names remain readable');
  await page.locator('#entity-svg').screenshot({path:path.join(output,'donor-canvas.png')});
- assert.equal(await page.locator('#entity-svg .se-stage-label').count(),5);
+ assert.equal(await page.locator('#entity-svg .se-stage-label').count(),4);
  assert.equal(await page.locator('#entity-svg').evaluate(svg=>{
   const section=getComputedStyle(svg.querySelector('.se-stage-label'));
   const title=getComputedStyle(svg.querySelector('.se-node-title'));
@@ -454,6 +466,9 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  // A selected node must not restore the previous group's camera when navigating.
  for(const group of ['sequencing','files','workflows']){
   await selectSetting('Schema group',group);
+  assert.equal(await page.getByLabel('Links to other groups',{exact:true}).isChecked(),true,'Each group map opens with its links to other groups');
+  await page.getByLabel('Links to other groups',{exact:true}).uncheck(); // Measure the group's own framing.
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))); // The map refits on the next frame.
   assert.ok(await page.locator('#entity-svg > g').evaluate(group => group.transform.baseVal.consolidate().matrix.a)>=0.85,'Group framing retains its original readable minimum');
   await page.locator('#entity-svg').screenshot({path:path.join(output,`${group}-canvas.png`)});
   if(group==='files'){

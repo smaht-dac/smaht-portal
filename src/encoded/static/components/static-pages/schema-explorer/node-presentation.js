@@ -60,6 +60,9 @@ const stageTones = {
     Definitions: 'blue', Execution: 'teal', Analysis: 'purple',
     'Acquired data': 'blue', 'Processed data': 'teal', Results: 'purple', 'Quality assessment': 'amber',
     Organization: 'blue', Submission: 'teal', Knowledge: 'purple',
+    // Concept panels of the donor-to-data path.
+    Donor: 'blue', Sample: 'blue', Analyte: 'teal', Library: 'blue', 'Experiment / FileSet': 'purple', 'Data files': 'blue',
+    'Analysis context': 'purple', 'Workflow execution': 'teal',
 };
 export function stageAccent(stage, isAbstract = false) {
     return tones[isAbstract || stage === 'Base types' ? 'abstract' : stageTones[stage] || 'neutral'];
