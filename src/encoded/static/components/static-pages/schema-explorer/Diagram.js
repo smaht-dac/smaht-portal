@@ -398,7 +398,9 @@ export default function Diagram({
     }, [panelView, openedPanel, routed, positions, shownGroups, headings, visible, cardWidth, cardHeight, clustered]);
     // A panel arrow's ends are panels; the label names the panel, and its schemas are traced with it.
     const endLabel = (name) => panelView?.labels.get(name) || externalBundles.find((bundle) => bundle.name === name)?.label || name;
-    const panelTrace = (g) => { return { ...g, ends: new Set([g.from, g.to, ...(panelView.members.get(g.from) || [g.from]), ...(panelView.members.get(g.to) || [g.to])]) }; };
+    // Pointing at a panel arrow marks its two panels and only the schemas its references join, so the reader sees which
+    // schemas it stands for rather than every card in both panels.
+    const panelTrace = (g) => { return { ...g, ends: new Set([g.from, g.to, ...g.edges.flatMap((e) => [e.from, e.to])]) }; };
     const bounds = useMemo(() => {
         // The research map lays out its own nodes, so this view has no positions of its own.
         const points = visible.filter((n) => positions[n.name]).flatMap((n) => [

@@ -228,6 +228,11 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.locator('#entity-svg .se-stage-panel.se-stage-traced').first().waitFor({timeout:5000});
  await firstCard.dispatchEvent('mouseout');
  await page.waitForFunction(()=>!document.querySelector('#entity-svg .se-stage-panel.se-stage-traced'),null,{timeout:5000}); // Leaving the card clears the trace.
+ // Pointing at a panel arrow marks only the schemas its references join, not every card of its two panels.
+ await page.locator('#entity-svg .se-panel-edge-chip').filter({hasText:'sample_sources[]'}).first().hover();
+ const markedByArrow=await page.locator('#entity-svg .entity-node.se-covered-owner').count();
+ assert.ok(markedByArrow>=2 && markedByArrow<await page.locator('#entity-svg .entity-node:not(:has(.se-context-domain))').count(),`A panel arrow marks its own schemas (${markedByArrow})`);
+ await page.mouse.move(0,0);
  // A panel arrow that stands for one schema arrow does not open: its label already says it all, so a click shows its details.
  await page.locator('#entity-svg .se-panel-edge-chip').filter({hasText:'sample_sources[]'}).first().click();
  await page.getByRole('dialog').waitFor();
