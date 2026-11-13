@@ -56,5 +56,7 @@ const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.
  assert.ok(panels.groups.every(g=>g.from!==g.to && g.edges.every(e=>owners.get(e.from)===g.from && owners.get(e.to)===g.to)));
  const withCard=panelRelationships([{from:'File',to:'Donor',field:'donors[]',kind:'linkTo'},{from:'OutputFile',to:'Tissue',field:'tissues[]',kind:'linkTo'}],new Map([...owners,['Donor','card'],['Tissue','card']]));
  assert.deepEqual(withCard.groups.map(g=>[g.from,g.to,g.edges.length]),[[owners.get('File'),'card',2]],'Links to a collapsed group card join into one arrow');
+ const mixed=panelRelationships([{from:'File',to:'Donor',field:'donors[]',kind:'linkTo'},{from:'File',to:'Donor',field:'donor_view',kind:'calculated'},{from:'OutputFile',to:'Donor',field:'files',kind:'linkTo',reverse:true}],new Map([...owners,['Donor','card']]));
+ assert.deepEqual(mixed.groups.map(g=>[g.kind,g.reverse]),[['linkTo',false],['calculated',false],['linkTo',true]],'Each relationship kind keeps its own panel arrow');
  console.log('Connection summary: 64 → 17 visible links; inheritance provenance, overrides, exact-reference retention and separated arrow endpoints passed.');
 })();

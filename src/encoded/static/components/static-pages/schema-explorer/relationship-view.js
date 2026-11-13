@@ -62,7 +62,8 @@ export function sharedRelationships(index, groups, visibleNames) {
 }
 
 // A group map's default arrows join panels, not schemas: every reference between two panels (or between a panel
-// and a collapsed card of another group) becomes one arrow per direction that carries all of its references.
+// and a collapsed card of another group) becomes one arrow per direction and relationship kind that carries all of
+// its references, so Link, Calculated and Reverse keep their own colour and dash as in the schema-level arrows.
 // References that stay inside one panel draw no arrow; `inside` counts them per panel so none is lost.
 // `owners` maps each schema to the panel or card that draws it; edges with an end outside it are skipped.
 export function panelRelationships(edges, owners) {
@@ -71,8 +72,8 @@ export function panelRelationships(edges, owners) {
         const from = owners.get(edge.from), to = owners.get(edge.to);
         if (!from || !to) continue;
         if (from === to) { inside.set(from, (inside.get(from) || 0) + 1); continue; }
-        const key = `panel:${from}>${to}`;
-        if (!arrows.has(key)) arrows.set(key, { ...edge, key, from, to, kind: 'linkTo', reverse: false, panel: true, edges: [] });
+        const key = `panel:${from}>${to}:${edge.kind}${edge.reverse ? ':reverse' : ''}`;
+        if (!arrows.has(key)) arrows.set(key, { ...edge, key, from, to, kind: edge.kind, reverse: !!edge.reverse, panel: true, edges: [] });
         arrows.get(key).edges.push(edge);
     }
     return { groups: [...arrows.values()], inside };
