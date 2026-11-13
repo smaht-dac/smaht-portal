@@ -26,6 +26,8 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
   if(await page.locator('.se-map-settings > summary').count())await page.locator('.se-map-settings > summary').click();
  };
  const clickDiagramEdge = async () => {
+  // Wait for the camera to settle (entering full screen refits over a few frames) before aiming at an arrow.
+  await page.waitForFunction(()=>new Promise(done=>{const g=()=>document.querySelector('#entity-svg > g')?.getAttribute('transform');const a=g();setTimeout(()=>done(g()===a),200);}));
   const point = await page.locator('#entity-svg .se-edge').evaluateAll(edges => {
    for (const edge of edges) {
     const length = edge.getTotalLength();

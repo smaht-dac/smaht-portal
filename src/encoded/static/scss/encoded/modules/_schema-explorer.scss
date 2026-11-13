@@ -66,27 +66,39 @@
     .se-diagram > .se-toolbar:first-child { justify-content: space-between; }
     .se-diagram-header { margin: .25rem 0 .75rem;
         button.se-diagram-back { margin-left: -.5rem; padding: .2rem .5rem; font-size: 13px; font-weight: 600; color: $primary; background: transparent; border-color: transparent; &:hover:not(:disabled), &:focus { background: transparent; text-decoration: underline; } }
-        .se-diagram-heading { margin-top: .4rem; padding: .9rem 1.1rem; border: 1px solid #dee2e6; border-radius: 5px; background: $slate-10; }
-        .se-diagram-eyebrow { color: $homepage-header-text-color; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
+        .se-diagram-heading { margin-top: .25rem; h2 { margin: 0 0 .35rem; font-size: 28px; line-height: 1.2; font-weight: 600; color: $gray-70; } }
+        .se-diagram-meta { display: flex; margin: 0; padding: .35rem 0; font-size: 15px; color: $gray-70; border-top: 1px solid #dee2e6; border-bottom: 1px solid #dee2e6;
+            > span:first-child { padding-right: .75rem; margin-right: .75rem; color: #5d5e63; border-right: 1px solid #dee2e6; }
+        }
         h2 { margin: .15rem 0 .1rem; font-size: 26px; line-height: 1.25; font-weight: 650; color: $homepage-header-text-color; }
         .se-diagram-question { margin: 0; font-size: 16px; color: $slate-60; }
         .se-diagram-facts { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0 0; padding: 0; list-style: none; li { padding: .15rem .55rem; font-size: 12.5px; color: $slate-60; background: white; border: 1px solid #dee2e6; border-radius: 5px; } }
     }
-    .se-diagram-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem; margin-bottom: .6rem; padding: .55rem .75rem; border: 1px solid #dee2e6; border-radius: 5px; background: $gray-10;
+    .se-diagram-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem; margin-bottom: .6rem; padding: 0 0 .6rem; border-bottom: 1px solid #dee2e6;
         > input[type='search'] { flex: 1 1 200px; max-width: 300px; min-width: 160px; }
         > .se-canvas-actions { margin-left: auto; }
-        .se-control-label { font-size: 12px; font-weight: 600; color: #5d5e63; text-transform: uppercase; letter-spacing: .03em; }
         label { display: inline-flex; align-items: center; gap: .4rem; margin: 0; font-size: 13px; }
-        .se-external-toggle { padding: 6px 10px; border: 1px solid #ced4da; border-radius: 5px; background: white; white-space: nowrap; input { margin: 0; } }
+        .se-external-toggle { padding: 3px 8px; border: 2px solid #dee2e6; border-radius: 5px; background: #fcfdff; white-space: nowrap; input { margin: 0; } }
     }
     .se-diagram > p { margin: 12px 0; }
     .se-map-toolbar { display: grid; gap: .6rem; margin: .75rem 0; }
     .se-map-discovery { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; min-width: 0; > input[type='search'] { flex: 0 1 440px; width: min(440px, 100%); min-width: 180px; } > .se-type-picker { margin-left: auto; } }
     .se-map-tools { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .65rem; padding-top: .55rem; border-top: 1px solid #dee2e6; }
     .se-map-tool-section { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; }
-    .se-map-tool-section + .se-map-tool-section { border-left: 1px solid #dee2e6; padding-left: .65rem; }
-    .se-zoom-controls { display: inline-flex; align-items: center; gap: .2rem; padding: 2px; border: 1px solid #dee2e6; border-radius: 5px; background: $gray-10; span { min-width: 3.2em; text-align: center; font-variant-numeric: tabular-nums; } button { min-width: 2.1em; padding: .3rem .45rem; } }
+    // Zoom reads as one joined button group (Bootstrap .btn-group), with the scale between its buttons.
+    .se-zoom-controls { display: inline-flex; align-items: stretch;
+        > * { margin: 0; border-radius: 0; }
+        > * + * { margin-left: -2px; }
+        > :first-child { border-radius: 5px 0 0 5px; }
+        > :last-child { border-radius: 0 5px 5px 0; }
+        > span { display: inline-flex; align-items: center; justify-content: center; min-width: 3.6em; padding: 3px 6px; font-variant-numeric: tabular-nums; color: $gray-70; background: white; border: 2px solid #dee2e6; }
+        button { min-width: 2.1em; position: relative; &:hover, &:focus-visible { z-index: 1; } }
+    }
     .se-map-tool-section details { position: relative; }
+    // Menus read as the portal's dropdown buttons: a caret after the label, no disclosure triangle.
+    .se-diagram-controls details > summary { list-style: none; display: inline-flex; align-items: center; gap: .4rem; background: #fcfdff; border: 2px solid #dee2e6;
+        &::-webkit-details-marker { display: none; } .icon { font-size: 11px; color: #5d5e63; }
+    }
     .se-map-tool-section details > summary { border: 1px solid #ced4da; border-radius: 5px; padding: 7px 10px; white-space: nowrap; }
     .se-link-filter-popover { position: absolute; z-index: 20; top: calc(100% + 6px); left: 0; min-width: 200px; padding: .65rem; background: white; border: 1px solid #ced4da; border-radius: 5px; box-shadow: 0 4px 12px #0002; .se-filters { align-items: flex-start; flex-direction: column; } }
     @media (max-width: 900px) { .se-map-tools { justify-content: flex-start; } }
@@ -180,9 +192,8 @@
         li button.se-catalog-abstract { background: #fcfaff; border-style: dashed; border-color: #c9bedb; strong { font-style: italic; } }
     }
     .se-catalog-badge { padding: 0 .3rem; font-size: 10px; font-weight: 600; color: #62517b; background: #e5dff0; border-radius: .25rem; }
-    .se-selection-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; margin: 0 0 .5rem; padding: .45rem .5rem .45rem .75rem; font-size: 13px; color: $slate-60; background: $slate-20; border: 1px solid #dee2e6; border-radius: 5px;
+    .se-selection-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; margin: 0 0 .5rem; padding: 0 0 .5rem; font-size: 14px; color: $gray-70; border-bottom: 1px solid #dee2e6;
         strong { font-size: 14px; color: $homepage-header-text-color; }
-        .se-selection-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: $homepage-card-text-color; }
         .se-selection-meta { color: #5d5e63; }
         .se-selection-actions { display: flex; flex-wrap: wrap; gap: .35rem; margin-left: auto; }
         button { padding: .2rem .6rem; font-size: 13px; background: white; }

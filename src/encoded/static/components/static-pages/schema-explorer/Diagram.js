@@ -317,6 +317,7 @@ export default function Diagram({
     const title = neighbors ? selected
         : singleFrame?.label || domains.find((d) => d.id === domain)?.label || 'All schemas';
     const eyebrow = neighbors ? 'Schema neighborhood' : domain ? 'Schema group' : '';
+    const headingCount = neighbors ? visible.length : singleFrame?.count ?? visible.length;
     // Routed views draw orthogonal arrows around cards and headings: group maps and neighborhoods.
     const routed = showDomains || !!neighborhoodView;
     const headings = useMemo(() => neighborhoodView ? neighborhoodView.panels : showDomains ? [
@@ -386,9 +387,12 @@ export default function Diagram({
     // Selecting a node only highlights it in the full map. Refit selection
     // changes only when they replace the displayed neighborhood.
     const layoutFocus = neighbors ? selected : '';
+    // A map that fits its content sizes its canvas from a fixed height budget, so its own canvas growing or
+    // shrinking (as the drawn arrows change) must not refit and move the reader's view; only width changes do.
+    const fitHeight = fitToContent ? 0 : size.height;
     useEffect(() => {
         fit();
-    }, [index, hidden, kinds, neighbors, layoutFocus, size, full, domain, arrangement, connectionMode, conceptContext, expandedExternal, showExternal]);
+    }, [index, hidden, kinds, neighbors, layoutFocus, size.width, fitHeight, full, domain, arrangement, connectionMode, conceptContext, expandedExternal, showExternal]);
     // A neighborhood settles over a few renders (relationship kinds, routes, the canvas growing to its own height);
     // until the reader moves the view, it is refitted to whatever it finally measures.
     useEffect(() => {
@@ -646,16 +650,21 @@ export default function Diagram({
             }>
             {/* A concept's heading and tabs are drawn by the metadata map above this diagram. */}
             {!conceptContext && (
+                // Set like the concept and schema headings: a plain title over one ruled label | value row.
                 <header className="se-diagram-header">
                     <div className="se-diagram-heading">
-                        {eyebrow && <span className="se-diagram-eyebrow">{eyebrow}</span>}
                         <h2>{title}</h2>
+                        {eyebrow && (
+                            <p className="se-diagram-meta">
+                                <span>{eyebrow}</span>
+                                <span>{headingCount} {headingCount === 1 ? 'schema' : 'schemas'}</span>
+                            </p>
+                        )}
                     </div>
                 </header>
             )}
             <div className="se-diagram-controls">
                 <div className="se-map-tool-section" role="group" aria-label="Diagram filters">
-                    <span className="se-control-label">Show</span>
                     {(showDomains || neighborhoodView) && (
                         <label>Connections
                             <select aria-label="Connection detail" value={selected && !neighborhoodView ? 'selected' : neighborhoodView && connectionMode === 'panels' ? 'shared' : connectionMode} onChange={(event) => { setConnectionMode(event.target.value); setMoves({}); }} disabled={!!selected && !neighborhoodView}>
@@ -670,11 +679,11 @@ export default function Diagram({
                         <label className="se-external-toggle"><input type="checkbox" checked={showExternal} onChange={(e) => { setShowExternal(e.target.checked); setMoves({}); }} />Links to other groups</label>
                     )}
                     <details ref={relationshipMenu}>
-                        <summary>Relationships {kinds.length}/3</summary>
+                        <summary>Relationships {kinds.length}/3 <i className="icon icon-angle-down fas" aria-hidden="true" /></summary>
                         <div className="se-link-filter-popover"><Filters kinds={kinds} onChange={setKinds} /></div>
                     </details>
                     <details className="se-type-picker" ref={typePicker}>
-                        <summary>Types {nodes.filter((n) => !hidden.includes(n.name)).length}/{nodes.length}</summary>
+                        <summary>Types {nodes.filter((n) => !hidden.includes(n.name)).length}/{nodes.length} <i className="icon icon-angle-down fas" aria-hidden="true" /></summary>
                         <div className="se-type-popover">
                             <input aria-label="Filter types" placeholder="Filter types…" value={typeQuery} onChange={(e) => setTypeQuery(e.target.value)} />
                             <div className="se-toolbar">
@@ -693,7 +702,7 @@ export default function Diagram({
                         </div>
                     </details>
                     <details className="se-map-settings" ref={mapSettings}>
-                        <summary>Map settings</summary>
+                        <summary>Map settings <i className="icon icon-angle-down fas" aria-hidden="true" /></summary>
                         <div className="se-map-settings-popover">
                             <label>Group
                                 <select aria-label="Schema group" value={domain} onChange={(e) => chooseDomain(e.target.value)}>
@@ -731,9 +740,8 @@ export default function Diagram({
             {error && <p role="alert">{error}</p>}
             {selected && (
                 <div className="se-selection-bar" role="status" aria-label="Selected schema">
-                    <span className="se-selection-label">Selected</span>
                     <strong>{selected}</strong>
-                    <span className="se-selection-meta">{incident.length} {incident.length === 1 ? 'link' : 'links'} highlighted · details below the map</span>
+                    <span className="se-selection-meta">{incident.length} {incident.length === 1 ? 'link' : 'links'} highlighted</span>
                     <span className="se-selection-actions">
                         <button type="button" id="entity-show-neighborhood" aria-pressed={neighbors} onClick={() => {
                             if (!neighbors) showConnected();
