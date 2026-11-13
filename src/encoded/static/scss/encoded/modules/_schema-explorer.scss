@@ -323,6 +323,10 @@
     .entity-node .se-subtitle { font-weight: 400; fill: #5d5e63; }
     .entity-node rect.se-node-accent, .se-research-node > rect[width='4'] { display: none; }
     .entity-node.se-node-abstract rect.se-node-body { fill: #fcfaff; stroke-dasharray: 4 3; }
+    // A base type standing in for its subtypes: two card edges behind it and a short count on its caption line.
+    .entity-node rect.se-node-stack { fill: #f7f8fa; stroke: #aeb4bd; stroke-width: 1; }
+    .entity-node.se-node-abstract rect.se-node-stack { fill: #f6f3fa; stroke: #b8accb; }
+    .entity-node text.se-node-heirs { font-size: 11.5px; fill: #5d5e63; text-anchor: end; }
     .entity-node.se-node-abstract:not(.selected) rect.se-node-body { stroke: #b8accb; }
     .entity-node.se-node-abstract .se-node-title { font-style: italic; }
     .entity-node rect.se-node-abstract-badge { fill: #eee8f6; stroke: none; }

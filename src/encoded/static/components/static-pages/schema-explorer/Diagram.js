@@ -216,7 +216,9 @@ export default function Diagram({
     // Group maps shrink the canvas to their content, so layout and
     // fitting use the full canvas budget (65vh, min 400px as in the stylesheet) rather than the measured height.
     const groupMap = showDomains && !researchOverview;
-    const fitToContent = groupMap;
+    // Group maps and schema neighborhoods size the canvas to their content, so a small neighborhood is neither blown up
+    // nor framed by empty bands above and below.
+    const fitToContent = groupMap || (neighbors && !!selected);
     const budgetHeight = Math.max(400, windowHeight * 0.65);
     const layoutSize = useMemo(() => fitToContent ? { width: size.width, height: budgetHeight } : size,
         [fitToContent, size.width, fitToContent ? budgetHeight : size.height]);
@@ -454,12 +456,13 @@ export default function Diagram({
     }, [visible, positions, showDomains, neighborhoodView, routed, clustered, routes, cardWidth, cardHeight, externalBundles, singleFrame, panelView, openedPanel]);
     const fitScale = useCallback((readable = true) => {
         const fitted = Math.min(
-            showDomains ? 1.25 : 1.5,
+            // A neighborhood is never drawn larger than life: a few cards stay card-sized.
+            showDomains ? 1.25 : neighbors ? 1 : 1.5,
             layoutSize.width / (bounds.right - bounds.left),
             layoutSize.height / (bounds.bottom - bounds.top)
         );
         return Math.max(showDomains && readable ? externalBundles.length ? 0.65 : 0.85 : 0.05, fitted);
-    }, [bounds.left, bounds.right, bounds.top, bounds.bottom, layoutSize, showDomains, externalBundles.length]);
+    }, [bounds.left, bounds.right, bounds.top, bounds.bottom, layoutSize, showDomains, externalBundles.length, neighbors]);
     // Set once the reader zooms, pans or drags, so automatic refits stop overriding their view.
     const cameraTouched = useRef(false);
     const fit = useCallback((readable = true) => {
@@ -476,7 +479,7 @@ export default function Diagram({
     }, [bounds.left, bounds.right, bounds.top, bounds.bottom, layoutSize, fitToContent, fitScale]);
     // The canvas ends just below the fitted map; zooming in later pans within this height.
     const canvasHeight = fitToContent && !full
-        ? Math.min(budgetHeight, Math.max(280, Math.ceil((bounds.bottom - bounds.top) * fitScale() + 32))) : undefined;
+        ? Math.min(budgetHeight, Math.max(neighbors ? 180 : 280, Math.ceil((bounds.bottom - bounds.top) * fitScale() + 32))) : undefined;
     // Selecting a node only highlights it in the full map. Refit selection
     // changes only when they replace the displayed neighborhood.
     const layoutFocus = neighbors ? selected : '';
@@ -638,14 +641,30 @@ export default function Diagram({
     );
     // The first tooltip line names the arrow as drawn (a shared base or a collapsed group can stand in
     // for the exact endpoints); the exact schema references follow.
+    // A short summary, not every reference: the fields, where they are defined and who else carries them. The full
+    // list is one click away, in the details the arrow opens.
+    // Base types whose arrows here also stand for their subtypes, with those subtypes.
+    const sharedBases = useMemo(() => {
+        const bases = new Map();
+        for (const g of shownGroups) {
+            if (!g.shared) continue;
+            const heirs = g.edges.map((e) => e.from).filter((name) => name !== g.from);
+            if (heirs.length) bases.set(g.from, new Set([...(bases.get(g.from) || []), ...heirs]));
+        }
+        return new Map([...bases].map(([base, heirs]) => [base, [...heirs].sort()]));
+    }, [shownGroups]);
     const edgeTooltip = (g) => {
-        const end = endLabel;
-        const heirs = new Set(g.edges.map((e) => e.from).filter((name) => name !== g.from)).size;
-        const note = g.shared && heirs ? ` · defined on ${g.from}, inherited by ${heirs} ${heirs === 1 ? 'schema' : 'schemas'}` : '';
-        const header = `${end(g.from)} → ${end(g.to)}${note}`;
+        const fields = [...new Set(g.edges.map((e) => e.field))];
+        const sources = [...new Set(g.edges.map((e) => e.from))], targets = [...new Set(g.edges.map((e) => e.to))];
+        const heirs = sources.filter((name) => name !== g.from);
+        const lines = [`${endLabel(g.from)} → ${endLabel(g.to)}`, `${fields.length === 1 ? 'Field' : 'Fields'}: ${fields.join(', ')}`];
+        if (g.shared && heirs.length) lines.push(`Defined on ${g.from}; also on its ${heirs.length} ${heirs.length === 1 ? 'subtype' : 'subtypes'}: ${heirs.join(', ')}`);
+        else if (sources.length > 1 || sources[0] !== g.from) lines.push(`From ${sources.join(', ')}`);
+        if (targets.length > 1 || targets[0] !== g.to) lines.push(`To ${targets.join(', ')}`);
         const sentence = g.edges.map(mapSentence).find(Boolean);
-        const map = sentence ? `\n\nOn the Donor to data map: ${sentence.text}` : '';
-        return `${header}\n\n${g.edges.map((e) => `${e.from}.${e.field} → ${e.to}`).join('\n')}${map}`;
+        if (sentence) lines.push(`On the Donor to data map: ${sentence.text}`);
+        lines.push(`${g.edges.length} ${g.edges.length === 1 ? 'reference' : 'references'} · click for details`);
+        return lines.join('\n');
     };
     // The map verb next to the exact field ties a schema arrow to its Donor to data sentence.
     const edgeCaption = (g) => {
@@ -658,7 +677,10 @@ export default function Diagram({
         const fields = unique.length === 1 ? unique[0] : `${unique.length} fields`;
         const sentence = g.edges.map(mapSentence).find(Boolean);
         const heirs = g.shared ? new Set(g.edges.map((e) => e.from).filter((name) => name !== g.from)).size : 0;
-        return [fields, sentence?.verb, heirs && `+${heirs} ${heirs === 1 ? 'subtype' : 'subtypes'}`].filter(Boolean).join(' · ');
+        // An arrow drawn once at a base type stands for the base and its subtypes; the base's card shows that (a stack
+        // with "+N subtypes"), so the label keeps to the fields. Without a card of its own the label still says it.
+        const onCard = sharedBases.has(g.from) && positions[g.from];
+        return [fields, sentence?.verb, heirs && !onCard && `${g.from} + ${heirs} ${heirs === 1 ? 'subtype' : 'subtypes'}`].filter(Boolean).join(' · ');
     };
     // Neighborhood labels reuse the metadata map's placement: each sits on its arrow's longest run,
     // clear of every card and of the labels placed before it.
@@ -1227,10 +1249,16 @@ export default function Diagram({
                         {visible.map((n) => {
                             const presentation = nodePresentation(n.name, n.model, { isAbstract: abstractTypes.has(n.name) });
                             const inherited = shared.inherited[n.name];
+                            const heirsHere = sharedBases.get(n.name);
                             const tooltip = [n.name, presentation.description,
                                 n.model ? `${n.model.fields.length} fields · ${n.model.fields.filter((field) => field.calculated).length} calculated` : '',
                                 inherited ? `${inherited.fields.size} inherited references from ${[...inherited.owners].join(', ')}` : '',
+                                heirsHere ? `Its arrows here also stand for ${heirsHere.length} ${heirsHere.length === 1 ? 'subtype' : 'subtypes'}: ${heirsHere.join(', ')}` : '',
                             ].filter(Boolean).join('\n');
+                            // A note at the caption's right end; the caption gives way to it when both do not fit.
+                            const heirsNote = heirsHere ? `+${heirsHere.length} ${heirsHere.length === 1 ? 'subtype' : 'subtypes'}` : '';
+                            const captionRoom = heirsNote ? Math.floor((cardWidth - 32 - heirsNote.length * 5.8) / 5.8) : Infinity;
+                            const caption = presentation.caption.length > captionRoom ? `${presentation.caption.slice(0, captionRoom - 1).trimEnd()}…` : presentation.caption;
                             // A schema of another group drawn on its own card stands for its panel arrows, like a group card.
                             const cardLink = panelView?.cardLinks.get(n.name);
                             const traceCard = cardLink ? { onMouseEnter: () => setHoverEdge({ key: `card:${n.name}`, keys: cardArrowKeys(n.name), edges: cardLink.edges,
@@ -1271,13 +1299,17 @@ export default function Diagram({
                                             </text>
                                         );
                                     })()}
+                                    {/* A base type standing in for its subtypes is drawn as a small stack of cards. */}
+                                    {heirsHere && <rect className="se-node-stack" x="10" y="10" width={cardWidth} height={cardHeight} rx={4} aria-hidden="true" />}
+                                    {heirsHere && <rect className="se-node-stack" x="5" y="5" width={cardWidth} height={cardHeight} rx={4} aria-hidden="true" />}
                                     <rect className="se-node-body" width={cardWidth} height={cardHeight} rx={4} />
                                     <text className="se-node-title" x="12" y={26}>
                                         {n.name}
                                     </text>
                                     <text x="12" y="49" className="se-subtitle">
-                                        {presentation.caption}
+                                        {caption}
                                     </text>
+                                    {heirsNote && <text className="se-node-heirs" x={cardWidth - 12} y="49">{heirsNote}</text>}
                                     {coveredByHover.has(n.name) && (
                                         <g aria-hidden="true">
                                             <rect className="se-covered-badge" x={cardWidth - 66} y="9" width="56" height="16" rx="4" />
