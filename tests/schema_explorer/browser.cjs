@@ -218,6 +218,22 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  // One grouping: the map's panels carry the path's own names and numbers, and the open concept's panel is marked.
  assert.deepEqual(await page.locator('#entity-svg .se-stage-label').evaluateAll(ls=>ls.map(l=>l.firstChild.textContent.trim())),['2. Source material','3. Sample','Pathology']);
  assert.equal(await page.locator('#entity-svg .se-stage-panel.se-stage-current').count(),1,'The open concept has one marked panel');
+ // Panel arrows join panels only; each group card counts the links it stands for and traces them on hover.
+ const firstCard=page.locator('#entity-svg .entity-node:has(.se-context-domain)').first();
+ assert.match(await firstCard.locator('.se-context-domain').textContent(),/^Other group · .+ · \d+ links?$/,'Schemas of other groups count their links in the panel view');
+ assert.equal(await page.locator('#entity-svg .se-panel-edge').evaluateAll(edges=>edges.filter(e=>/ & /.test(e.getAttribute('aria-label').split(':')[0])).length),0,'No panel arrow runs to a group card');
+ // The card column can sit past the canvas edge at the readable minimum scale, so point at it with events.
+ await firstCard.dispatchEvent('mouseover');
+ // Hovering a group card marks the panels it links to (waits for the redraw).
+ await page.locator('#entity-svg .se-stage-panel.se-stage-traced').first().waitFor({timeout:5000});
+ await firstCard.dispatchEvent('mouseout');
+ await page.waitForFunction(()=>!document.querySelector('#entity-svg .se-stage-panel.se-stage-traced'),null,{timeout:5000}); // Leaving the card clears the trace.
+ // A panel arrow that stands for one schema arrow does not open: its label already says it all, so a click shows its details.
+ await page.locator('#entity-svg .se-panel-edge-chip').filter({hasText:'sample_sources[]'}).first().click();
+ await page.getByRole('dialog').waitFor();
+ assert.equal(await page.getByRole('status',{name:'Opened arrow',exact:true}).count(),0,'A single-reference arrow keeps the map as it is');
+ await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
+ await page.locator('.modal-backdrop').waitFor({state:'detached'});
  // Pointing at a table row traces its arrow on the map.
  await relationshipRows().filter({hasText:'sample_sources[]'}).hover();
  assert.ok(await page.locator('#entity-svg .se-traced-edge').count()>0,'A table row traces its references on the map');
@@ -301,14 +317,14 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
   return c.left>=r.left-1 && c.right<=r.right+1 && c.top>=r.top-1 && c.bottom<=r.bottom+1 && (c.width>=r.width*0.85 || c.height>=r.height*0.85);}),'The neighborhood fills its canvas');
  await page.locator('#entity-svg').screenshot({path:path.join(output,'sample-neighborhood.png')});
  await page.locator('#entity-show-neighborhood').click();
- await relationshipSummary().filter({hasText:'Relationships 1/3'}).waitFor({timeout:5000}); // Leaving the neighborhood restores the group filter.
+ await relationshipSummary().filter({hasText:'Relationships 2/3'}).waitFor({timeout:5000}); // Leaving the neighborhood restores the group filter.
  await goToConcept('Data files');
  assert.equal(await page.locator('#entity-svg .se-domain-frame').count(),1,'Data files must not expand all related domains');
  assert.equal(await page.locator('#entity-svg .entity-node').count(),17,'The approved file stages and support schemas remain intact');
  assert.equal(await page.locator('#entity-svg .entity-node .se-subtitle').count(),17,'Every file schema retains its description in concept view');
  assert.match(await page.locator('[data-entity="UnalignedReads"] .se-subtitle').textContent(),/Unaligned sequencing reads/);
  await schemaArrows();
- assert.equal(await page.locator('#entity-svg .se-edge:not([aria-label*="external-group:"])').count(),17,'Inherited file references stay combined at their shared definitions');
+ assert.equal(await page.locator('#entity-svg .se-edge:not([aria-label*="external-group:"])').count(),18,'Inherited file references stay combined at their shared definitions (links and their reverse links)');
  const fileScale=await page.locator('#entity-svg > g').evaluate(group=>group.transform.baseVal.consolidate().matrix.a);
  assert.ok(fileScale>=0.85,`File exploration retains a readable scale (${fileScale})`);
  assert.equal(await page.locator('#entity-svg [data-entity="Donor"]').count(),0,'External donor references are not added automatically');
@@ -446,14 +462,15 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.locator('#entity-svg').screenshot({path:path.join(output,'donor-narrow-canvas.png')});
  await shell.setViewportSize({width:1500,height:1000});
  await page.waitForFunction(before=>document.querySelector('[data-entity="Donor"]').getAttribute('transform')===before,donorPositions.Donor);
- assert.equal(await page.locator('#entity-svg .se-edge.calculated, #entity-svg .se-edge.reverse').count(),0);
+ // Links and their reverse links are drawn by default; calculated relationships are opt-in.
+ assert.equal(await page.locator('#entity-svg .se-edge.calculated').count(),0,'Calculated relationships start hidden');
+ assert.ok(await page.locator('#entity-svg .se-edge.reverse').count()>0,'Reverse links are drawn by default');
  await page.locator('details:has(.se-link-filter-popover) > summary').click();
+ assert.ok(await page.locator('.se-link-filter-popover').getByLabel('Reverse',{exact:true}).isChecked(),'Reverse starts checked');
  await page.locator('.se-link-filter-popover').getByLabel('Calculated',{exact:true}).check();
- await page.locator('.se-link-filter-popover').getByLabel('Reverse',{exact:true}).check();
- assert.ok(await page.locator('#entity-svg .se-edge.calculated, #entity-svg .se-edge.reverse').count()>0);
+ assert.ok(await page.locator('#entity-svg .se-edge.calculated').count()>0);
  assert.deepEqual(await nodePositions(),donorPositions,'Relationship filters preserve stages and horizontal placement');
  await page.locator('.se-link-filter-popover').getByLabel('Calculated',{exact:true}).uncheck();
- await page.locator('.se-link-filter-popover').getByLabel('Reverse',{exact:true}).uncheck();
  await page.locator('details:has(.se-link-filter-popover) > summary').click();
  await clickDiagramEdge();
  assert.equal(await page.getByRole('dialog').count(),1,'Edges open the field inspector');
@@ -493,12 +510,37 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
    assert.ok(panelArrows>0 && panelArrows<=6,`Files draws a handful of panel arrows (${panelArrows})`);
    assert.equal(await page.locator('#entity-svg .se-edge.se-panel-edge').count(),panelArrows,'Every default arrow joins two panels');
    assert.match(await page.locator('#entity-svg .se-stage-label').first().textContent(),/\d+ links inside/,'Links within a panel are counted on it');
-   await page.locator('#entity-svg .se-panel-edge').first().focus();await page.keyboard.press('Enter');
-   assert.match(await page.getByRole('dialog').textContent(),/Every reference from a schema in/,'A panel arrow opens the references it carries');
+   const chips=await page.locator('#entity-svg .se-panel-edge-chip rect').evaluateAll(rs=>rs.map(r=>r.getBoundingClientRect().toJSON()));
+   assert.ok(chips.length===panelArrows,'Each panel arrow carries its chip');
+   assert.ok(chips.every((a,i)=>chips.slice(i+1).every(b=>a.right<=b.left||b.right<=a.left||a.bottom<=b.top||b.bottom<=a.top)),'No arrow chip covers another');
+   // Opening a panel arrow draws the schema arrows it carries, each with its field; the other arrows step aside.
+   const fieldsChip=page.locator('#entity-svg .se-panel-edge-chip').filter({hasText:/\d+ fields/}).first();
+   const carried=Number((await fieldsChip.textContent()).match(/\d+/)[0]);
+   await fieldsChip.click(); // the canvas's drag capture must not swallow a label's click
+   const openedBar=page.getByRole('status',{name:'Opened arrow',exact:true});
+   await openedBar.waitFor();
+   assert.equal(await page.locator('#entity-svg .se-edge.se-panel-edge').count(),0,'An opened arrow hides the other panel arrows');
+   const opened=await page.locator('#entity-svg .se-edge').count();
+   const links=Number((await openedBar.textContent()).match(/(\d+) links?/)[1]);
+   assert.ok(opened>=1 && opened<links,`The opened arrow is drawn as its schema arrows, inherited ones once at their base (${opened} arrows for ${links} links, ${carried} fields)`);
+   assert.equal(await page.locator('#entity-svg .se-panel-edge-chip').count(),opened,'Each schema arrow is labelled');
+   await page.locator('#entity-svg .se-panel-edge-chip').first().click();
+   assert.match(await page.getByRole('dialog').textContent(),/Arrows point to the referenced type|Shared definition drawn once at/,'A schema arrow opens its own details');
    await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
    await page.locator('.modal-backdrop').waitFor({state:'detached'});
+   await openedBar.getByRole('button',{name:'All fields'}).click();
+   assert.match(await page.getByRole('dialog').textContent(),/Every reference from a schema in/,'Every field of the opened arrow stays one click away');
+   await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
+   await page.locator('.modal-backdrop').waitFor({state:'detached'});
+   await openedBar.getByRole('button',{name:/Show all arrows/}).click();
+   assert.equal(await page.locator('#entity-svg .se-edge.se-panel-edge').count(),panelArrows,'Closing it brings every panel arrow back');
+   // The keyboard opens a panel arrow too, and Escape closes it.
+   await page.locator('#entity-svg .se-panel-edge').first().focus();await page.keyboard.press('Enter');
+   await openedBar.waitFor();
+   await page.locator('#entity-svg').focus();await page.keyboard.press('Escape');
+   await openedBar.waitFor({state:'detached'});
    await schemaArrows();
-   assert.equal(await page.locator('#entity-svg .se-edge').count(),17,'Inherited references are summarized at their defining base');
+   assert.equal(await page.locator('#entity-svg .se-edge').count(),18,'Inherited references are summarized at their defining base');
    assert.match(await page.locator('[data-entity="UnalignedReads"] .se-inherited-tag text').textContent(),/^↑ \d+ links via File, SubmittedFile$/,'Subtypes name the base their inherited arrows are drawn at');
    await page.locator('[data-entity="UnalignedReads"] .se-inherited-tag').hover();
    assert.ok(await page.locator('#entity-svg .se-edge.se-traced-edge').count()>0,'Hovering the tag traces the inherited arrows');
@@ -538,7 +580,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
    assert.equal(await page.locator('#entity-svg .entity-node').evaluateAll(nodes=>nodes.every(n=>{const b=n.querySelector('.se-node-body').getBBox(),t=n.querySelector('.se-subtitle')?.getBBox();return !t || t.x>=b.x+10 && t.x+t.width<=b.x+b.width-10;})),true,'Role captions fit inside their cards');
 
    await page.getByLabel('Connection detail',{exact:true}).selectOption('all');
-   assert.equal(await page.locator('#entity-svg .se-edge').count(),64,'All references remain available explicitly');
+   assert.equal(await page.locator('#entity-svg .se-edge').count(),65,'All references remain available explicitly');
    await page.locator('#entity-svg').screenshot({path:path.join(output,'files-all-references.png')});
    await page.getByLabel('Connection detail',{exact:true}).selectOption('shared');
    assert.deepEqual(await nodePositions(),before,'Connection detail does not move nodes');
@@ -554,11 +596,11 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
    assert.deepEqual(await nodePositions(),before);
    await page.locator('#entity-svg').screenshot({path:path.join(output,'files-selected-references.png')});
    await page.getByRole('button',{name:/^Clear selection of /}).click();
-   assert.equal(await page.locator('#entity-svg .se-edge').count(),17);
+   assert.equal(await page.locator('#entity-svg .se-edge').count(),18);
    await page.locator('[data-entity="File"]').focus();await page.keyboard.press('Enter');
    const outsideRegion=page.getByRole('region',{name:'File: connections outside this group',exact:true});
    assert.equal(await outsideRegion.count(),0,'Selection does not create a detached panel above the diagram');
-   const outsideExpected=snapshot.model.edges.filter(e=>e.kind==='linkTo' && (e.from==='File' || e.to==='File') && (!enabled.has(e.from) || !enabled.has(e.to)));
+   const outsideExpected=snapshot.model.edges.filter(e=>(e.kind==='linkTo' || e.kind==='reverse' || e.reverse) && (e.from==='File' || e.to==='File') && (!enabled.has(e.from) || !enabled.has(e.to)));
    const standardAdministrative=new Set(['User','Consortium','SubmissionCenter']);
    const peerCount=new Set(outsideExpected.map(e=>e.from==='File'?e.to:e.from).filter(name=>!standardAdministrative.has(name))).size;
    assert.ok(peerCount>0);

@@ -294,7 +294,7 @@
     .se-stage-panel.se-stage-current { fill: $baby-20; stroke: #bfd3e4; }
     // Panel arrows keep the relationship kind's colour and dash (.linkTo, .calculated, .reverse) and only read stronger.
     .se-edge.se-panel-edge { opacity: .9; stroke-width: 2; &:hover, &:focus, &.se-traced-edge { opacity: 1; stroke-width: 3; } }
-    .se-panel-edge-label { font-size: 12px; fill: #5d5e63; }
+    .se-panel-edge-chip { cursor: pointer; rect { fill: white; stroke: #dee2e6; } text { font-size: 11.5px; fill: $gray-70; text-anchor: middle; } &:hover rect { stroke: $cobalt-70; } }
     .se-stage-inside { font-size: 12px; font-weight: 400; fill: #5d5e63; }
     .se-stage-panel.se-stage-traced { stroke: $cobalt-70; stroke-width: 2; }
     .se-hierarchical .entity-node text { font-size: 14px; }
@@ -311,6 +311,8 @@
         .entity-node:not(.se-covered):not(.se-covered-owner) { opacity: .3; }
         .se-edge:not(.se-traced-edge) { opacity: .08; }
         .se-edge.se-traced-edge { opacity: 1; stroke-width: 3; }
+        .se-panel-edge-chip:not(.se-traced-chip) { opacity: .25; }
+        .se-panel-edge-chip.se-traced-chip rect { stroke: $cobalt-70; }
         .se-external-group-card:not(.se-traced-group) { opacity: .4; }
         .se-external-group-card.se-traced-group rect { stroke: $warning; stroke-width: 2.5; fill: #fff6ea; }
         .entity-node.se-covered rect.se-node-body, .entity-node.se-covered-owner rect.se-node-body { stroke: $warning; stroke-width: 3; stroke-dasharray: none; fill: #fff6ea; }

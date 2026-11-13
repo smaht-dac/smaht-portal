@@ -74,8 +74,9 @@ const orderedDomains = [...flow, 'administrative', 'other'].map((id) => domains.
 // path) come first, and schemas outside every concept keep their unnumbered stage. A stage that a concept only
 // partly covers gives its remaining schemas to "Supporting types", so no stage repeats a concept under another name;
 // a base type left out of the concepts joins the group's last such panel, beside the subtypes it is the base of.
-// `gap` is the space between panels; the explorer widens it so arrows between panels have a channel.
-export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], viewport = { width: 1200, height: 650 }, concepts = [], { gap = 20 } = {}) {
+// `gap` is the space between panels; the explorer widens it so arrows between panels have a channel, and
+// `columnGap` (side by side panels) further, so an arrow across it has room for its label.
+export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], viewport = { width: 1200, height: 650 }, concepts = [], { gap = 20, columnGap = gap } = {}) {
     const positions = {}, frames = [], layers = [];
     const members = new Set(nodes.map((n) => n.name));
     const adjacency = new Map(nodes.map((n) => [n.name, new Set()]));
@@ -143,7 +144,7 @@ export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], vie
                             const across = Math.ceil(row.names.length / down);
                             return { row, index: start + i + 1, across, width: across * nodeWidth + (across - 1) * nodeGap + inset * 2 };
                         });
-                        const width = tiles.reduce((sum, tile) => sum + tile.width, 0) + (tiles.length - 1) * gap;
+                        const width = tiles.reduce((sum, tile) => sum + tile.width, 0) + (tiles.length - 1) * columnGap;
                         if (width > available || tiles.some((tile) => tile.across > 4)) continue;
                         const count = Math.max(...tiles.map((tile) => Math.ceil(tile.row.names.length / tile.across)));
                         const rowHeight = headerHeight + count * nodeHeight + (count - 1) * nodeGap + bottomInset;
@@ -166,7 +167,7 @@ export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], vie
                 let left = padding;
                 for (const tile of row.tiles) {
                     tiles.push({ ...tile, left, top, height: row.height });
-                    left += tile.width + gap;
+                    left += tile.width + columnGap;
                 }
                 top += row.height + gap;
             }

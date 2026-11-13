@@ -6,7 +6,7 @@ const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.
     // Group maps are always laid out with the donor-to-data concepts, as in the explorer.
     const { concepts } = await load('research-map');
     const hierarchicalLayout = (nodes, width, height, edges, viewport) => layoutWith(nodes, width, height, edges, viewport, concepts);
-    const { routeEdges, segmentClear } = await load('routing');
+    const { routeEdges, segmentClear, panelRoutes } = await load('routing');
     assert.ok(abstractTypes.has('AbstractDonor') && abstractTypes.has('File') && abstractTypes.has('Sample'));
     assert.ok(!abstractTypes.has('Donor') && !abstractTypes.has('WorkflowRun'),'Concrete parent classes are not classified as abstract');
     const names = domains.flatMap(d => d.types.split(' ').filter(Boolean));
@@ -125,19 +125,38 @@ const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.
         validateRoutes(actual.positions,[...grouped.values()], [...actual.layers,...actual.frames.map(f=>({left:f.left+18,top:f.top+12,width:Math.min(f.width-36,f.label.length*15+12),height:38}))]);
         console.log(`Full model routing: ${grouped.size} groups, ${Date.now()-start} ms (including repeat).`);
     }
-    // Panel arrows run between panel boxes in the widened gaps and never cross a panel.
+    // Panel arrows run between panel boxes in the widened gaps, never cross a panel, never run along each other,
+    // and each takes its own point on a panel side.
     const { panelRelationships } = await load('relationship-view');
     const model = JSON.parse(fs.readFileSync(process.argv[2] || '/tmp/schema-explorer-hierarchy.json')).model;
+    let straightCount = 0, bentCount = 0;
     for (const id of ['donors', 'samples', 'sequencing', 'files', 'workflows']) {
         const groupNodes = nodes.filter(n => domainFor(n.name) === id);
-        const wide = layoutWith(groupNodes, 236, 66, model.edges, { width: 1200, height: 650 }, concepts, { gap: 56 });
+        const wide = layoutWith(groupNodes, 236, 66, model.edges, { width: 1200, height: 650 }, concepts, { gap: 96, columnGap: 140 });
         const owners = new Map(wide.layers.flatMap(l => l.names.map(n => [n, l.id])));
         const { groups } = panelRelationships(model.edges.filter(e => e.kind === 'linkTo'), owners);
         const boxes = Object.fromEntries(wide.layers.map(l => [l.id, { x: l.panel.left + l.panel.width / 2, y: l.panel.top + l.panel.height / 2, width: l.panel.width, height: l.panel.height }]));
-        const panelRoutes = routeEdges(boxes, groups, 236, 66, [], { spreadPorts: true });
-        assert.equal(Object.keys(panelRoutes).length, groups.length, `${id}: every panel arrow is routed`);
+        // As in the explorer: panelRoutes draws what it can; routeEdges takes the rest.
+        const own = panelRoutes(boxes, groups);
+        for (const route of Object.values(own)) {
+            if (route.straight) straightCount++; else bentCount++;
+            for (let i = 1; i < route.points.length; i++) assert.ok(route.points[i - 1].x === route.points[i].x || route.points[i - 1].y === route.points[i].y, `${id}: panel arrows run horizontally or vertically`);
+        }
+        const routes = { ...routeEdges(boxes, groups.filter(g => !own[g.key]), 236, 66, [], { spreadPorts: true }), ...own };
+        assert.equal(Object.keys(routes).length, groups.length, `${id}: every panel arrow is routed`);
+        assert.equal(Object.keys(own).length, groups.length, `${id}: every panel arrow fits a straight line, a Z or a lane around the map`);
         const rects = wide.layers.map(l => ({ left: l.panel.left, right: l.panel.left + l.panel.width, top: l.panel.top, bottom: l.panel.top + l.panel.height }));
-        for (const route of Object.values(panelRoutes)) for (let i = 1; i < route.points.length; i++) assert.ok(segmentClear(route.points[i - 1], route.points[i], rects), `${id}: panel arrows stay out of panels`);
+        for (const route of Object.values(routes)) for (let i = 1; i < route.points.length; i++) assert.ok(segmentClear(route.points[i - 1], route.points[i], rects), `${id}: panel arrows stay out of panels`);
+        const segments = Object.entries(own).flatMap(([key, r]) => r.points.slice(1).map((p, i) => ({ key, a: r.points[i], b: p })));
+        for (const s of segments) for (const t of segments) {
+            if (s.key === t.key) continue;
+            const horizontal = s.a.y === s.b.y && t.a.y === t.b.y && Math.abs(s.a.y - t.a.y) < 18 && Math.min(Math.max(s.a.x, s.b.x), Math.max(t.a.x, t.b.x)) > Math.max(Math.min(s.a.x, s.b.x), Math.min(t.a.x, t.b.x));
+            const vertical = s.a.x === s.b.x && t.a.x === t.b.x && Math.abs(s.a.x - t.a.x) < 18 && Math.min(Math.max(s.a.y, s.b.y), Math.max(t.a.y, t.b.y)) > Math.max(Math.min(s.a.y, s.b.y), Math.min(t.a.y, t.b.y));
+            assert.ok(!horizontal && !vertical, `${id}: ${s.key} and ${t.key} do not run along each other`);
+        }
+        const ends = Object.values(own).flatMap(r => [r.points[0], r.points[r.points.length - 1]]);
+        ends.forEach((p, i) => ends.slice(i + 1).forEach(q => assert.ok(Math.hypot(p.x - q.x, p.y - q.y) >= 30, `${id}: arrows meet a panel at their own points`)));
     }
+    assert.ok(straightCount > 5 && bentCount > 0, `Facing panels are joined by straight arrows, the rest by Z-shaped ones (${straightCount}/${bentCount})`);
     console.log('Biological stages, determinism, filtering, containment and obstacle-free routing passed.');
 })();

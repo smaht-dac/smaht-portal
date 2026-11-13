@@ -184,3 +184,142 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
     }
     return routes;
 }
+
+// Arrows between panels. Every arrow gets its own point on each panel side, and no two arrows share a line:
+// - panels facing each other across a gap get one straight line through their shared span;
+// - other pairs run as a Z: out of one panel's side, along their own lane through the gap between the
+//   panels, and into the other panel's side (a column gap first, as it is the wider one, then a row gap);
+// - panels with another panel between them run around the map's outside on a lane of their own.
+// Pairs that fit none of these are returned unrouted for routeEdges.
+export function panelRoutes(boxes, groups, { spacing = 30, lane = 26, clearance = 6 } = {}) {
+    // Boxes without a size (a point anchor) are not obstacles and cannot be joined.
+    const rects = new Map(Object.entries(boxes).filter(([, p]) => [p.x, p.y, p.width, p.height].every(Number.isFinite)).map(([name, p]) => [name, {
+        name, left: p.x - p.width / 2, right: p.x + p.width / 2, top: p.y - p.height / 2, bottom: p.y + p.height / 2,
+    }]));
+    const padded = (r) => {return { left: r.left - clearance, right: r.right + clearance, top: r.top - clearance, bottom: r.bottom + clearance };};
+    const taken = new Map(); // `${box}:${side}` → coordinates already used on that side
+    const segments = []; // accepted segments, as [a, b]
+    const free = (box, side, value) => (taken.get(`${box}:${side}`) || []).every((t) => Math.abs(t - value) >= spacing);
+    const take = (box, side, value) => taken.set(`${box}:${side}`, [...(taken.get(`${box}:${side}`) || []), value]);
+    // Positions along [low, high], nearest to `preferred` first, kept clear of the side's corners.
+    const along = (low, high, preferred, step = 6, inset = 16) => {
+        const from = low + inset, to = high - inset;
+        if (to < from) return [];
+        const values = [];
+        for (let v = from; v <= to; v += step) values.push(v);
+        const target = Math.min(to, Math.max(from, preferred));
+        return values.sort((a, b) => Math.abs(a - target) - Math.abs(b - target) || a - b).slice(0, 14);
+    };
+    // A new segment may cross others, but never run along one (closer than `lane` and overlapping).
+    const runsAlong = ([a, b]) => segments.some(([c, d]) => {
+        if (a.y === b.y && c.y === d.y) return Math.abs(a.y - c.y) < lane && Math.min(Math.max(a.x, b.x), Math.max(c.x, d.x)) > Math.max(Math.min(a.x, b.x), Math.min(c.x, d.x));
+        if (a.x === b.x && c.x === d.x) return Math.abs(a.x - c.x) < lane && Math.min(Math.max(a.y, b.y), Math.max(c.y, d.y)) > Math.max(Math.min(a.y, b.y), Math.min(c.y, d.y));
+        return false;
+    });
+    const clear = (points, ends) => {
+        const others = [...rects.values()].filter((r) => !ends.includes(r.name)).map(padded);
+        const pairs = points.slice(1).map((p, i) => [points[i], p]);
+        return pairs.every(([a, b]) => segmentClear(a, b, others) && !runsAlong([a, b]));
+    };
+    const routes = {};
+    const accept = (group, points, ends) => {
+        points.slice(1).forEach((p, i) => segments.push([points[i], p]));
+        ends.forEach(([box, side, value]) => take(box, side, value));
+        const end = points[points.length - 1], before = points[points.length - 2];
+        const length = Math.hypot(end.x - before.x, end.y - before.y) || 1;
+        routes[group.key] = { points, d: roundedPath(points), end, ux: (end.x - before.x) / length, uy: (end.y - before.y) / length, straight: points.length === 2 };
+    };
+    const straight = (group, a, b) => {
+        if (a.right <= b.left || b.right <= a.left) {
+            const forward = a.right <= b.left, [sa, sb] = forward ? ['right', 'left'] : ['left', 'right'];
+            const top = Math.max(a.top, b.top), bottom = Math.min(a.bottom, b.bottom);
+            for (const y of along(top, bottom, (top + bottom) / 2)) {
+                const points = [{ x: a[sa], y }, { x: b[sb], y }];
+                if (free(a.name, sa, y) && free(b.name, sb, y) && clear(points, [a.name, b.name])) return accept(group, points, [[a.name, sa, y], [b.name, sb, y]]) || true;
+            }
+        }
+        if (a.bottom <= b.top || b.bottom <= a.top) {
+            const forward = a.bottom <= b.top, [sa, sb] = forward ? ['bottom', 'top'] : ['top', 'bottom'];
+            const left = Math.max(a.left, b.left), right = Math.min(a.right, b.right);
+            for (const x of along(left, right, (left + right) / 2)) {
+                const points = [{ x, y: a[sa] }, { x, y: b[sb] }];
+                if (free(a.name, sa, x) && free(b.name, sb, x) && clear(points, [a.name, b.name])) return accept(group, points, [[a.name, sa, x], [b.name, sb, x]]) || true;
+            }
+        }
+        return false;
+    };
+    // The first clear Z through the gap between two panels, across columns (`horizontal`) or rows; null when none.
+    const zigzag = (a, b, horizontal) => {
+        const [lo, hi] = horizontal ? ['left', 'right'] : ['top', 'bottom'];
+        if (!(a[hi] <= b[lo] || b[hi] <= a[lo])) return null;
+        const forward = a[hi] <= b[lo], sa = forward ? hi : lo, sb = forward ? lo : hi;
+        const gapLow = forward ? a[hi] : b[hi], gapHigh = forward ? b[lo] : a[lo];
+        // Across the gap: the lane; along the sides: each end prefers to face the other panel.
+        const [cross0, cross1] = horizontal ? ['top', 'bottom'] : ['left', 'right'];
+        const mid = (r) => (r[cross0] + r[cross1]) / 2;
+        const lanes = along(gapLow, gapHigh, (gapLow + gapHigh) / 2, 6, 18);
+        for (const va of along(a[cross0], a[cross1], mid(b))) {
+            if (!free(a.name, sa, va)) continue;
+            for (const vb of along(b[cross0], b[cross1], va)) {
+                if (vb === va || !free(b.name, sb, vb)) continue;
+                for (const c of lanes) {
+                    const points = horizontal
+                        ? [{ x: a[sa], y: va }, { x: c, y: va }, { x: c, y: vb }, { x: b[sb], y: vb }]
+                        : [{ x: va, y: a[sa] }, { x: va, y: c }, { x: vb, y: c }, { x: vb, y: b[sb] }];
+                    if (clear(points, [a.name, b.name])) return { points, ends: [[a.name, sa, va], [b.name, sb, vb]] };
+                }
+            }
+        }
+        return null;
+    };
+    // How many accepted arrows a new route would cross.
+    const crossings = (points) => points.slice(1).reduce((count, q, i) => {
+        const p = points[i];
+        return count + segments.filter(([c, d]) => {
+            const [h, v] = p.y === q.y ? [[p, q], [c, d]] : [[c, d], [p, q]];
+            if (h[0].y !== h[1].y || v[0].x !== v[1].x) return false;
+            return v[0].x > Math.min(h[0].x, h[1].x) && v[0].x < Math.max(h[0].x, h[1].x) && h[0].y > Math.min(v[0].y, v[1].y) && h[0].y < Math.max(v[0].y, v[1].y);
+        }).length;
+    }, 0);
+    const length = (points) => points.slice(1).reduce((sum, p, i) => sum + Math.abs(p.x - points[i].x) + Math.abs(p.y - points[i].y), 0);
+    // Panels with another panel between them: out of the same side of both, along a lane just outside the map.
+    const around = (group, a, b) => {
+        const all = [...rects.values()];
+        const options = [];
+        for (const side of ['left', 'right', 'top', 'bottom']) {
+            const horizontal = side === 'left' || side === 'right', outward = side === 'left' || side === 'top' ? -1 : 1;
+            const edge = outward < 0 ? Math.min(...all.map((r) => r[side])) : Math.max(...all.map((r) => r[side]));
+            const [cross0, cross1] = horizontal ? ['top', 'bottom'] : ['left', 'right'];
+            for (let n = 0; n < 6; n++) {
+                const outer = edge + outward * (24 + n * lane);
+                for (const va of along(a[cross0], a[cross1], (b[cross0] + b[cross1]) / 2).slice(0, 6)) {
+                    if (!free(a.name, side, va)) continue;
+                    const vb = along(b[cross0], b[cross1], va).find((v) => free(b.name, side, v) && (a.name !== b.name || v !== va));
+                    if (vb === undefined) continue;
+                    const points = horizontal
+                        ? [{ x: a[side], y: va }, { x: outer, y: va }, { x: outer, y: vb }, { x: b[side], y: vb }]
+                        : [{ x: va, y: a[side] }, { x: va, y: outer }, { x: vb, y: outer }, { x: vb, y: b[side] }];
+                    if (!clear(points, [a.name, b.name])) continue;
+                    options.push({ points, length: length(points), ends: [[a.name, side, va], [b.name, side, vb]] });
+                    break;
+                }
+                if (options.some((o) => o.ends[0][1] === side)) break;
+            }
+        }
+        if (!options.length) return false;
+        const best = options.sort((x, y) => x.length - y.length)[0];
+        accept(group, best.points, best.ends);
+        return true;
+    };
+    const ordered = [...groups].filter((g) => rects.has(g.from) && rects.has(g.to) && g.from !== g.to).sort((x, y) => x.key.localeCompare(y.key));
+    // Straight arrows claim the middle of their sides first; the others fit around them.
+    const rest = ordered.filter((g) => !straight(g, rects.get(g.from), rects.get(g.to)));
+    for (const g of rest) {
+        const a = rects.get(g.from), b = rects.get(g.to);
+        // Of the two Z shapes, the one crossing fewer arrows (then the shorter) is drawn.
+        const [best] = [zigzag(a, b, true), zigzag(a, b, false)].filter(Boolean)
+            .sort((x, y) => crossings(x.points) - crossings(y.points) || length(x.points) - length(y.points));
+        if (best) accept(g, best.points, best.ends); else around(g, a, b);
+    }
+    return routes;
+}
