@@ -188,6 +188,8 @@ export default function Explorer() {
     // Where the reader is (see explorer-route.js). The map keeps its last place while schema details are open.
     const [route, setRoute] = useState(overviewRoute),
         [mapRoute, setMapRoute] = useState(overviewRoute);
+    // A schema chosen from the catalog opens on its own connections first (its neighborhood), not its whole group.
+    const [neighborhoodRequest, setNeighborhoodRequest] = useState(null);
     const mode = isMapRoute(route) ? 'map' : 'item';
     const explorerRoot = useRef();
     const show = (next) => {
@@ -204,7 +206,8 @@ export default function Explorer() {
     }, []);
     // A schema shares its group's page: selecting schemas on one group map stays on that page.
     const page = (r) => (r.view === 'schema' ? `group:${domainFor(r.schema)}` : `${r.view}:${r.concept || r.group || ''}`);
-    // `reveal` scrolls to a schema's details when it is opened from elsewhere (search, catalog, links).
+    // `reveal` scrolls to a schema's map when it is opened from elsewhere (search, catalog, links): the diagram comes
+    // first, its details follow underneath.
     function go(next, { reveal = false } = {}) {
         if (sameRoute(next, route)) return;
         const samePage = page(next) === page(route);
@@ -213,7 +216,7 @@ export default function Explorer() {
         // A search belongs to the page it was typed on (it also filters the catalog), so a new page starts clear.
         if (!samePage) setQuery('');
         requestAnimationFrame(() => requestAnimationFrame(() => {
-            if (reveal && next.view === 'schema') explorerRoot.current?.querySelector('#entity-details')?.scrollIntoView({ block: 'start' });
+            if (reveal && next.view === 'schema') explorerRoot.current?.querySelector('#entity-svg')?.closest('.se-diagram')?.scrollIntoView({ block: 'start' });
             // A new page starts at the explorer's top.
             else if (!samePage && explorerRoot.current?.getBoundingClientRect().top < 0) explorerRoot.current.scrollIntoView({ block: 'start' });
         }));
@@ -396,10 +399,12 @@ export default function Explorer() {
                             onBrowseAll={() => go({ view: 'schemas' })}
                             onPlanner={(name) => setPlanner({ source: name })}
                             onDetail={setDetail}
+                            neighborhoodRequest={neighborhoodRequest}
                         />
                     </div>
                     <div hidden={mode !== 'item'} className="se-item-view">
-                        <SchemaCatalog index={index} query={query} onOpen={select} onOpenGroup={(id) => go({ view: 'group', group: id })} />
+                        <SchemaCatalog index={index} query={query}
+                            onOpen={(name) => { setNeighborhoodRequest({ schema: name, at: Date.now() }); select(name); }} onOpenGroup={(id) => go({ view: 'group', group: id })} />
                     </div>
                 </div>
             </SlidingSidebarLayout>

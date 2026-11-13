@@ -30,6 +30,7 @@ export default function Diagram({
     route = overviewRoute,
     onNavigate,
     renderSchema,
+    neighborhoodRequest = null,
 }) {
     const index = useMemo(() => explorerIndex(sourceIndex), [sourceIndex]);
     const [selected, setSelected] = useState('');
@@ -608,6 +609,17 @@ export default function Diagram({
         setMoves({});
         setNeighbors(true);
     };
+    // A schema opened from the catalog starts on its neighborhood. Each request is honoured once, so going back to the
+    // whole group, or returning to the schema later, keeps the reader's own choice.
+    const neighborhoodShown = useRef(null);
+    const openedFromCatalog = !!onBrowseAll && route.view === 'schema' && neighborhoodRequest?.schema === route.schema && neighborhoodShown.current === neighborhoodRequest?.at;
+    useEffect(() => {
+        if (!neighborhoodRequest || neighborhoodShown.current === neighborhoodRequest.at) return;
+        if (route.view !== 'schema' || route.schema !== neighborhoodRequest.schema) return;
+        neighborhoodShown.current = neighborhoodRequest.at;
+        setMoves({});
+        setNeighbors(true);
+    }, [neighborhoodRequest, route.view, route.schema]);
     // Schemas inside a collapsed external group are drawn through that group's card, so their links count as visible.
     const drawnNames = useMemo(() => new Set([...names, ...(neighborhood?.candidates || []), ...externalBundles
         .filter((bundle) => !expandedExternal.includes(bundle.id)).flatMap((bundle) => bundle.members)]),
@@ -635,7 +647,9 @@ export default function Diagram({
             const unique = [...new Set(g.edges.map((e) => e.field))];
             return unique.length === 1 ? unique[0] : `${unique.length} fields`;
         }
-        const fields = [...new Set(g.edges.map((e) => e.field))].join(', ');
+        // Several fields are counted, as on panel arrows; their names are in the tooltip and the details.
+        const unique = [...new Set(g.edges.map((e) => e.field))];
+        const fields = unique.length === 1 ? unique[0] : `${unique.length} fields`;
         const sentence = g.edges.map(mapSentence).find(Boolean);
         const heirs = g.shared ? new Set(g.edges.map((e) => e.from).filter((name) => name !== g.from)).size : 0;
         return [fields, sentence?.verb, heirs && `+${heirs} ${heirs === 1 ? 'subtype' : 'subtypes'}`].filter(Boolean).join(' · ');
@@ -717,7 +731,10 @@ export default function Diagram({
         nodes: visible.map((n) => {return { id: n.name };}),
         positions, nodeWidth: width, nodeHeight: height,
         edges: shownGroups.map((g) => {return { key: g.key, label: edgeCaption(g) };}),
-    }, routes, { avoidRoutes: true }) : {};
+    }, routes, { avoidRoutes: true, extra: neighborhoodView.panels.map((panel) => {
+        // Each group's title, as drawn above its cards.
+        return { left: panel.left - 4, top: panel.top - 2, width: panel.label.length * 10 + 12, height: 28 };
+    }) }) : {};
     // Hovering any arrow traces it: both ends are marked and the rest of the map steps back. An arrow drawn
     // once from a base type also marks the subtypes that inherit it, so the shared definition stays visible.
     // With shared definitions a subtype's inherited references are drawn at its base, so its own card
@@ -918,15 +935,22 @@ export default function Diagram({
                     <strong>{selected}</strong>
                     <span className="se-selection-meta">{incident.length} {incident.length === 1 ? 'link' : 'links'} highlighted</span>
                     <span className="se-selection-actions">
+                        {/* Each action names where it goes. A schema opened from the catalog can go straight back to it. */}
+                        {openedFromCatalog && (
+                            <button type="button" className="se-selection-back" onClick={onBrowseAll}>
+                                <i className="icon icon-fw icon-angle-left fas" aria-hidden="true" /> All schemas
+                            </button>
+                        )}
                         <button type="button" id="entity-show-neighborhood" aria-pressed={neighbors} onClick={() => {
                             if (!neighbors) showConnected();
                             else { setMoves({}); setNeighbors(false); }
-                        }}>{neighbors ? 'Back to the whole group' : 'Show only its connections'}
+                        }}>{neighbors ? 'Show in group map' : 'Show only its connections'}
                         </button>
                         <button type="button" onClick={() => svg.current?.closest('.se-diagram')?.querySelector('#entity-details')?.scrollIntoView({ block: 'start', behavior: 'smooth' })}>
                             Go to details <i className="icon icon-fw icon-angle-down fas" aria-hidden="true" />
                         </button>
-                        <button type="button" className="se-selection-clear" onClick={clearSelection} aria-label={`Clear selection of ${selected}`}><i className="icon icon-fw icon-times fas" aria-hidden="true" /> Clear</button>
+                        {/* On the group map, deselecting leaves the schema; in a neighborhood it would only repeat the group map. */}
+                        {!neighbors && <button type="button" className="se-selection-clear" onClick={clearSelection} aria-label={`Clear selection of ${selected}`}><i className="icon icon-fw icon-times fas" aria-hidden="true" /> Deselect</button>}
                     </span>
                 </div>
             )}

@@ -14,6 +14,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  // The explorer's one schema search: type, then pick a suggestion.
  const finder=()=>page.locator('#schema-finder');
  const finderNames=async(text)=>{await finder().fill(text);const names=await page.locator('#schema-finder-results [role="option"] strong').allTextContents();await finder().fill('');return names;};
+ const innerHeightOf=(p)=>p.viewportSize().height;
  const openSchema=async(name)=>{await finder().fill(name);await page.locator('#schema-finder-results [role="option"]').filter({has:page.locator('strong',{hasText:new RegExp('^'+name+'$')})}).click();await page.locator('#heading h2',{hasText:new RegExp('^'+name+'$')}).waitFor();};
  // A schema's address is its group map with the schema selected and its details underneath.
  const selectOnGroupMap=openSchema;
@@ -777,8 +778,22 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.locator('.se-item-view').isVisible(),false);
  await toCatalog();
  assert.equal(await page.locator('.se-item-view').isVisible(),true);
+ // A schema chosen from the catalog opens on its own connections; one found with the search opens on its group map.
+ await page.getByRole('region',{name:'All schemas',exact:true}).getByRole('button',{name:/^ProtectedDonor/}).click();
+ await page.locator('#heading h2',{hasText:/^ProtectedDonor$/}).waitFor();
+ await page.waitForFunction(()=>document.querySelector('#entity-show-neighborhood')?.getAttribute('aria-pressed')==='true',null,{timeout:5000});
+ // Opening a schema scrolls to its map, not its details: the map's title is in view, the details follow below it.
+ const opened=await page.evaluate(()=>{const map=document.querySelector('#entity-svg').closest('.se-diagram').getBoundingClientRect(),details=document.querySelector('#entity-details').getBoundingClientRect();return {map:map.top,details:details.top};});
+ assert.ok(opened.map>=0 && opened.map<innerHeightOf(page) && opened.details>opened.map,`The schema opens on its map (${JSON.stringify(opened)})`);
+ assert.ok(await page.locator('#entity-svg .se-neighborhood-group').count()>0,'The catalog opens a schema on its neighborhood');
+ const bar=page.getByRole('status',{name:'Selected schema',exact:true});
+ assert.equal(await page.locator('#entity-show-neighborhood').textContent(),'Show in group map','The way out of a neighborhood names where it goes');
+ assert.equal(await bar.getByRole('button',{name:/^Clear selection of /}).count(),0,'A neighborhood offers no second way to the group map');
+ await bar.getByRole('button',{name:'All schemas',exact:true}).click(); // Back where the schema was chosen.
+ assert.equal(search(),'#schemas');
  await openSchema('File');
  assert.equal(await page.locator('#heading h2').textContent(),'File');
+ assert.equal(await page.locator('#entity-show-neighborhood').getAttribute('aria-pressed'),'false','The search opens a schema on its group map');
  assert.equal(await page.locator('.se-live-panel').count(),0,'Live item loading is admin only');
  await diagramBack().click();
  assert.equal(await page.locator('.se-item-view').isVisible(),false);

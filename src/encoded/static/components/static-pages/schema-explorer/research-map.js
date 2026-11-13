@@ -91,12 +91,13 @@ function intersects(a, b, padding = 0) {
 // clickable, and their exact references remain available in the inspector.
 // With `avoidRoutes`, a label also never crosses another arrow, so tightly packed parallel
 // arrows cannot each appear to carry the other's label.
-export function researchLabels(graph, routes, { avoidRoutes = false } = {}) {
-    const obstacles = graph.nodes.map((node) => {
+// `extra` adds boxes labels must also keep clear of, such as group titles.
+export function researchLabels(graph, routes, { avoidRoutes = false, extra = [] } = {}) {
+    const obstacles = [...graph.nodes.map((node) => {
         // A position may carry its own size (a panel); others use the node size.
         const p = graph.positions[node.id], w = p.width || graph.nodeWidth, h = p.height || graph.nodeHeight;
         return { left: p.x - w / 2, top: p.y - h / 2, width: w, height: h };
-    });
+    }), ...extra];
     const labels = {};
     const crosses = (box, key) => avoidRoutes && Object.entries(routes).some(([other, route]) => other !== key &&
         route.points.slice(1).some((b, i) => {

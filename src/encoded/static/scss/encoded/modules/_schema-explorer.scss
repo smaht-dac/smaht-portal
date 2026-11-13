@@ -215,6 +215,7 @@
         .se-selection-meta { color: #5d5e63; }
         .se-selection-actions { display: flex; flex-wrap: wrap; gap: .35rem; margin-left: auto; }
         button { padding: .2rem .6rem; font-size: 13px; background: white; }
+        button.se-selection-back { color: $primary; background: transparent; border-color: transparent; &:hover, &:focus { color: $primary; background: transparent; text-decoration: underline; } }
         button.se-selection-clear { color: #5d5e63; background: transparent; border-color: transparent; &:hover, &:focus { background: $slate-20; } }
     }
     .se-selected-panel { margin-top: 1rem; padding: 0 15px 15px; border: 1px solid $mercury; background: white;
@@ -432,6 +433,8 @@
 
 // The Map tab's diagram fills the concept card below its heading, like the Summary tab's content.
 .se-concept-map-tab { padding: .5rem 0 1.5rem; }
+// A schema opened from elsewhere scrolls to its map; the portal's fixed navigation bar must not cover the title.
+.schema-explorer .se-diagram { scroll-margin-top: 85px; }
 .schema-explorer .se-concept-diagram, .se-concept-diagram { scroll-margin-top: 85px; outline: none;
     .se-concept-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; margin: .6rem 0; > div:first-child { margin-right: auto; strong { display: block; color: $homepage-header-text-color; font-size: 18px; } > span { display: block; color: #5d5e63; font-size: 12px; margin-top: .2rem; } } > input { flex: 0 1 260px; min-width: 160px; } }
     > .se-toolbar > .text-muted { display: none; }
