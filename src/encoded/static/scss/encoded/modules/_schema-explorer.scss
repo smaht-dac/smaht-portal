@@ -317,6 +317,22 @@
         .se-external-group-card.se-traced-group rect { stroke: $warning; stroke-width: 2.5; fill: #fff6ea; }
         .entity-node.se-covered rect.se-node-body, .entity-node.se-covered-owner rect.se-node-body { stroke: $warning; stroke-width: 3; stroke-dasharray: none; fill: #fff6ea; }
     }
+    // An opened panel arrow: its schema arrows read in their relationship colours at a normal weight, longer dashes
+    // keep a reverse link from reading as a dotted band, and its schemas are marked in the portal's blue, not amber.
+    .se-diagram .se-tracing-inheritance {
+        .se-edge.se-opened-edge { stroke-width: 2; &:hover, &:focus { stroke-width: 3; } }
+        .se-edge.se-opened-edge.reverse { stroke-dasharray: 8 5; }
+        .se-edge.se-opened-edge.calculated { stroke-dasharray: 10 5; }
+        // Only the arrows carry colour here: the schemas they join stay plain cards (the rest of the map steps back),
+        // and neither the panels nor the open concept's cards are marked, so blue is not stacked on blue.
+        &.se-opened-arrow {
+            .entity-node.se-covered-owner rect.se-node-body, .entity-node.se-concept-center rect.se-node-body { stroke: #aeb4bd; stroke-width: 1.5; fill: #fff; }
+            .entity-node.se-node-abstract rect.se-node-body { stroke: #b8accb; fill: #fcfaff; }
+            .se-stage-panel.se-stage-traced, .se-stage-panel.se-stage-current { stroke: none; fill: $slate-10; }
+            .se-panel-edge-chip.se-traced-chip rect { stroke: #aeb4bd; }
+            .se-panel-edge-chip:hover rect { stroke: $gray-70; }
+        }
+    }
     .entity-node .se-inherited-tag {
         cursor: pointer; outline: none;
         rect { fill: #fff6ea; stroke: $warning; stroke-width: 1; }

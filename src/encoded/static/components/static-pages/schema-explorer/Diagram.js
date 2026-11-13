@@ -367,14 +367,35 @@ export default function Diagram({
     ] : [], [neighborhoodView, showDomains, clustered, externalContextNames, positions]);
     // Panel arrows run between panel boxes and group cards, so the schema cards inside panels are not obstacles.
     // Facing panels get one straight arrow through their gap; only the rest are routed around the panels.
+    // The routes one router drew, as segments the other must not run along.
+    const segmentsOf = (drawn) => Object.values(drawn).flatMap((route) => route.points.slice(1).map((p, i) => [route.points[i], p]));
     const routes = useMemo(() => {
-        if (openedPanel) return routeEdges(positions, shownGroups, width, height, headings, { spreadPorts: true });
+        if (openedPanel) {
+            // An opened arrow's schema arrows run between cards with the panel router's rules: each meets a card at its
+            // own point and keeps a lane of its own; the few it cannot shape are routed around the cards.
+            const cards = Object.fromEntries(visible.filter((n) => positions[n.name]).map((n) => [n.name, { ...positions[n.name], width: cardWidth, height: cardHeight }]));
+            // Panel titles are obstacles too, so no arrow runs through one.
+            clustered.layers.filter((layer) => layer.panel).forEach(({ id, label, panel }) => {
+                const titleWidth = Math.min(panel.width, (label || '').length * 10 + 140);
+                cards[`title:${id}`] = { x: panel.left + titleWidth / 2, y: panel.top + 20, width: titleWidth, height: 40 };
+            });
+            // Card sides are short, so ends sit closer than on panels. An arrow with a card in its way runs as a U along
+            // the nearest clear lane past its two cards.
+            // Panel frames are lines too: an arrow whose lane sits on one reads as part of the frame, so lanes keep off them.
+            const frames = clustered.layers.filter((layer) => layer.panel).flatMap(({ panel }) => {
+                const { left, top } = panel, right = left + panel.width, bottom = top + panel.height;
+                return [[{ x: left, y: top }, { x: left, y: bottom }], [{ x: right, y: top }, { x: right, y: bottom }],
+                    [{ x: left, y: top }, { x: right, y: top }], [{ x: left, y: bottom }, { x: right, y: bottom }]];
+            });
+            const own = panelRoutes(cards, shownGroups, { spacing: 14, lane: 18, around: 'ends', frames });
+            return { ...routeEdges(positions, shownGroups.filter((g) => !own[g.key]), width, height, headings, { spreadPorts: true, avoid: segmentsOf(own) }), ...own };
+        }
         if (panelView) {
             const own = panelRoutes(panelView.anchors, shownGroups);
-            return { ...routeEdges(panelView.anchors, shownGroups.filter((g) => !own[g.key]), width, height, [], { spreadPorts: true }), ...own };
+            return { ...routeEdges(panelView.anchors, shownGroups.filter((g) => !own[g.key]), width, height, [], { spreadPorts: true, avoid: segmentsOf(own) }), ...own };
         }
         return routed ? routeEdges(positions, shownGroups, width, height, headings, { spreadPorts: true }) : {};
-    }, [panelView, openedPanel, routed, positions, shownGroups, headings]);
+    }, [panelView, openedPanel, routed, positions, shownGroups, headings, visible, cardWidth, cardHeight, clustered]);
     // A panel arrow's ends are panels; the label names the panel, and its schemas are traced with it.
     const endLabel = (name) => panelView?.labels.get(name) || externalBundles.find((bundle) => bundle.name === name)?.label || name;
     const panelTrace = (g) => { return { ...g, ends: new Set([g.from, g.to, ...(panelView.members.get(g.from) || [g.from]), ...(panelView.members.get(g.to) || [g.to])]) }; };
@@ -617,7 +638,8 @@ export default function Diagram({
             return { x: layer.panel.left + 18 + (layer.label || '').length * 5, y: layer.panel.top + 21, width: (layer.label || '').length * 10 + 120, height: 24 };
         });
         const onCard = (c) => [...cards, ...titles].some((r) => Math.abs(r.x - c.x) < (r.width + c.width) / 2 + 2 && Math.abs(r.y - c.y) < r.height / 2 + 11);
-        const overlaps = (c) => onCard(c) || placed.some((p) => Math.abs(p.x - c.x) < (p.width + c.width) / 2 + 4 && Math.abs(p.y - c.y) < 20);
+        const onChip = (c) => placed.some((p) => Math.abs(p.x - c.x) < (p.width + c.width) / 2 + 4 && Math.abs(p.y - c.y) < 20);
+        const overlaps = (c) => onCard(c) || onChip(c);
         // A chip on another arrow's line (worst of all, on a crossing) would read as that arrow's label.
         const runsOf = (key) => routes[key].points.slice(1).map((q, i) => [routes[key].points[i], q]);
         const onOtherLine = (c, key) => shownGroups.some((g) => g.key !== key && routes[g.key] && runsOf(g.key).some(([p, q]) =>
@@ -629,7 +651,9 @@ export default function Diagram({
             // full paths are in the arrow's tooltip and in the details it opens.
             const fieldNames = [...new Set(g.edges.map((e) => e.field))];
             const field = fieldNames.length === 1 ? fieldNames[0].split('.').pop() : `${fieldNames.length} fields`;
-            const text = field.length > 16 ? `${field.slice(0, 15)}…` : field, chipWidth = text.length * 6.6 + 14;
+            // An opened arrow has the map to itself, so its labels may be longer.
+            const room = g.opened ? 26 : 16;
+            const text = field.length > room ? `${field.slice(0, room - 1)}…` : field, chipWidth = text.length * 6.6 + 14;
             // Runs long enough to hold the chip come first, in order along the arrow; then the rest, longest first.
             const runs = points.slice(1).map((end, i) => [points[i], end]);
             const length = ([p, q]) => Math.hypot(q.x - p.x, q.y - p.y);
@@ -652,7 +676,9 @@ export default function Diagram({
             };
             const options = ordered.map(placesOn);
             const places = options.flatMap((o) => o.places);
-            let chip = places.find((c) => !overlaps(c) && !onOtherLine(c, g.key)) || places.find((c) => !overlaps(c));
+            // Best: clear of cards, chips and other lines; then clear of cards and chips; at worst on a card, but never on
+            // another chip, where neither would be readable.
+            let chip = places.find((c) => !overlaps(c) && !onOtherLine(c, g.key)) || places.find((c) => !overlaps(c)) || places.find((c) => !onChip(c));
             const { centred } = options[0];
             if (!chip && centred.lineX !== undefined) {
                 // Two vertical arrows close together across a short gap (often a pair running both ways) have no
@@ -987,7 +1013,7 @@ export default function Diagram({
                     </defs>
                     <g
                         data-world=""
-                        className={hoverEdge ? 'se-tracing-inheritance' : undefined}
+                        className={`${hoverEdge ? 'se-tracing-inheritance' : ''}${openedPanel && !hoverState ? ' se-opened-arrow' : ''}` || undefined}
                         transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
                         {showDomains && clustered.frames.map((frame) => (
                             <g key={frame.id} className="se-domain-frame">
@@ -1064,7 +1090,7 @@ export default function Diagram({
                                             : 'se-dim'
                                         : ''}>
                                     <path
-                                        className={`se-edge ${displayKind}${g.panel ? ' se-panel-edge' : ''}${hoverEdge?.key === g.key || hoverEdge?.keys?.has(g.key) ? ' se-traced-edge' : ''}`}
+                                        className={`se-edge ${displayKind}${g.panel ? ' se-panel-edge' : ''}${g.opened ? ' se-opened-edge' : ''}${hoverEdge?.key === g.key || hoverEdge?.keys?.has(g.key) ? ' se-traced-edge' : ''}`}
                                         d={routed ? routes[g.key].d : d}
                                         markerEnd={`url(#${markerPrefix}-${displayKind})`}
                                         tabIndex={0}
