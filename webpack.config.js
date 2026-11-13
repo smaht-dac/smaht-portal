@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const env = process.env.NODE_ENV;
@@ -58,6 +59,13 @@ const rules = [
             },
         ],
     },
+    // geotiff-tilesource's build hardcodes `new Worker(new URL("/assets/...", import.meta.url))`,
+    // a path that only exists in its own Vite build. Stop webpack from trying to resolve it;
+    // geotiffTileSource.js supplies its own bundled worker instead.
+    {
+        test: /[\\/]node_modules[\\/]geotiff-tilesource[\\/]/,
+        parser: { worker: false, url: false },
+    },
 ];
 
 const resolve = {
@@ -87,6 +95,20 @@ Object.keys(spcPeerDependencies).forEach(function (packageName) {
 // Exclusion -- higlass needs react-bootstrap 0.x but we want 1.x; can remove this line below
 // once update to higlass version w.o. react-bootstrap dependency.
 delete resolve.alias['react-bootstrap'];
+
+// The TIFF decoding worker ships with a content hash in its filename (and isn't listed in the
+// package's `exports`), so find it on disk rather than hardcoding a name that changes per release
+const geotiffAssetsDir = path.resolve(
+    __dirname,
+    'node_modules/geotiff-tilesource/dist/assets'
+);
+const geotiffWorkerFile = fs
+    .readdirSync(geotiffAssetsDir)
+    .find((fileName) => /^tiff\.worker-.*\.js$/.test(fileName));
+resolve.alias['geotiff-tilesource-worker$'] = path.join(
+    geotiffAssetsDir,
+    geotiffWorkerFile
+);
 
 const optimization = {
     minimize: mode === 'production',
@@ -286,6 +308,8 @@ module.exports = [
                 // stops the Node build from also emitting this async chunk and
                 // clobbering the browser build's copy of the same chunk filename.
                 openseadragon: 'var {}',
+                // Same as above, for the TIFF tile source plugin (and its web worker)
+                './geotiffTileSource': 'var {}',
                 // Below - prevent some stuff in SPC from being bundled in.
                 // These keys are literally matched against the string values, not actual path contents, hence why is "../util/aws".. it exactly what within SPC/SubmissionView.js
                 // We can clean up and change to 'aws-utils' in here in future as well and alias it to spc/utils/aws. But this needs to be synchronized with SPC and 4DN.
