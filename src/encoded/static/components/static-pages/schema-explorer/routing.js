@@ -203,7 +203,8 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
 // `frames` lists lines (such as panel frames) a lane must not sit on, or the arrow would read as part of them.
 // `around` picks where a U's lane starts: 'map' just outside every box, 'ends' just past the two boxes it joins (the
 // nearest clear lane, for cards inside panels), or false for no U at all.
-export function panelRoutes(boxes, groups, { spacing = 30, lane = 26, clearance = 6, around: aroundFrom = 'map', frames = [] } = {}) {
+// `aroundIf(group)` may withhold the U from some arrows (they are then left unrouted for routeEdges).
+export function panelRoutes(boxes, groups, { spacing = 30, lane = 26, clearance = 6, around: aroundFrom = 'map', frames = [], aroundIf = () => true } = {}) {
     // Boxes without a size (a point anchor) are not obstacles and cannot be joined.
     const rects = new Map(Object.entries(boxes).filter(([, p]) => [p.x, p.y, p.width, p.height].every(Number.isFinite)).map(([name, p]) => [name, {
         name, left: p.x - p.width / 2, right: p.x + p.width / 2, top: p.y - p.height / 2, bottom: p.y + p.height / 2,
@@ -336,7 +337,7 @@ export function panelRoutes(boxes, groups, { spacing = 30, lane = 26, clearance 
         // Of the two Z shapes, the one crossing fewer arrows (then the shorter) is drawn.
         const [best] = [zigzag(a, b, true), zigzag(a, b, false)].filter(Boolean)
             .sort((x, y) => crossings(x.points) - crossings(y.points) || length(x.points) - length(y.points));
-        if (best) accept(g, best.points, best.ends); else if (aroundFrom) around(g, a, b);
+        if (best) accept(g, best.points, best.ends); else if (aroundFrom && aroundIf(g)) around(g, a, b);
     }
     return routes;
 }

@@ -276,20 +276,34 @@ export default function Diagram({
         // so the cards on the right do not gather a sheaf of long arrows.
         const panelIds = new Set(clustered.layers.map((layer) => layer.id));
         const arrows = all.filter((g) => panelIds.has(g.from) && panelIds.has(g.to));
-        const cardLinks = new Map();
-        for (const g of all.filter((group) => !arrows.includes(group))) {
+        const cardLinks = new Map(), joins = new Map();
+        for (const g of all.filter((group) => !arrows.includes(group) && (panelIds.has(group.from) || panelIds.has(group.to)))) {
             const card = panelIds.has(g.from) ? g.to : g.from, panel = card === g.from ? g.to : g.from;
             if (!cardLinks.has(card)) cardLinks.set(card, { count: 0, panels: new Set(), edges: [] });
             const entry = cardLinks.get(card);
             entry.count += g.edges.length; entry.panels.add(panel); entry.edges.push(...g.edges);
+            const key = `card:${panel}~${card}`;
+            if (!joins.has(key)) joins.set(key, { key, panel, card, edges: [], out: false, in: false });
+            const join = joins.get(key);
+            join.edges.push(...g.edges);
+            if (g.from === panel) join.out = true; else join.in = true;
         }
+        // Each group card is tied to every panel it links with by one thin, neutral, unlabelled arrow (the card
+        // carries the count); it points the way the references go, at both ends when they go both ways.
+        // One arrow per card, to the panel it shares the most references with; pointing at the card traces the rest.
+        const strongest = new Map();
+        for (const join of joins.values()) if (!strongest.has(join.card) || join.edges.length > strongest.get(join.card).edges.length) strongest.set(join.card, join);
+        const cardArrows = [...strongest.values()].map((join) => {
+            return { key: join.key, from: join.out ? join.panel : join.card, to: join.out ? join.card : join.panel,
+                both: join.out && join.in, edges: join.edges, kind: 'linkTo', panel: true, cardArrow: true };
+        });
         const boxes = Object.fromEntries(clustered.layers.map((layer) => [layer.id,
             { x: layer.panel.left + layer.panel.width / 2, y: layer.panel.top + layer.panel.height / 2, width: layer.panel.width, height: layer.panel.height }]));
         const labels = new Map([...clustered.layers.map((layer) => [layer.id, layer.label]),
             ...externalBundles.map((bundle) => [bundle.name, bundle.label])]);
         const members = new Map(clustered.layers.map((layer) => [layer.id, layer.names]));
         externalBundles.forEach((bundle) => members.set(bundle.name, bundle.members));
-        return { groups: arrows, inside, cardLinks, anchors: { ...cards, ...boxes }, labels, members };
+        return { groups: [...arrows, ...cardArrows], inside, cardLinks, anchors: { ...cards, ...boxes }, labels, members };
     }, [panelMode, clustered, names, positions, externalBundles, expandedExternal, edges, showExternal, domain]);
     const schemaGroups = useMemo(() => {
         const result = neighborhood ? neighborhood.groups : summarize ? shared.groups.filter((group) => group.from !== group.to) : scopedGroups;
@@ -326,7 +340,7 @@ export default function Diagram({
     // shows all there is, so a click goes straight to its details.
     const opensInto = useMemo(() => new Map((panelView?.groups || []).map((g) => [g.key, schemaArrowsOf(g).length])), [panelView, schemaArrowsOf]);
     const activate = (g) => {
-        if (g.panel && (opensInto.get(g.key) || 0) > 1) setOpenedArrow(g.key); else inspect(g);
+        if (g.panel && !g.cardArrow && (opensInto.get(g.key) || 0) > 1) setOpenedArrow(g.key); else inspect(g);
     };
     // While an arrow is open its schemas stay marked and the rest of the map steps back, as when pointing at it.
     const openedTrace = useMemo(() => openedPanel && { key: 'opened', keys: new Set(shownGroups.map((g) => g.key)), edges: openedPanel.edges,
@@ -391,7 +405,9 @@ export default function Diagram({
             return { ...routeEdges(positions, shownGroups.filter((g) => !own[g.key]), width, height, headings, { spreadPorts: true, avoid: segmentsOf(own) }), ...own };
         }
         if (panelView) {
-            const own = panelRoutes(panelView.anchors, shownGroups);
+            // An arrow to a group card never loops around the whole map; if it has no straight or Z shape it threads
+            // through the gaps between panels instead.
+            const own = panelRoutes(panelView.anchors, shownGroups, { aroundIf: (g) => !g.cardArrow });
             return { ...routeEdges(panelView.anchors, shownGroups.filter((g) => !own[g.key]), width, height, [], { spreadPorts: true, avoid: segmentsOf(own) }), ...own };
         }
         return routed ? routeEdges(positions, shownGroups, width, height, headings, { spreadPorts: true }) : {};
@@ -647,7 +663,7 @@ export default function Diagram({
         const onOtherLine = (c, key) => shownGroups.some((g) => g.key !== key && routes[g.key] && runsOf(g.key).some(([p, q]) =>
             Math.max(p.x, q.x) >= c.x - c.width / 2 - 3 && Math.min(p.x, q.x) <= c.x + c.width / 2 + 3 &&
             Math.max(p.y, q.y) >= c.y - 12 && Math.min(p.y, q.y) <= c.y + 12));
-        return Object.fromEntries(shownGroups.filter((g) => routes[g.key]).map((g) => {
+        return Object.fromEntries(shownGroups.filter((g) => routes[g.key] && !g.cardArrow).map((g) => {
             const { points, straight } = routes[g.key];
             // The chip names one field by its last step, at most 16 characters of it, and several by their count; the
             // full paths are in the arrow's tooltip and in the details it opens.
@@ -746,6 +762,10 @@ export default function Diagram({
         setHoverEdge(traced.length || cards.length ? { key: 'concept-trace', keys: new Set(traced.map((g) => g.key)),
             ends: new Set([...cards, ...traced.flatMap((g) => [g.from, g.to, ...g.edges.flatMap((e) => [e.from, e.to])])]), edges: traced.flatMap((g) => g.edges) } : null);
     }, [shownGroups, panelView]);
+    // A grey card arrow is drawn dark while it is traced (pointed at, or part of a traced card's links).
+    // Pointing at a group card also traces its own grey arrow.
+    const cardArrowKeys = (card) => new Set(shownGroups.filter((g) => g.cardArrow && (g.from === card || g.to === card)).map((g) => g.key));
+    const tracedCard = (g) => hoverEdge?.key === g.key || hoverEdge?.keys?.has(g.key);
     const tracedEnds = useMemo(() => new Set(hoverEdge ? hoverEdge.ends || [hoverEdge.from, hoverEdge.to] : []), [hoverEdge]);
     const drawnGroups = shownGroups;
     const showAllTypes = useCallback(() => onBrowseAll?.(), [onBrowseAll]);
@@ -1012,6 +1032,18 @@ export default function Diagram({
                                 <path d="M0,0 L10,4 L0,8 Z" fill={color} />
                             </marker>
                         ))}
+                        {/* Arrows to group cards are neutral grey; a two-way one carries a head at its start too. Traced, the
+                            line darkens, so its heads switch to the same dark grey at the line's traced weight. */}
+                        {[['', '#9aa1ab', 8, 7], ['-active', '#343741', 10, 8]].map(([suffix, fill, w, h]) => (
+                            <React.Fragment key={suffix || 'idle'}>
+                                <marker id={`${markerPrefix}-card${suffix}`} viewBox="0 0 10 8" refX="10" refY="4" markerWidth={w} markerHeight={h} markerUnits="userSpaceOnUse" orient="auto">
+                                    <path d="M0,0 L10,4 L0,8 Z" fill={fill} />
+                                </marker>
+                                <marker id={`${markerPrefix}-card-start${suffix}`} viewBox="0 0 10 8" refX="0" refY="4" markerWidth={w} markerHeight={h} markerUnits="userSpaceOnUse" orient="auto">
+                                    <path d="M10,0 L0,4 L10,8 Z" fill={fill} />
+                                </marker>
+                            </React.Fragment>
+                        ))}
                     </defs>
                     <g
                         data-world=""
@@ -1092,9 +1124,10 @@ export default function Diagram({
                                             : 'se-dim'
                                         : ''}>
                                     <path
-                                        className={`se-edge ${displayKind}${g.panel ? ' se-panel-edge' : ''}${g.opened ? ' se-opened-edge' : ''}${hoverEdge?.key === g.key || hoverEdge?.keys?.has(g.key) ? ' se-traced-edge' : ''}`}
+                                        className={`se-edge ${g.cardArrow ? 'se-card-edge' : displayKind}${g.panel && !g.cardArrow ? ' se-panel-edge' : ''}${g.opened ? ' se-opened-edge' : ''}${hoverEdge?.key === g.key || hoverEdge?.keys?.has(g.key) ? ' se-traced-edge' : ''}`}
                                         d={routed ? routes[g.key].d : d}
-                                        markerEnd={`url(#${markerPrefix}-${displayKind})`}
+                                        markerEnd={`url(#${markerPrefix}-${g.cardArrow ? `card${tracedCard(g) ? '-active' : ''}` : displayKind})`}
+                                        markerStart={g.both ? `url(#${markerPrefix}-card-start${tracedCard(g) ? '-active' : ''})` : undefined}
                                         tabIndex={0}
                                         role="button"
                                         aria-label={g.panel ? `${endLabel(g.from)} to ${endLabel(g.to)}: ${edgeCaption(g)}` : `${g.from} to ${g.to}`}
@@ -1134,14 +1167,16 @@ export default function Diagram({
                             const p = positions[bundle.name];
                             if (!p) return null;
                             const expanded = expandedExternal.includes(bundle.id);
-                            const toggle = () => { setSelected(''); setMoves({}); setExpandedExternal(expanded ? expandedExternal.filter((id) => id !== bundle.id) : [...expandedExternal, bundle.id]); };
+                            // The card is redrawn under the pointer without a pointer-leave, so its trace is cleared here
+                            // or it would stay on and keep every other arrow faded.
+                            const toggle = () => { setHoverEdge(null); setSelected(''); setMoves({}); setExpandedExternal(expanded ? expandedExternal.filter((id) => id !== bundle.id) : [...expandedExternal, bundle.id]); };
                             const label = bundle.label.length > 32 ? `${bundle.label.slice(0, 29)}…` : bundle.label;
                             const extra = bundle.unmapped && bundle.mapLabels.length ? ` +${bundle.unmapped} other` : '';
                             const mapLine = bundle.mapLabels.length ? `Map: ${bundle.mapLabels.join(', ')}${extra}` : 'Not on the Donor to data map';
                             // About 36 characters of 11px text fit in the card; the full line stays in the tooltip.
                             const mapText = mapLine.length > 36 ? `${mapLine.slice(0, 35)}…` : mapLine;
                             const cardLink = panelView?.cardLinks.get(bundle.name);
-                            const traceCard = cardLink ? { onMouseEnter: () => setHoverEdge({ key: `card:${bundle.name}`, keys: new Set(), edges: cardLink.edges,
+                            const traceCard = cardLink ? { onMouseEnter: () => setHoverEdge({ key: `card:${bundle.name}`, keys: cardArrowKeys(bundle.name), edges: cardLink.edges,
                                 ends: new Set([bundle.name, ...cardLink.panels, ...cardLink.edges.flatMap((e) => [e.from, e.to])]) }), onMouseLeave: () => setHoverEdge(null) } : {};
                             return (
                                 <g key={bundle.name} data-external-group={bundle.id} {...traceCard} className={`se-external-group-card${tracedEnds.has(bundle.name) ? ' se-traced-group' : ''}`}
@@ -1168,7 +1203,7 @@ export default function Diagram({
                             ].filter(Boolean).join('\n');
                             // A schema of another group drawn on its own card stands for its panel arrows, like a group card.
                             const cardLink = panelView?.cardLinks.get(n.name);
-                            const traceCard = cardLink ? { onMouseEnter: () => setHoverEdge({ key: `card:${n.name}`, keys: new Set(), edges: cardLink.edges,
+                            const traceCard = cardLink ? { onMouseEnter: () => setHoverEdge({ key: `card:${n.name}`, keys: cardArrowKeys(n.name), edges: cardLink.edges,
                                 ends: new Set([n.name, ...cardLink.panels, ...cardLink.edges.flatMap((e) => [e.from, e.to])]) }), onMouseLeave: () => setHoverEdge(null) } : {};
                             return (
                                 <g

@@ -195,6 +195,10 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await fileGroup.click();
  assert.equal(await fileGroup.getAttribute('aria-expanded'),'true');
  assert.equal(await page.locator('[data-entity="AlignedReads"]').count(),1,'Expanding reveals the actual schema in place');
+ // The clicked card is redrawn under the pointer; its trace must not stay on and fade every arrow.
+ await page.mouse.move(0,0);
+ await page.waitForFunction(()=>!document.querySelector('#entity-svg .se-tracing-inheritance'),null,{timeout:3000});
+ assert.ok(await page.locator('#entity-svg .se-card-edge').count()>0,'Expanded schemas keep their grey arrows to the map');
  await page.locator('[data-entity="AlignedReads"]').focus();await page.keyboard.press('Enter');
  const alignedEdge=page.locator('.se-edge[aria-label="AlignedReads to FileSet"]');
  assert.ok(await alignedEdge.count(),'Expanded arrows retain actual schema direction when inspecting a schema');
@@ -218,10 +222,12 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  // One grouping: the map's panels carry the path's own names and numbers, and the open concept's panel is marked.
  assert.deepEqual(await page.locator('#entity-svg .se-stage-label').evaluateAll(ls=>ls.map(l=>l.firstChild.textContent.trim())),['2. Source material','3. Sample','Pathology']);
  assert.equal(await page.locator('#entity-svg .se-stage-panel.se-stage-current').count(),1,'The open concept has one marked panel');
- // Panel arrows join panels only; each group card counts the links it stands for and traces them on hover.
+ // Coloured panel arrows join panels only; each group card counts the links it stands for, is tied to the map by one
+ // thin grey arrow, and traces all its links on hover.
  const firstCard=page.locator('#entity-svg .entity-node:has(.se-context-domain)').first();
  assert.match(await firstCard.locator('.se-context-domain').textContent(),/^Other group · .+ · \d+ links?$/,'Schemas of other groups count their links in the panel view');
  assert.equal(await page.locator('#entity-svg .se-panel-edge').evaluateAll(edges=>edges.filter(e=>/ & /.test(e.getAttribute('aria-label').split(':')[0])).length),0,'No panel arrow runs to a group card');
+ assert.equal(await page.locator('#entity-svg .se-card-edge').count(),await page.locator('#entity-svg .entity-node:has(.se-context-domain)').count(),'Each group card has one grey arrow');
  // The card column can sit past the canvas edge at the readable minimum scale, so point at it with events.
  await firstCard.dispatchEvent('mouseover');
  // Hovering a group card marks the panels it links to (waits for the redraw).
@@ -511,9 +517,11 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
    const before=await nodePositions();
    // The default view joins panels: a few labelled arrows instead of every schema reference.
    assert.equal(await page.getByLabel('Connection detail',{exact:true}).inputValue(),'panels');
-   const panelArrows=await page.locator('#entity-svg .se-edge').count();
+   const panelArrows=await page.locator('#entity-svg .se-edge.se-panel-edge').count();
    assert.ok(panelArrows>0 && panelArrows<=6,`Files draws a handful of panel arrows (${panelArrows})`);
-   assert.equal(await page.locator('#entity-svg .se-edge.se-panel-edge').count(),panelArrows,'Every default arrow joins two panels');
+   assert.equal(await page.locator('#entity-svg .se-edge:not(.se-panel-edge):not(.se-card-edge)').count(),0,'Every default arrow joins two panels, or a panel and a group card');
+   // Each group card is tied to the map by one thin grey arrow, to the panel it shares the most references with.
+   assert.equal(await page.locator('#entity-svg .se-edge.se-card-edge').count(),await page.locator('#entity-svg [data-external-group]').count(),'One arrow per group card');
    assert.match(await page.locator('#entity-svg .se-stage-label').first().textContent(),/\d+ links inside/,'Links within a panel are counted on it');
    const chips=await page.locator('#entity-svg .se-panel-edge-chip rect').evaluateAll(rs=>rs.map(r=>r.getBoundingClientRect().toJSON()));
    assert.ok(chips.length===panelArrows,'Each panel arrow carries its chip');
@@ -537,6 +545,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
    assert.match(await page.getByRole('dialog').textContent(),/Every reference from a schema in/,'Every field of the opened arrow stays one click away');
    await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
    await page.locator('.modal-backdrop').waitFor({state:'detached'});
+   assert.equal(await page.locator('#entity-svg .se-edge.se-card-edge').count(),0,'An opened arrow hides the group card arrows too');
    await openedBar.getByRole('button',{name:/Show all arrows/}).click();
    assert.equal(await page.locator('#entity-svg .se-edge.se-panel-edge').count(),panelArrows,'Closing it brings every panel arrow back');
    // The keyboard opens a panel arrow too, and Escape closes it.
