@@ -188,8 +188,8 @@ export default function Explorer() {
     // Where the reader is (see explorer-route.js). The map keeps its last place while schema details are open.
     const [route, setRoute] = useState(overviewRoute),
         [mapRoute, setMapRoute] = useState(overviewRoute);
-    // A schema chosen from the catalog opens on its own connections first (its neighborhood), not its whole group.
-    const [neighborhoodRequest, setNeighborhoodRequest] = useState(null);
+    // A schema chosen from the catalog opens on its own connections (its neighborhood), and can go straight back.
+    const [catalogSchema, setCatalogSchema] = useState('');
     const mode = isMapRoute(route) ? 'map' : 'item';
     const explorerRoot = useRef();
     const show = (next) => {
@@ -399,12 +399,12 @@ export default function Explorer() {
                             onBrowseAll={() => go({ view: 'schemas' })}
                             onPlanner={(name) => setPlanner({ source: name })}
                             onDetail={setDetail}
-                            neighborhoodRequest={neighborhoodRequest}
+                            catalogSchema={catalogSchema}
                         />
                     </div>
                     <div hidden={mode !== 'item'} className="se-item-view">
                         <SchemaCatalog index={index} query={query}
-                            onOpen={(name) => { setNeighborhoodRequest({ schema: name, at: Date.now() }); select(name); }} onOpenGroup={(id) => go({ view: 'group', group: id })} />
+                            onOpen={(name) => { setCatalogSchema(name); go({ view: 'schema', schema: name, connections: true }, { reveal: true }); }} onOpenGroup={(id) => go({ view: 'group', group: id })} />
                     </div>
                 </div>
             </SlidingSidebarLayout>

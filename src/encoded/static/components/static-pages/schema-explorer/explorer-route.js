@@ -1,21 +1,21 @@
 // Where the explorer is, kept in the page URL's hash (as the benchmarking pages keep their tabs) so the browser's
 // back button and shared links work: the metadata map overview (no hash), a concept (#concepts/analyte; older
-// #concepts/analyte/map links open the same page), a group map (#groups/samples), the schema catalog (#schemas)
-// or one schema (#schemas/TissueSample).
+// #concepts/analyte/map links open the same page), a group map (#groups/samples), the schema catalog (#schemas),
+// one schema on its group map (#schemas/TissueSample) or one schema's own connections (#schemas/TissueSample/connections).
 
 export const overviewRoute = { view: 'overview' };
 
 export function parseRoute(hash = '') {
-    const [section, id] = hash.replace(/^#\/?/, '').split('/').map((part) => decodeURIComponent(part || ''));
+    const [section, id, part] = hash.replace(/^#\/?/, '').split('/').map((piece) => decodeURIComponent(piece || ''));
     if (section === 'concepts' && id) return { view: 'concept', concept: id };
     if (section === 'groups' && id) return { view: 'group', group: id };
-    if (section === 'schemas') return id ? { view: 'schema', schema: id } : { view: 'schemas' };
+    if (section === 'schemas') return id ? { view: 'schema', schema: id, ...(part === 'connections' ? { connections: true } : {}) } : { view: 'schemas' };
     return overviewRoute;
 }
 
 export function routeHash(route) {
     switch (route.view) {
-        case 'schema': return `#schemas/${encodeURIComponent(route.schema)}`;
+        case 'schema': return `#schemas/${encodeURIComponent(route.schema)}${route.connections ? '/connections' : ''}`;
         case 'schemas': return '#schemas';
         case 'group': return `#groups/${encodeURIComponent(route.group)}`;
         case 'concept': return `#concepts/${encodeURIComponent(route.concept)}`;

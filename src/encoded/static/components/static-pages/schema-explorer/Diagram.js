@@ -30,7 +30,7 @@ export default function Diagram({
     route = overviewRoute,
     onNavigate,
     renderSchema,
-    neighborhoodRequest = null,
+    catalogSchema = '',
 }) {
     const index = useMemo(() => explorerIndex(sourceIndex), [sourceIndex]);
     const [selected, setSelected] = useState('');
@@ -554,7 +554,9 @@ export default function Diagram({
         }
         setSelected(name);
         if (neighbors) setMoves({});
-    }, [neighbors, domain, showDomains, hidden, externalContextNames, onNavigate, route.view]);
+        // Moving within a schema's neighborhood moves its address to the newly chosen schema's neighborhood.
+        if (neighbors && route.view === 'schema' && name !== route.schema) onNavigate({ view: 'schema', schema: name, connections: true });
+    }, [neighbors, domain, showDomains, hidden, externalContextNames, onNavigate, route.view, route.schema]);
     const setVisibility = (next) => {
         setHidden(next);
         setMoves({});
@@ -604,22 +606,26 @@ export default function Diagram({
         ? nodeRight + 12 : Math.max(12, Math.min(size.width - outsideWidth - 12, nodeLeft - outsideWidth - 12));
     const outsideTop = selectedPosition
         ? Math.max(12, Math.min(size.height - outsideHeight - 12, camera.y + selectedPosition.y * camera.scale - 36)) : 12;
+    // On a schema's page the neighborhood is part of the address (#schemas/X/connections), so a refresh, a shared link
+    // or the back button opens the same view; elsewhere (a schema picked on a concept map) it stays a local view.
     const showConnected = () => {
         setHidden(hidden.filter((name) => !connected.has(name)));
         setMoves({});
         setNeighbors(true);
+        if (route.view === 'schema') onNavigate({ view: 'schema', schema: route.schema, connections: true });
     };
-    // A schema opened from the catalog starts on its neighborhood. Each request is honoured once, so going back to the
-    // whole group, or returning to the schema later, keeps the reader's own choice.
-    const neighborhoodShown = useRef(null);
-    const openedFromCatalog = !!onBrowseAll && route.view === 'schema' && neighborhoodRequest?.schema === route.schema && neighborhoodShown.current === neighborhoodRequest?.at;
-    useEffect(() => {
-        if (!neighborhoodRequest || neighborhoodShown.current === neighborhoodRequest.at) return;
-        if (route.view !== 'schema' || route.schema !== neighborhoodRequest.schema) return;
-        neighborhoodShown.current = neighborhoodRequest.at;
+    const showGroupMap = () => {
         setMoves({});
-        setNeighbors(true);
-    }, [neighborhoodRequest, route.view, route.schema]);
+        setNeighbors(false);
+        if (route.view === 'schema') onNavigate({ view: 'schema', schema: route.schema });
+    };
+    useEffect(() => {
+        if (route.view !== 'schema' || !!route.connections === neighbors) return;
+        // Only switching between the group map and the neighborhood resets dragged cards.
+        setMoves({});
+        setNeighbors(!!route.connections);
+    }, [route.view, route.schema, route.connections, neighbors]);
+    const openedFromCatalog = !!onBrowseAll && route.view === 'schema' && !!route.connections && catalogSchema === route.schema;
     // Schemas inside a collapsed external group are drawn through that group's card, so their links count as visible.
     const drawnNames = useMemo(() => new Set([...names, ...(neighborhood?.candidates || []), ...externalBundles
         .filter((bundle) => !expandedExternal.includes(bundle.id)).flatMap((bundle) => bundle.members)]),
@@ -943,7 +949,7 @@ export default function Diagram({
                         )}
                         <button type="button" id="entity-show-neighborhood" aria-pressed={neighbors} onClick={() => {
                             if (!neighbors) showConnected();
-                            else { setMoves({}); setNeighbors(false); }
+                            else showGroupMap();
                         }}>{neighbors ? 'Show in group map' : 'Show only its connections'}
                         </button>
                         <button type="button" onClick={() => svg.current?.closest('.se-diagram')?.querySelector('#entity-details')?.scrollIntoView({ block: 'start', behavior: 'smooth' })}>

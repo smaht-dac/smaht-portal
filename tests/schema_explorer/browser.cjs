@@ -786,6 +786,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  const opened=await page.evaluate(()=>{const map=document.querySelector('#entity-svg').closest('.se-diagram').getBoundingClientRect(),details=document.querySelector('#entity-details').getBoundingClientRect();return {map:map.top,details:details.top};});
  assert.ok(opened.map>=0 && opened.map<innerHeightOf(page) && opened.details>opened.map,`The schema opens on its map (${JSON.stringify(opened)})`);
  assert.ok(await page.locator('#entity-svg .se-neighborhood-group').count()>0,'The catalog opens a schema on its neighborhood');
+ assert.equal(search(),'#schemas/ProtectedDonor/connections','The neighborhood is in the address, so a refresh or a shared link reopens it');
  const bar=page.getByRole('status',{name:'Selected schema',exact:true});
  assert.equal(await page.locator('#entity-show-neighborhood').textContent(),'Show in group map','The way out of a neighborhood names where it goes');
  assert.equal(await bar.getByRole('button',{name:/^Clear selection of /}).count(),0,'A neighborhood offers no second way to the group map');
