@@ -28,15 +28,24 @@
     .se-toolbar, .se-filters, .se-sources { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
     .se-toolbar { margin: .75rem 0; } .se-toolbar > input { flex: 1; min-width: 140px; }
     button.se-heading-action { float: right; margin-left: 1rem; }
-    // A schema's place, set like the portal's page-title breadcrumbs.
-    .se-schema-trail { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem; margin-bottom: .2rem; font-size: 13px; color: $gray-70;
-        a { color: $primary; } .icon { font-size: 10px; color: $gray-40; }
-    }
-    .se-schema-concept { margin: .35rem 0 0; font-size: 13.5px; color: #5d5e63; a { font-weight: 500; color: $primary; } }
     .se-selected-actions { display: flex; flex-shrink: 0; gap: .5rem; }
     // A selected schema's details under its map: the panel's title band holds its heading, and its contents
     // (links, fields, embeds, diagnostics) follow as one tabbed block rather than a sticky side column.
-    .se-selected-panel > header#heading { display: block; .se-diagram-heading { margin: 0; padding: 0; border: 0; background: none; } h2 { margin: 0; font-size: 24px; } }
+    // A selected schema's heading, set like the concept heading: plain title and ruled label | value rows.
+    .se-selected-panel > header.se-schema-heading { display: block; margin: 0 -15px 12px; padding: .9rem 15px 0; background: white; border-bottom: 0;
+        h2 { margin: 0 0 .25rem; font-size: 28px; line-height: 1.2; font-weight: 600; color: $gray-70; }
+    }
+    .se-selected-panel > header .se-schema-description { max-width: none; margin: 0 0 .7rem; font-size: 14.5px; line-height: 1.6; color: #5d5e63; }
+    // Two label | value pairs per ruled row keep the facts to two lines.
+    .se-schema-facts { display: grid; grid-template-columns: max-content max-content max-content minmax(0, 1fr); margin: 0; font-size: 14.5px; border-top: 1px solid #dee2e6;
+        dt, dd { margin: 0; padding: .4rem 0; border-bottom: 1px solid #dee2e6; }
+        dt { padding-right: .75rem; font-weight: 400; color: #5d5e63; }
+        dd { padding-right: 1.75rem; }
+        @media (max-width: 900px) { grid-template-columns: max-content minmax(0, 1fr); }
+        dd { color: $gray-70; a { color: $primary; } }
+    }
+    .se-schema-sep { margin: 0 .3rem; color: $gray-40; }
+    button.se-text-link { padding: 0; font: inherit; color: $primary; background: none; border: 0; &:hover, &:focus-visible { background: none; text-decoration: underline; } }
     .se-selected-panel .se-live-panel { margin: 0 0 .75rem; }
     .se-selected-panel .se-inspector { position: static; max-height: none; overflow: visible; }
     .se-inspector-links { padding: .25rem .75rem .75rem; }
@@ -86,12 +95,6 @@
     .se-type-picker { position: relative; } .se-type-popover { position: absolute; z-index: 20; top: 100%; left: 0; width: 310px; max-width: 85vw; padding: .75rem; background: white; border: 1px solid #ced4da; border-radius: 5px; box-shadow: 0 4px 12px #0002; > div:last-child { max-height: 260px; overflow: auto; } label { display: flex; padding: .3rem 0; } }
     .se-canvas-wrap { position: relative; }
     // Schema details page: same visual language as the map (header card, control strip, quiet tables).
-    .se-inheritance-chain { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: .6rem; font-size: 12.5px; color: $gray-40;
-        button { padding: .1rem .45rem; font-size: 12.5px; color: $homepage-card-text-color; background: white; border: 1px solid #dee2e6; border-radius: 5px; &:hover, &:focus { border-color: $homepage-card-text-color; } }
-    }
-    .se-inheritance-bases { display: contents; }
-    .se-inheritance-bases .se-inheritance-label { margin-left: .6rem; }
-    .se-inheritance-label { margin-right: .15rem; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #5d5e63; }
     .se-live-panel { margin: 0 0 1rem; padding: .1rem .9rem; border: 1px solid #dee2e6; border-radius: 5px; background: $gray-10;
         > summary { font-size: 14px; font-weight: 600; color: $homepage-header-text-color; small { margin-left: .5rem; font-weight: 400; color: #5d5e63; } }
         .se-live { margin: 0 0 .75rem; border: 0; padding: 0; > h2 { display: none; } }

@@ -343,8 +343,11 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.locator('#entity-details').getByRole('tab',{name:'Links',exact:true}).getAttribute('aria-selected'),'true','Its links come first');
  await page.locator('#entity-details').getByRole('tab',{name:/^Fields/}).click();
  assert.ok(await page.locator('#entity-details .se-inspector-list button.se-field').count()>5,'Its fields are one tab away');
- assert.equal(await page.locator('.se-schema-trail').textContent(),'All schemasDonor & Clinical HistoryProtectedDonor','A schema page names its catalog group');
- assert.equal(await page.locator('.se-schema-concept a').textContent(),'1 · Donor','A schema page links its place on the metadata map');
+ // The heading lists its facts as ruled label | value rows, as on the portal's item pages.
+ const facts=await page.locator('#entity-details .se-schema-facts').evaluate(dl=>Object.fromEntries([...dl.querySelectorAll('dt')].map(dt=>[dt.textContent,dt.nextElementSibling.textContent])));
+ assert.equal(facts['Schema group'],'Donor & Clinical History','A schema names its catalog group');
+ assert.equal(facts['Metadata map'],'1. Donor','A schema links its place on the metadata map, numbered as on the path');
+ assert.match(facts.Source,/^Python source/);
  assert.deepEqual(await finderBox(),conceptFinder,'The schema search sits in the same place on concept and schema pages');
  await page.getByRole('button',{name:/^Clear selection of /}).click();
  assert.ok(await page.locator('#concept-summary').isVisible());

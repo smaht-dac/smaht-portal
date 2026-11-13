@@ -304,53 +304,55 @@ export default function Explorer() {
         const modelConcept = concepts.find((concept) => concept.types.split(' ').includes(model.name));
         return (
             <>
-                <header id="heading" className="se-diagram-header">
-                    <div className="se-diagram-heading">
-                        {/* Embed paths start from a schema, so the tool lives on the schema it starts from. */}
-                        <button type="button" id="open-path-finder" className="se-heading-action"
-                            title={`Find how ${model.name} can embed fields from another schema`}
-                            onClick={() => setPlanner({ source: model.name })}>
-                            Find embed path…
-                        </button>
-                        {/* Where this schema sits: its catalog group, like the portal's breadcrumbs. */}
-                        <nav className="se-schema-trail" aria-label="Schema location">
-                            <a href={routeHash({ view: 'schemas' })} onClick={(event) => follow(event, { view: 'schemas' })}>All schemas</a>
-                            <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" />
+                {/* Laid out like the concept heading and the portal's item pages: title, description, then ruled
+                    label | value rows with plain links. */}
+                <header id="heading" className="se-schema-heading">
+                    {/* Embed paths start from a schema, so the tool lives on the schema it starts from. */}
+                    <button type="button" id="open-path-finder" className="se-heading-action"
+                        title={`Find how ${model.name} can embed fields from another schema`}
+                        onClick={() => setPlanner({ source: model.name })}>
+                        Find embed path…
+                    </button>
+                    <h2>{model.name}</h2>
+                    {/* A description that only restates the name (e.g. death_circumstances) adds nothing under the title. */}
+                    {hasOwnDescription(model) && <p className="se-schema-description">{model.schema.description}</p>}
+                    <dl className="se-schema-facts">
+                        <dt>Schema group</dt>
+                        <dd>
                             <a href={routeHash({ view: 'group', group: domainFor(model.name) })} onClick={(event) => follow(event, { view: 'group', group: domainFor(model.name) })}>
                                 {domains.find((d) => d.id === domainFor(model.name))?.label}
                             </a>
-                            <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" />
-                            <span aria-current="page">{model.name}</span>
-                        </nav>
-                        <h2>{model.name}</h2>
-                        {/* Field counts live on the inspector's tab and filters below; a description that
-                    only restates the name (e.g. death_circumstances) adds nothing under the title. */}
-                        {hasOwnDescription(model) && <p className="se-diagram-question">{model.schema.description}</p>}
+                        </dd>
                         {modelConcept && (
-                            <p className="se-schema-concept">
-                                On the metadata map:{' '}
-                                <a href={routeHash({ view: 'concept', concept: modelConcept.id })}
-                                    onClick={(event) => follow(event, { view: 'concept', concept: modelConcept.id })}>
-                                    {modelConcept.step ? `${modelConcept.step} · ` : ''}{modelConcept.label}
-                                </a>
-                            </p>
+                            <>
+                                <dt>Metadata map</dt>
+                                <dd>
+                                    <a href={routeHash({ view: 'concept', concept: modelConcept.id })} onClick={(event) => follow(event, { view: 'concept', concept: modelConcept.id })}>
+                                        {modelConcept.step ? `${modelConcept.step}. ` : ''}{modelConcept.label}
+                                    </a>
+                                </dd>
+                            </>
                         )}
-                        <div className="se-inheritance-chain" aria-label="Schema sources and inheritance">
-                            <button type="button" onClick={() => source(model.source)}>Python source <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" /></button>
-                            {model.schemaSource && <button type="button" onClick={() => source(model.schemaSource)}>JSON schema <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" /></button>}
-                            {model.bases.length > 0 && (
-                                <span className="se-inheritance-bases" aria-label="Inheritance (method resolution order)">
-                                    <span className="se-inheritance-label">Inherits from</span>
+                        {/* Source sits in the narrow column; the longer inheritance chain takes the wide one. */}
+                        <dt>Source</dt>
+                        <dd>
+                            <button type="button" className="se-text-link" onClick={() => source(model.source)}>Python source</button>
+                            {model.schemaSource && <><span className="se-schema-sep" aria-hidden="true">·</span><button type="button" className="se-text-link" onClick={() => source(model.schemaSource)}>JSON schema</button></>}
+                        </dd>
+                        {model.bases.length > 0 && (
+                            <>
+                                <dt>Inherits from</dt>
+                                <dd aria-label="Inheritance (method resolution order)">
                                     {model.bases.map((base, i) => (
                                         <React.Fragment key={base.id}>
-                                            {i > 0 && <span aria-hidden="true">›</span>}
-                                            <button type="button" title={`${base.id} · open source`} onClick={() => source(base.source)}>{baseLabel(base.id, model.bases)} <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" /></button>
+                                            {i > 0 && <span className="se-schema-sep" aria-hidden="true">›</span>}
+                                            <button type="button" className="se-text-link" title={`${base.id} · open source`} onClick={() => source(base.source)}>{baseLabel(base.id, model.bases)}</button>
                                         </React.Fragment>
                                     ))}
-                                </span>
-                            )}
-                        </div>
-                    </div>
+                                </dd>
+                            </>
+                        )}
+                    </dl>
                 </header>
                 {isAdmin && (
                     <details className="se-live-panel">
