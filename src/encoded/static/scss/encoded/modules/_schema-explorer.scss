@@ -174,22 +174,40 @@
     }
     .se-concept-heading button.se-diagram-back { display: block; margin: 0 0 .5rem -.5rem; padding: .2rem .5rem; font-size: 13px; font-weight: 600; color: $primary; background: transparent; border-color: transparent; &:hover:not(:disabled), &:focus { background: transparent; text-decoration: underline; } }
     // Three groups per row, as in the former canvas overview; narrower screens step down to two and one.
-    .se-catalog-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: start;
+    .se-catalog-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: stretch;
         @media (max-width: 1200px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         @media (max-width: 760px) { grid-template-columns: minmax(0, 1fr); }
     }
-    .se-catalog-group { padding: .9rem 1rem 1rem; border: 1px solid #dee2e6; border-radius: 5px; background: white;
-        > header { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; margin-bottom: .6rem;
-            h3 { margin: 0; font-size: 17px; font-weight: 650; color: $homepage-header-text-color; span { margin-left: .35rem; font-size: 13px; font-weight: 400; color: #5d5e63; } }
-            button { flex-shrink: 0; padding: .1rem .4rem; font-size: 12.5px; font-weight: 600; color: $primary; background: transparent; border-color: transparent; &:hover:not(:disabled), &:focus { background: transparent; text-decoration: underline; } }
+    // The catalog's heading matches a schema's: plain title over ruled facts.
+    .se-catalog > header.se-catalog-heading { margin: 0 0 1rem; padding-top: .9rem;
+        h2 { margin: 0; font-size: 28px; line-height: 1.2; font-weight: 600; color: $gray-70; }
+        .se-catalog-match { margin: .35rem 0 0; font-size: 14.5px; color: #5d5e63; }
+    }
+    // Each group is a portal panel: a plain title band (name, count, text link), then its schemas as a ruled, zebra
+    // list of blue names with their captions beside them, like the portal's tables.
+    .se-catalog-group { overflow: hidden; height: 100%; background: white; border: 1px solid #dee2e6; border-radius: 5px;
+        // One band line: a long group name wraps inside its own space rather than pushing the action down.
+        > header { display: flex; align-items: center; gap: .6rem; padding: .55rem .85rem; background: $slate-10; border-bottom: 1px solid #dee2e6;
+            h3 { min-width: 0; margin: 0; font-size: 15.5px; font-weight: 600; color: $homepage-header-text-color;
+                .se-catalog-count { margin-left: .3rem; font-size: 13px; font-weight: 400; color: #5d5e63; }
+            }
+            button { flex: none; margin-left: auto; padding: 0; font-size: 13px; font-weight: 600; white-space: nowrap; color: $primary; background: none; border: 0;
+                &:hover:not(:disabled), &:focus { color: $primary; background: none; text-decoration: underline; }
+            }
         }
-        ul { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; margin: 0; padding: 0; list-style: none; }
-        li button { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem .4rem; width: 100%; height: 100%; padding: .4rem .55rem; text-align: left; background: $gray-10; border: 1px solid #dee2e6; border-radius: .35rem;
-            &:hover, &:focus { background: $slate-20; border-color: $homepage-card-text-color; }
-            strong { font-size: 13px; color: $homepage-header-text-color; overflow-wrap: anywhere; }
-            small { flex-basis: 100%; font-size: 11.5px; line-height: 1.35; color: #5d5e63; }
+        ul { margin: 0; padding: 0; list-style: none; }
+        li + li { border-top: 1px solid #edf0f3; }
+        li:nth-child(even) { background: #fafbfc; }
+        li button { display: grid; grid-template-columns: minmax(0, 13rem) minmax(0, 1fr); align-items: baseline; gap: .75rem; width: 100%; padding: .4rem .85rem; text-align: left; background: transparent; border: 0; border-radius: 0;
+            &:hover:not(:disabled), &:focus { background: $baby-20; strong { text-decoration: underline; } }
+            strong { font-size: 13.5px; font-weight: 600; color: $primary; overflow-wrap: anywhere; }
+            small { font-size: 12.5px; line-height: 1.4; color: #5d5e63; }
         }
-        li button.se-catalog-abstract { background: #fcfaff; border-style: dashed; border-color: #c9bedb; strong { font-style: italic; } }
+        .se-catalog-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem; }
+        small.se-catalog-none { color: $gray-40; }
+    }
+    .se-catalog-group {
+        li button.se-catalog-abstract strong { font-style: italic; }
     }
     .se-catalog-badge { padding: 0 .3rem; font-size: 10px; font-weight: 600; color: #62517b; background: #e5dff0; border-radius: .25rem; }
     .se-selection-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; margin: 0 0 .5rem; padding: 0 0 .5rem; font-size: 14px; color: $gray-70; border-bottom: 1px solid #dee2e6;

@@ -15,32 +15,34 @@ export default function SchemaCatalog({ index, query, onOpen, onOpenGroup }) {
     const shown = groups.reduce((n, group) => n + group.members.length, 0);
     return (
         <section className="se-catalog" aria-label="All schemas">
-            <header className="se-diagram-header">
-                <div className="se-diagram-heading">
-                    <span className="se-diagram-eyebrow">Schema details</span>
-                    <h2>All schemas</h2>
-                    <p className="se-diagram-question">Every schema in the model, grouped by area. Choose one to see its fields and relationships.</p>
-                    <ul className="se-diagram-facts" aria-label="Catalog summary">
-                        <li>{index.models.length} schemas</li>
-                        <li>{groups.length} groups</li>
-                        {needle && <li>{shown} matching “{query.trim()}”</li>}
-                    </ul>
-                </div>
+            {/* The panels show every count, so the heading only adds one while a search narrows them. */}
+            <header className="se-catalog-heading">
+                <h2>All schemas</h2>
+                {needle && <p className="se-catalog-match" role="status">{shown} of {index.models.length} schemas match “{query.trim()}”</p>}
             </header>
             <div className="se-catalog-grid">
                 {groups.filter((group) => group.members.length).map((group) => (
+                    // A portal panel: a plain title band (name, count, text link), then a ruled, zebra list.
                     <section className="se-catalog-group" key={group.id} aria-label={group.label}>
                         <header>
-                            <h3>{group.label} <span>{group.total}</span></h3>
-                            {onOpenGroup && <button type="button" onClick={() => onOpenGroup(group.id)}>Open group map <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button>}
+                            <h3>{group.label} <span className="se-catalog-count">{group.total}</span></h3>
+                            {onOpenGroup && (
+                                <button type="button" aria-label="Open group map" title={`Open the ${group.label} map`} onClick={() => onOpenGroup(group.id)}>
+                                    Group map
+                                </button>
+                            )}
                         </header>
                         <ul>
                             {group.members.map(({ model, caption }) => (
                                 <li key={model.name}>
                                     <button type="button" className={abstractTypes.has(model.name) ? 'se-catalog-abstract' : undefined} onClick={() => onOpen(model.name)}>
-                                        <strong>{model.name}</strong>
-                                        {abstractTypes.has(model.name) && <span className="se-catalog-badge">Abstract</span>}
-                                        {caption.replace(/\s/g, '').toLowerCase() !== model.name.toLowerCase() && <small>{caption}</small>}
+                                        <span className="se-catalog-name">
+                                            <strong>{model.name}</strong>
+                                            {abstractTypes.has(model.name) && <span className="se-catalog-badge">Abstract</span>}
+                                        </span>
+                                        {/* A caption that only restates the name shows as the portal's muted dash. */}
+                                        {caption.replace(/\s/g, '').toLowerCase() !== model.name.toLowerCase()
+                                            ? <small>{caption}</small> : <small className="se-catalog-none" aria-hidden="true">—</small>}
                                     </button>
                                 </li>
                             ))}
