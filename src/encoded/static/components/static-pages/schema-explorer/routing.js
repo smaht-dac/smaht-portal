@@ -49,12 +49,13 @@ class Queue {
     }
 }
 
+// A position may carry its own `width` and `height` (a panel or a group card); others use the node size.
 export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = [], options = {}) {
-    const padding = 10, portGap = 18;
-    const boxes = Object.entries(positions).map(([name, p]) => {return {
-        name, left: p.x - nodeWidth / 2, right: p.x + nodeWidth / 2,
-        top: p.y - nodeHeight / 2, bottom: p.y + nodeHeight / 2,
-    };});
+    const { padding = 10, portGap = 18 } = options;
+    const boxes = Object.entries(positions).map(([name, p]) => {
+        const w = p.width || nodeWidth, h = p.height || nodeHeight;
+        return { name, left: p.x - w / 2, right: p.x + w / 2, top: p.y - h / 2, bottom: p.y + h / 2 };
+    });
     const obstacles = [...boxes, ...headings.map((h) => {return { left: h.left, right: h.left + h.width, top: h.top, bottom: h.top + h.height };})];
     const expanded = obstacles.map((r) => {return { left: r.left - padding, right: r.right + padding, top: r.top - padding, bottom: r.bottom + padding };});
     const connections = new Map(boxes.map((box) => [box.name, [...new Set(groups.filter((group) => group.from === box.name || group.to === box.name).map((group) => group.key))].sort()]));
@@ -62,8 +63,8 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
         const keys = connections.get(box.name);
         const slots = options.spreadPorts || options.spreadNodes?.includes(box.name) ? Math.min(5, keys.length) : 1;
         const fraction = slots ? ((Math.max(0, keys.indexOf(key)) % slots) + 1) / (slots + 1) : 0.5;
-        const px = box.left + 16 + (nodeWidth - 32) * fraction;
-        const py = box.top + 12 + (nodeHeight - 24) * fraction;
+        const px = box.left + 16 + (box.right - box.left - 32) * fraction;
+        const py = box.top + 12 + (box.bottom - box.top - 24) * fraction;
         // Ports sit far enough out that the final straight run fits an arrowhead plus a rounded bend.
         return [
             { x: px, y: box.top - gap, anchor: { x: px, y: box.top }, axis: 1 },

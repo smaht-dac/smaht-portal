@@ -278,6 +278,11 @@
     .se-stage-panel { fill: $slate-10; stroke: none; pointer-events: none; }
     // The open concept's panel on its group map.
     .se-stage-panel.se-stage-current { fill: $baby-20; stroke: #bfd3e4; }
+    // Panel view: one labelled arrow per pair of panels, fully opaque so it reads as structure rather than texture.
+    .se-edge.se-panel-edge { opacity: 1; stroke: #888; stroke-width: 2; &:hover, &:focus, &.se-traced-edge { stroke: $cobalt-70; stroke-width: 3; } }
+    .se-panel-edge-label { font-size: 12px; fill: #5d5e63; }
+    .se-stage-inside { font-size: 12px; font-weight: 400; fill: #5d5e63; }
+    .se-stage-panel.se-stage-traced { stroke: $cobalt-70; stroke-width: 2; }
     .se-hierarchical .entity-node text { font-size: 14px; }
     .entity-node text.se-node-title { fill: $homepage-header-text-color; font-size: 13px; font-weight: 650; }
     .entity-node .se-subtitle { font-weight: 400; fill: #5d5e63; }

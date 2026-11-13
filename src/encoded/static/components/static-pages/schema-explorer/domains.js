@@ -74,7 +74,8 @@ const orderedDomains = [...flow, 'administrative', 'other'].map((id) => domains.
 // path) come first, and schemas outside every concept keep their unnumbered stage. A stage that a concept only
 // partly covers gives its remaining schemas to "Supporting types", so no stage repeats a concept under another name;
 // a base type left out of the concepts joins the group's last such panel, beside the subtypes it is the base of.
-export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], viewport = { width: 1200, height: 650 }, concepts = []) {
+// `gap` is the space between panels; the explorer widens it so arrows between panels have a channel.
+export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], viewport = { width: 1200, height: 650 }, concepts = [], { gap = 20 } = {}) {
     const positions = {}, frames = [], layers = [];
     const members = new Set(nodes.map((n) => n.name));
     const adjacency = new Map(nodes.map((n) => [n.name, new Set()]));
@@ -122,7 +123,7 @@ export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], vie
         }
         const base = rows.find((row) => row.name === 'Base types');
         const main = rows.filter((row) => row !== base);
-        const gap = 20, nodeGap = 24, padding = 24;
+        const nodeGap = 24, padding = 24;
         const inset = 18, headerHeight = 40, bottomInset = 16;
         let best;
         const targets = new Set([600, viewport.width, viewport.width / 0.85,

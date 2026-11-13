@@ -93,8 +93,9 @@ function intersects(a, b, padding = 0) {
 // arrows cannot each appear to carry the other's label.
 export function researchLabels(graph, routes, { avoidRoutes = false } = {}) {
     const obstacles = graph.nodes.map((node) => {
-        const p = graph.positions[node.id];
-        return { left: p.x - graph.nodeWidth / 2, top: p.y - graph.nodeHeight / 2, width: graph.nodeWidth, height: graph.nodeHeight };
+        // A position may carry its own size (a panel); others use the node size.
+        const p = graph.positions[node.id], w = p.width || graph.nodeWidth, h = p.height || graph.nodeHeight;
+        return { left: p.x - w / 2, top: p.y - h / 2, width: w, height: h };
     });
     const labels = {};
     const crosses = (box, key) => avoidRoutes && Object.entries(routes).some(([other, route]) => other !== key &&

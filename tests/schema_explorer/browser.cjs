@@ -17,6 +17,8 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  const openSchema=async(name)=>{await finder().fill(name);await page.locator('#schema-finder-results [role="option"]').filter({has:page.locator('strong',{hasText:new RegExp('^'+name+'$')})}).click();await page.locator('#heading h2',{hasText:new RegExp('^'+name+'$')}).waitFor();};
  // A schema's address is its group map with the schema selected and its details underneath.
  const selectOnGroupMap=openSchema;
+ // Group maps open with arrows between panels; checks of schema-level arrows switch to shared definitions.
+ const schemaArrows=()=>page.getByLabel('Connection detail',{exact:true}).selectOption('shared');
  const selectSetting = async (label, value) => {
   const field=page.getByLabel(label,{exact:true});
   if(!await field.isVisible())await page.locator('.se-map-settings > summary').click();
@@ -212,7 +214,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.getByRole('tablist').count(),0,'No Summary/Map tabs: the concept page is one view');
  assert.ok(await page.locator('#entity-svg [data-entity="TissueSample"]').count(),'The concept page draws its map');
  // One grouping: the map's panels carry the path's own names and numbers, and the open concept's panel is marked.
- assert.deepEqual(await page.locator('#entity-svg .se-stage-label').allTextContents(),['2. Source material','3. Sample','Pathology']);
+ assert.deepEqual(await page.locator('#entity-svg .se-stage-label').evaluateAll(ls=>ls.map(l=>l.firstChild.textContent.trim())),['2. Source material','3. Sample','Pathology']);
  assert.equal(await page.locator('#entity-svg .se-stage-panel.se-stage-current').count(),1,'The open concept has one marked panel');
  // Pointing at a table row traces its arrow on the map.
  await relationshipRows().filter({hasText:'sample_sources[]'}).hover();
@@ -261,6 +263,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.match(await diagramGuide.textContent(),/Highlighted schemas belong to Library/,'The reading note moved into the guide');
  await page.keyboard.press('Escape');await page.locator('.se-concept-heading h3').click();
  await diagramGuide.waitFor({state:'detached'});
+ await schemaArrows();
  for(const pair of ['Library to Analyte','FileSet to Library','Library to LibraryPreparation'])assert.ok(await page.locator(`#entity-svg .se-edge[aria-label="${pair}"]`).count(),'The overview connections and additional preparation metadata are present');
  await page.locator('.se-concept-diagram').screenshot({path:path.join(output,'library-simplified-entry.png')});
  await page.locator('.se-diagram > .se-canvas-wrap').screenshot({path:path.join(output,'library-direct-connections.png')});
@@ -274,6 +277,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.locator('#entity-svg .se-domain-frame').count(),1,'External context does not introduce an entire additional group');
  assert.match(await page.locator('[data-entity="Sample"] .se-context-domain').textContent(),/Other group/);
 
+ await schemaArrows();
  for(const pair of ['Analyte to Sample','Analyte to AnalytePreparation','Library to Analyte'])assert.ok(await page.locator(`#entity-svg .se-edge[aria-label="${pair}"]`).count(),`The diagram retains ${pair} from the summary`);
  await page.locator('.se-diagram > .se-canvas-wrap').screenshot({path:path.join(output,'analyte-consistent-context.png')});
  await page.locator('[data-entity="Sample"]').focus();await page.keyboard.press('Enter');
@@ -301,6 +305,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  assert.equal(await page.locator('#entity-svg .entity-node').count(),17,'The approved file stages and support schemas remain intact');
  assert.equal(await page.locator('#entity-svg .entity-node .se-subtitle').count(),17,'Every file schema retains its description in concept view');
  assert.match(await page.locator('[data-entity="UnalignedReads"] .se-subtitle').textContent(),/Unaligned sequencing reads/);
+ await schemaArrows();
  assert.equal(await page.locator('#entity-svg .se-edge:not([aria-label*="external-group:"])').count(),17,'Inherited file references stay combined at their shared definitions');
  const fileScale=await page.locator('#entity-svg > g').evaluate(group=>group.transform.baseVal.consolidate().matrix.a);
  assert.ok(fileScale>=0.85,`File exploration retains a readable scale (${fileScale})`);
@@ -399,10 +404,12 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  // The checks below measure the group's own layout, so its links to other groups are set aside.
  await page.getByLabel('Links to other groups',{exact:true}).uncheck();
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))); // The map refits on the next frame.
+ // Relationship filters, dragging and routing below are checked on schema-level arrows.
+ await schemaArrows();
  await shell.screenshot({path:path.join(output,'hierarchical-donors.png')});
  const nodePositions=()=>page.locator('#entity-svg .entity-node').evaluateAll(nodes=>Object.fromEntries(nodes.map(n=>[n.dataset.entity,n.getAttribute('transform')])));
  const donorPositions=await nodePositions();
- assert.deepEqual(await page.locator('#entity-svg .se-stage-label').allTextContents(),['1. Donor','Clinical context','Clinical details','Collection'],'Panels are the path concepts, then unnumbered stages');
+ assert.deepEqual(await page.locator('#entity-svg .se-stage-label').evaluateAll(ls=>ls.map(l=>l.firstChild.textContent.trim())),['1. Donor','Clinical context','Clinical details','Collection'],'Panels are the path concepts, then unnumbered stages');
  assert.ok(await page.locator('#entity-svg .entity-node text').first().evaluate(n=>Number.parseFloat(getComputedStyle(n).fontSize)*document.querySelector('#entity-svg > g').transform.baseVal.consolidate().matrix.a)>=10.5,'Selected group type names remain readable');
  await page.locator('#entity-svg').screenshot({path:path.join(output,'donor-canvas.png')});
  assert.equal(await page.locator('#entity-svg .se-stage-label').count(),4);
@@ -475,7 +482,17 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
    assert.equal(await page.locator('.se-diagram:has(#entity-svg) .se-diagram-heading h2').textContent(),'Files & Quality Metrics','The group title heads the diagram');
    assert.equal(await page.locator('#entity-svg .se-domain-frame text').count(),0,'A single group is not titled again inside the canvas');
    const before=await nodePositions();
-   assert.equal(await page.getByLabel('Connection detail',{exact:true}).inputValue(),'shared');
+   // The default view joins panels: a few labelled arrows instead of every schema reference.
+   assert.equal(await page.getByLabel('Connection detail',{exact:true}).inputValue(),'panels');
+   const panelArrows=await page.locator('#entity-svg .se-edge').count();
+   assert.ok(panelArrows>0 && panelArrows<=6,`Files draws a handful of panel arrows (${panelArrows})`);
+   assert.equal(await page.locator('#entity-svg .se-edge.se-panel-edge').count(),panelArrows,'Every default arrow joins two panels');
+   assert.match(await page.locator('#entity-svg .se-stage-label').first().textContent(),/\d+ links inside/,'Links within a panel are counted on it');
+   await page.locator('#entity-svg .se-panel-edge').first().focus();await page.keyboard.press('Enter');
+   assert.match(await page.getByRole('dialog').textContent(),/Every reference from a schema in/,'A panel arrow opens the references it carries');
+   await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
+   await page.locator('.modal-backdrop').waitFor({state:'detached'});
+   await schemaArrows();
    assert.equal(await page.locator('#entity-svg .se-edge').count(),17,'Inherited references are summarized at their defining base');
    assert.match(await page.locator('[data-entity="UnalignedReads"] .se-inherited-tag text').textContent(),/^↑ \d+ links via File, SubmittedFile$/,'Subtypes name the base their inherited arrows are drawn at');
    await page.locator('[data-entity="UnalignedReads"] .se-inherited-tag').hover();

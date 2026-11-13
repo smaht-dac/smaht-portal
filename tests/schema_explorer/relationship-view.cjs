@@ -2,7 +2,8 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.readFileSync(`src/encoded/static/components/static-pages/schema-explorer/${name}.js`)).toString('base64')}`);
 (async()=>{
- const {groupRelationships,sharedRelationships}=await load('relationship-view');
+ const {groupRelationships,sharedRelationships,panelRelationships}=await load('relationship-view');
+ const {concepts}=await load('research-map');
  const {hierarchicalLayout,domainFor}=await load('domains');
  const {routeEdges,segmentClear}=await load('routing');
  const model=JSON.parse(fs.readFileSync(process.argv[2] || '/tmp/schema-explorer-hierarchy.json')).model;
@@ -44,5 +45,16 @@ const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.
  assert.equal(sharedRelationships({models:[base,override]},groupRelationships(refs),new Set(['Base','Child','Target'])).groups.length,2,'Overrides are preserved even when field shape and target match');
  assert.equal(sharedRelationships(fixture,groupRelationships(refs.slice(1)),new Set(['Child','Target'])).groups[0].from,'Child','Hidden ancestors do not swallow visible links');
  assert.equal(sharedRelationships({models:[]},groupRelationships(refs),new Set(['Base','Child','Target'])).groups.length,2,'Missing provenance is handled conservatively');
+
+ // Panel arrows: one per panel pair and direction, carrying every reference; nothing is lost.
+ const panelLayout=hierarchicalLayout(nodes,236,66,model.edges,{width:1200,height:650},concepts);
+ const owners=new Map(panelLayout.layers.flatMap(l=>l.names.map(n=>[n,l.id])));
+ const panels=panelRelationships(edges,owners);
+ assert.ok(panels.groups.length<=6,`Files draws a handful of panel arrows (${panels.groups.length})`);
+ assert.equal(new Set(panels.groups.map(g=>g.key)).size,panels.groups.length,'One arrow per panel pair and direction');
+ assert.equal(panels.groups.reduce((n,g)=>n+g.edges.length,0)+[...panels.inside.values()].reduce((a,b)=>a+b,0),edges.length,'Every reference is on an arrow or counted inside its panel');
+ assert.ok(panels.groups.every(g=>g.from!==g.to && g.edges.every(e=>owners.get(e.from)===g.from && owners.get(e.to)===g.to)));
+ const withCard=panelRelationships([{from:'File',to:'Donor',field:'donors[]',kind:'linkTo'},{from:'OutputFile',to:'Tissue',field:'tissues[]',kind:'linkTo'}],new Map([...owners,['Donor','card'],['Tissue','card']]));
+ assert.deepEqual(withCard.groups.map(g=>[g.from,g.to,g.edges.length]),[[owners.get('File'),'card',2]],'Links to a collapsed group card join into one arrow');
  console.log('Connection summary: 64 → 17 visible links; inheritance provenance, overrides, exact-reference retention and separated arrow endpoints passed.');
 })();

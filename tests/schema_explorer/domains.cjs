@@ -125,5 +125,19 @@ const load = async name => import(`data:text/javascript;base64,${Buffer.from(fs.
         validateRoutes(actual.positions,[...grouped.values()], [...actual.layers,...actual.frames.map(f=>({left:f.left+18,top:f.top+12,width:Math.min(f.width-36,f.label.length*15+12),height:38}))]);
         console.log(`Full model routing: ${grouped.size} groups, ${Date.now()-start} ms (including repeat).`);
     }
+    // Panel arrows run between panel boxes in the widened gaps and never cross a panel.
+    const { panelRelationships } = await load('relationship-view');
+    const model = JSON.parse(fs.readFileSync(process.argv[2] || '/tmp/schema-explorer-hierarchy.json')).model;
+    for (const id of ['donors', 'samples', 'sequencing', 'files', 'workflows']) {
+        const groupNodes = nodes.filter(n => domainFor(n.name) === id);
+        const wide = layoutWith(groupNodes, 236, 66, model.edges, { width: 1200, height: 650 }, concepts, { gap: 56 });
+        const owners = new Map(wide.layers.flatMap(l => l.names.map(n => [n, l.id])));
+        const { groups } = panelRelationships(model.edges.filter(e => e.kind === 'linkTo'), owners);
+        const boxes = Object.fromEntries(wide.layers.map(l => [l.id, { x: l.panel.left + l.panel.width / 2, y: l.panel.top + l.panel.height / 2, width: l.panel.width, height: l.panel.height }]));
+        const panelRoutes = routeEdges(boxes, groups, 236, 66, [], { spreadPorts: true });
+        assert.equal(Object.keys(panelRoutes).length, groups.length, `${id}: every panel arrow is routed`);
+        const rects = wide.layers.map(l => ({ left: l.panel.left, right: l.panel.left + l.panel.width, top: l.panel.top, bottom: l.panel.top + l.panel.height }));
+        for (const route of Object.values(panelRoutes)) for (let i = 1; i < route.points.length; i++) assert.ok(segmentClear(route.points[i - 1], route.points[i], rects), `${id}: panel arrows stay out of panels`);
+    }
     console.log('Biological stages, determinism, filtering, containment and obstacle-free routing passed.');
 })();

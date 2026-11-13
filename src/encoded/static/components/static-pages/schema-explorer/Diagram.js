@@ -8,7 +8,7 @@ import React, {
 import { layout, width, height } from './layout';
 import { domains, domainFor, hierarchicalLayout, abstractTypes } from './domains';
 import { routeEdges } from './routing';
-import { groupRelationships, sharedRelationships } from './relationship-view';
+import { groupRelationships, sharedRelationships, panelRelationships } from './relationship-view';
 import { nodePresentation, stageAccent } from './node-presentation';
 import ResearchOverview, { ConceptSummary } from './ResearchOverview';
 import { explorerIndex } from './explorer-scope';
@@ -38,7 +38,8 @@ export default function Diagram({
     const [showExternal, setShowExternal] = useState(true);
     const [arrangement, setArrangement] = useState('hierarchical');
     const [crossLinks, setCrossLinks] = useState(true);
-    const [connectionMode, setConnectionMode] = useState('shared');
+    // Group maps open with arrows between panels; schema-level arrows come with a selection or on request.
+    const [connectionMode, setConnectionMode] = useState('panels');
     const [hidden, setHidden] = useState(defaults);
     const [kinds, setKinds] = useState(['linkTo']);
     // A neighborhood answers "what is this schema connected to", so it opens with every relationship kind;
@@ -112,7 +113,7 @@ export default function Diagram({
     useEffect(() => {
         setNeighbors(false);
         setMoves({});
-        setConnectionMode('shared');
+        setConnectionMode('panels');
         if (route.view === 'concept') setArrangement('hierarchical');
     }, [routeKey]);
     const edges = useMemo(
@@ -154,7 +155,7 @@ export default function Diagram({
         const candidates = new Set([...connected].filter((name) => !hidden.includes(name)));
         const incident = groupRelationships(edges.filter((e) => (e.from === neighborhoodSelection || e.to === neighborhoodSelection) &&
             candidates.has(e.from) && candidates.has(e.to)));
-        const collapsed = connectionMode === 'shared' ? sharedRelationships(index, incident, candidates) : { groups: incident, inherited: {} };
+        const collapsed = connectionMode !== 'all' ? sharedRelationships(index, incident, candidates) : { groups: incident, inherited: {} };
         return { candidates, groups: collapsed.groups, inherited: collapsed.inherited,
             names: new Set([neighborhoodSelection, ...collapsed.groups.flatMap((g) => [g.from, g.to])]) };
     }, [neighborhoodSelection, connected, hidden, edges, connectionMode, index]);
@@ -214,7 +215,7 @@ export default function Diagram({
     const clustered = useMemo(() => {
         if (!showDomains) return { positions: {}, frames: [], layers: [] };
         if (researchOverview) return { positions: {}, frames: [], layers: [] };
-        const result = hierarchicalLayout(visible.filter((node) => !externalContextNames.has(node.name)), width, height, index.edges, layoutSize, concepts);
+        const result = hierarchicalLayout(visible.filter((node) => !externalContextNames.has(node.name)), width, height, index.edges, layoutSize, concepts, { gap: 56 });
         if (externalContextNames.size || externalBundles.length) {
             const right = Math.max(...result.frames.map((frame) => frame.left + frame.width));
             let row = 0;
@@ -248,7 +249,29 @@ export default function Diagram({
         : showDomains ? sharedRelationships(index, visibleGroups, names)
             : { groups: visibleGroups, inherited: {} }, [neighborhood, showDomains, index, visibleGroups, names]);
     const summarize = showDomains && !selected && connectionMode === 'shared';
-    const shownGroups = useMemo(() => {
+    // The default group map: one arrow per pair of panels (or panel and group card), carrying all its references.
+    const panelMode = showDomains && !selected && connectionMode === 'panels';
+    const panelView = useMemo(() => {
+        if (!panelMode) return null;
+        const owners = new Map(clustered.layers.flatMap((layer) => layer.names.map((name) => [name, layer.id])));
+        const cards = {};
+        for (const name of names) if (!owners.has(name) && positions[name]) { owners.set(name, name); cards[name] = positions[name]; }
+        for (const bundle of externalBundles) {
+            if (expandedExternal.includes(bundle.id) || !positions[bundle.name]) continue;
+            cards[bundle.name] = positions[bundle.name];
+            bundle.members.forEach((name) => owners.set(name, bundle.name));
+        }
+        const referenced = edges.filter((e) => showExternal || (domainFor(e.from) === domain && domainFor(e.to) === domain));
+        const { groups: arrows, inside } = panelRelationships(referenced, owners);
+        const boxes = Object.fromEntries(clustered.layers.map((layer) => [layer.id,
+            { x: layer.panel.left + layer.panel.width / 2, y: layer.panel.top + layer.panel.height / 2, width: layer.panel.width, height: layer.panel.height }]));
+        const labels = new Map([...clustered.layers.map((layer) => [layer.id, layer.label]),
+            ...externalBundles.map((bundle) => [bundle.name, bundle.label])]);
+        const members = new Map(clustered.layers.map((layer) => [layer.id, layer.names]));
+        externalBundles.forEach((bundle) => members.set(bundle.name, bundle.members));
+        return { groups: arrows, inside, anchors: { ...cards, ...boxes }, labels, members };
+    }, [panelMode, clustered, names, positions, externalBundles, expandedExternal, edges, showExternal, domain]);
+    const schemaGroups = useMemo(() => {
         const result = neighborhood ? neighborhood.groups : summarize ? shared.groups.filter((group) => group.from !== group.to) : scopedGroups;
         const bundled = externalBundles.filter((bundle) => !expandedExternal.includes(bundle.id)).flatMap((bundle) => {
             const matches = edges.filter((edge) => (focusMembers.has(edge.from) && bundle.members.includes(edge.to)) ||
@@ -270,6 +293,7 @@ export default function Diagram({
         });
         return [...result, ...bundled];
     }, [neighborhood, summarize, shared, scopedGroups, externalBundles, expandedExternal, edges, focusMembers, index, names]);
+    const shownGroups = panelView ? panelView.groups : schemaGroups;
     // A single group is named in the toolbar, so its title stays readable at every zoom level.
     const singleFrame = showDomains && clustered.frames.length === 1 ? clustered.frames[0] : null;
     // Explains only the node styles currently drawn; external schemas appear individually or bundled by group depending on how many there are.
@@ -280,14 +304,16 @@ export default function Diagram({
         externalContextNames.size > 0 && ['external', 'Schema from another group (labelled above the card)'],
         externalBundles.some((bundle) => !expandedExternal.includes(bundle.id)) && ['bundle', 'Another group, collapsed: Expand to list its schemas'],
         summarize && ['covered', 'Hover an arrow to trace it; an arrow from a base type also marks the subtypes that inherit it'],
-        ['arrow', 'Arrow points to the referenced schema'],
+        panelMode ? ['arrow', 'Arrow joins two panels and carries every reference between them; point at it for its schemas']
+            : ['arrow', 'Arrow points to the referenced schema'],
     ].filter(Boolean) : [];
     // The reading note for the current view; it moved with the legend into the canvas info popover.
     const guideNote = selected ? ''
-        : conceptContext ? `Highlighted schemas belong to ${conceptContext.label}. Select a schema or arrow to explore its relationships. Drag to pan; scroll to zoom.`
+        : conceptContext ? `Highlighted schemas belong to ${conceptContext.label}.${panelMode ? ' Arrows join panels; select a schema for its own links.' : ''} Drag to pan; scroll to zoom.`
             : !showDomains ? 'Drag the background to pan, scroll to zoom, or drag a type to move it. Select a type to highlight its neighbors; select an edge to inspect its fields.'
-                : summarize ? 'Inherited references are drawn once at their visible base type. Select a type for its exact links, including self-references, or choose All references.'
-                    : 'All references are expanded. Select a type to focus its connections, or choose Shared definitions to combine inherited links.';
+                : panelMode ? 'Arrows join panels. Select a schema for its own links, or choose Shared definitions under Connections for every schema arrow.'
+                    : summarize ? 'Inherited references are drawn once at their visible base type. Select a type for its exact links, including self-references, or choose All references.'
+                        : 'All references are expanded. Select a type to focus its connections, or choose Shared definitions to combine inherited links.';
     const title = neighbors ? selected
         : singleFrame?.label || domains.find((d) => d.id === domain)?.label || 'All schemas';
     const eyebrow = neighbors ? 'Schema neighborhood' : domain ? 'Schema group' : '';
@@ -298,9 +324,13 @@ export default function Diagram({
         ...clustered.layers,
         ...[...externalContextNames].filter((name) => positions[name]).map((name) => {return { left: positions[name].x - width / 2, top: positions[name].y - height / 2 - 20, width, height: 18 };}),
     ] : [], [neighborhoodView, showDomains, clustered, externalContextNames, positions]);
-    const routes = useMemo(() => routed
-        ? routeEdges(positions, shownGroups, width, height, headings, { spreadPorts: true }) : {},
-    [routed, positions, shownGroups, headings]);
+    // Panel arrows run between panel boxes and group cards, so the schema cards inside panels are not obstacles.
+    const routes = useMemo(() => panelView ? routeEdges(panelView.anchors, shownGroups, width, height, [], { spreadPorts: true })
+        : routed ? routeEdges(positions, shownGroups, width, height, headings, { spreadPorts: true }) : {},
+    [panelView, routed, positions, shownGroups, headings]);
+    // A panel arrow's ends are panels; the label names the panel, and its schemas are traced with it.
+    const endLabel = (name) => panelView?.labels.get(name) || externalBundles.find((bundle) => bundle.name === name)?.label || name;
+    const panelTrace = (g) => { return { ...g, ends: new Set([g.from, g.to, ...(panelView.members.get(g.from) || [g.from]), ...(panelView.members.get(g.to) || [g.to])]) }; };
     const bounds = useMemo(() => {
         // The research map lays out its own nodes, so this view has no positions of its own.
         const points = visible.filter((n) => positions[n.name]).flatMap((n) => [
@@ -438,12 +468,14 @@ export default function Diagram({
     };
     const inspect = (group) =>
         onDetail({
-            title: group.bundled ? `${conceptContext?.label || domains.find((d) => d.id === domain)?.label}: external relationships` : `${group.from} → ${group.to}`,
+            title: group.panel ? `${endLabel(group.from)} → ${endLabel(group.to)}`
+                : group.bundled ? `${conceptContext?.label || domains.find((d) => d.id === domain)?.label}: external relationships` : `${group.from} → ${group.to}`,
             value: group.edges,
             relationship: group.edges,
-            intro: group.shared
-                ? `Shared definition drawn once at ${group.from}. The exact references from all represented schemas are listed below. [] denotes an array.`
-                : '[] denotes an array. Arrows point to the referenced type.',
+            intro: group.panel ? `Every reference from a schema in ${endLabel(group.from)} to one in ${endLabel(group.to)}. [] denotes an array.`
+                : group.shared
+                    ? `Shared definition drawn once at ${group.from}. The exact references from all represented schemas are listed below. [] denotes an array.`
+                    : '[] denotes an array. Arrows point to the referenced type.',
             sources: group.edges.flatMap(
                 (e) =>
                     index.models
@@ -493,7 +525,7 @@ export default function Diagram({
     // The first tooltip line names the arrow as drawn (a shared base or a collapsed group can stand in
     // for the exact endpoints); the exact schema references follow.
     const edgeTooltip = (g) => {
-        const end = (name) => externalBundles.find((bundle) => bundle.name === name)?.label || name;
+        const end = endLabel;
         const heirs = new Set(g.edges.map((e) => e.from).filter((name) => name !== g.from)).size;
         const note = g.shared && heirs ? ` · defined on ${g.from}, inherited by ${heirs} ${heirs === 1 ? 'schema' : 'schemas'}` : '';
         const header = `${end(g.from)} → ${end(g.to)}${note}`;
@@ -503,6 +535,10 @@ export default function Diagram({
     };
     // The map verb next to the exact field ties a schema arrow to its Donor to data sentence.
     const edgeCaption = (g) => {
+        if (g.panel) {
+            const unique = [...new Set(g.edges.map((e) => e.field))];
+            return unique.length === 1 ? unique[0] : `${unique.length} fields`;
+        }
         const fields = [...new Set(g.edges.map((e) => e.field))].join(', ');
         const sentence = g.edges.map(mapSentence).find(Boolean);
         const heirs = g.shared ? new Set(g.edges.map((e) => e.from).filter((name) => name !== g.from)).size : 0;
@@ -510,6 +546,11 @@ export default function Diagram({
     };
     // Neighborhood labels reuse the metadata map's placement: each sits on its arrow's longest run,
     // clear of every card and of the labels placed before it.
+    const panelLabels = panelView ? researchLabels({
+        nodes: Object.keys(panelView.anchors).map((id) => {return { id };}),
+        positions: panelView.anchors, nodeWidth: width, nodeHeight: height,
+        edges: shownGroups.map((g) => {return { key: g.key, label: edgeCaption(g) };}),
+    }, routes, { avoidRoutes: true }) : {};
     const neighborhoodLabels = neighborhoodView ? researchLabels({
         nodes: visible.map((n) => {return { id: n.name };}),
         positions, nodeWidth: width, nodeHeight: height,
@@ -554,7 +595,7 @@ export default function Diagram({
         const wanted = new Set((references || []).map((e) => `${e.from}.${e.field}>${e.to}`));
         const traced = shownGroups.filter((g) => g.edges.some((e) => wanted.has(`${e.from}.${e.field}>${e.to}`)));
         setHoverEdge(traced.length ? { key: 'concept-trace', keys: new Set(traced.map((g) => g.key)),
-            ends: new Set(traced.flatMap((g) => [g.from, g.to])), edges: traced.flatMap((g) => g.edges) } : null);
+            ends: new Set(traced.flatMap((g) => [g.from, g.to, ...g.edges.flatMap((e) => [e.from, e.to])])), edges: traced.flatMap((g) => g.edges) } : null);
     }, [shownGroups]);
     const tracedEnds = useMemo(() => new Set(hoverEdge ? hoverEdge.ends || [hoverEdge.from, hoverEdge.to] : []), [hoverEdge]);
     const drawnGroups = shownGroups;
@@ -617,8 +658,9 @@ export default function Diagram({
                     <span className="se-control-label">Show</span>
                     {(showDomains || neighborhoodView) && (
                         <label>Connections
-                            <select aria-label="Connection detail" value={selected && !neighborhoodView ? 'selected' : connectionMode} onChange={(event) => { setConnectionMode(event.target.value); setMoves({}); }} disabled={!!selected && !neighborhoodView}>
+                            <select aria-label="Connection detail" value={selected && !neighborhoodView ? 'selected' : neighborhoodView && connectionMode === 'panels' ? 'shared' : connectionMode} onChange={(event) => { setConnectionMode(event.target.value); setMoves({}); }} disabled={!!selected && !neighborhoodView}>
                                 {selected && !neighborhoodView && <option value="selected">Selected type: exact links</option>}
+                                {!neighborhoodView && <option value="panels">Between panels</option>}
                                 <option value="shared">Shared definitions</option>
                                 <option value="all">All references</option>
                             </select>
@@ -825,12 +867,16 @@ export default function Diagram({
                             </g>
                         ))}
                         {showDomains && clustered.layers.map((layer) => (
-                            <rect key={`panel-${layer.id}`} className={`se-stage-panel${conceptContext && layer.concept === conceptContext.id ? ' se-stage-current' : ''}`} x={layer.panel.left} y={layer.panel.top} width={layer.panel.width} height={layer.panel.height} rx="4" />
+                            <rect key={`panel-${layer.id}`} className={`se-stage-panel${conceptContext && layer.concept === conceptContext.id ? ' se-stage-current' : ''}${tracedEnds.has(layer.id) ? ' se-stage-traced' : ''}`} x={layer.panel.left} y={layer.panel.top} width={layer.panel.width} height={layer.panel.height} rx="4" />
                         ))}
                         {showDomains && clustered.layers.map((layer) => (
                             <g key={layer.id}>
                                 <circle cx={layer.left + 3} cy={layer.top + 12} r="3" fill={stageAccent(layer.id.slice(layer.domain.length + 1))} aria-hidden="true" />
-                                <text className="se-stage-label" x={layer.left + 12} y={layer.top + 18}>{layer.label}</text>
+                                <text className="se-stage-label" x={layer.left + 12} y={layer.top + 18}>
+                                    {layer.label}
+                                    {/* Links between schemas of one panel draw no arrow in the panel view; they are counted here. */}
+                                    {panelView?.inside.get(layer.id) > 0 && <tspan className="se-stage-inside" dx="10">{panelView.inside.get(layer.id)} {panelView.inside.get(layer.id) === 1 ? 'link' : 'links'} inside</tspan>}
+                                </text>
                             </g>
                         ))}
                         {neighborhoodView?.panels.map((panel) => (
@@ -843,8 +889,8 @@ export default function Diagram({
                             if (routed && !routes[g.key]) return null;
                             const displayKind = g.reverse && kinds.includes('reverse') &&
                                 !kinds.includes(g.kind) ? 'reverse' : g.kind;
-                            const a = positions[g.from],
-                                b = positions[g.to],
+                            const a = (panelView?.anchors || positions)[g.from],
+                                b = (panelView?.anchors || positions)[g.to],
                                 dx = b.x - a.x,
                                 dy = b.y - a.y;
                             const factor = Math.min(
@@ -880,15 +926,15 @@ export default function Diagram({
                                             : 'se-dim'
                                         : ''}>
                                     <path
-                                        className={`se-edge ${displayKind}${hoverEdge?.key === g.key || hoverEdge?.keys?.has(g.key) ? ' se-traced-edge' : ''}`}
+                                        className={`se-edge ${displayKind}${g.panel ? ' se-panel-edge' : ''}${hoverEdge?.key === g.key || hoverEdge?.keys?.has(g.key) ? ' se-traced-edge' : ''}`}
                                         d={routed ? routes[g.key].d : d}
                                         markerEnd={`url(#${markerPrefix}-${displayKind})`}
                                         tabIndex={0}
                                         role="button"
-                                        aria-label={`${g.from} to ${g.to}`}
+                                        aria-label={g.panel ? `${endLabel(g.from)} to ${endLabel(g.to)}: ${edgeCaption(g)}` : `${g.from} to ${g.to}`}
                                         onClick={() => inspect(g)}
-                                        onMouseEnter={() => setHoverEdge(g)} onMouseLeave={() => setHoverEdge(null)}
-                                        onFocus={() => setHoverEdge(g)} onBlur={() => setHoverEdge(null)}
+                                        onMouseEnter={() => setHoverEdge(g.panel ? panelTrace(g) : g)} onMouseLeave={() => setHoverEdge(null)}
+                                        onFocus={() => setHoverEdge(g.panel ? panelTrace(g) : g)} onBlur={() => setHoverEdge(null)}
                                         onKeyDown={(e) => {
                                             if (
                                                 e.key === 'Enter' ||
@@ -900,7 +946,12 @@ export default function Diagram({
                                         }}>
                                         <title>{edgeTooltip(g)}</title>
                                     </path>
-                                    {neighborhoodView ? neighborhoodLabels[g.key] && (
+                                    {g.panel ? panelLabels[g.key] && (
+                                        <text className="se-edge-label se-panel-edge-label" x={panelLabels[g.key].left + panelLabels[g.key].width / 2}
+                                            y={panelLabels[g.key].top + 15} onClick={() => inspect(g)}>
+                                            {edgeCaption(g)}
+                                        </text>
+                                    ) : neighborhoodView ? neighborhoodLabels[g.key] && (
                                         <text className="se-edge-label" x={neighborhoodLabels[g.key].left + neighborhoodLabels[g.key].width / 2}
                                             y={neighborhoodLabels[g.key].top + 15} onClick={() => inspect(g)}>
                                             {edgeCaption(g)}
