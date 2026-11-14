@@ -21,7 +21,8 @@ export function neighborhoodSides(selected, groups) {
     return { incoming: [...incoming], outgoing: [...outgoing] };
 }
 
-function column(names, x, nodeWidth, nodeHeight, side) {
+// The schemas of one side, grouped by catalog group and in catalog order.
+function blocksOf(names) {
     const order = new Map(domains.map((domain, i) => [domain.id, i]));
     const byDomain = new Map();
     for (const name of [...names].sort()) {
@@ -29,7 +30,10 @@ function column(names, x, nodeWidth, nodeHeight, side) {
         if (!byDomain.has(id)) byDomain.set(id, []);
         byDomain.get(id).push(name);
     }
-    const blocks = [...byDomain.entries()].sort(([a], [b]) => order.get(a) - order.get(b));
+    return [...byDomain.entries()].sort(([a], [b]) => order.get(a) - order.get(b));
+}
+
+function column(blocks, x, nodeWidth, nodeHeight, side) {
     const width = nodeWidth + inset * 2;
     const heights = blocks.map(([, members]) => headerHeight + members.length * nodeHeight + (members.length - 1) * nodeGap + bottomInset);
     let top = -(heights.reduce((sum, h) => sum + h, 0) + Math.max(0, blocks.length - 1) * panelGap) / 2;
@@ -50,12 +54,36 @@ function column(names, x, nodeWidth, nodeHeight, side) {
     return { positions, panels };
 }
 
+// Each side is one column, so arrows never cross another column. When one side is far busier than the other (a
+// schema many others reference but that references few, or the reverse), whole groups move to the quieter side
+// until the two columns are about even: the map is half as tall, and the arrowheads still give each link's direction.
+export function balanceSides(incoming, outgoing) {
+    const left = blocksOf(incoming), right = blocksOf(outgoing);
+    const count = (blocks) => blocks.reduce((sum, [, members]) => sum + members.length, 0);
+    const busy = count(right) >= count(left) ? right : left, quiet = busy === right ? left : right;
+    if (count(busy) <= 8 || count(busy) <= count(quiet) * 2) return { left, right };
+    // Move the busy side's groups from the end of its column (the catalog's later groups stay on the busy side, the
+    // earlier ones cross over) while that brings the two sides closer.
+    const moved = [];
+    while (busy.length > 1) {
+        const candidate = busy[0];
+        const gap = Math.abs(count(busy) - count(quiet) - count(moved));
+        const after = Math.abs(count(busy) - candidate[1].length - (count(quiet) + count(moved) + candidate[1].length));
+        if (after >= gap) break;
+        moved.push(busy.shift());
+    }
+    const merged = [...quiet, ...moved];
+    const sorted = blocksOf(merged.flatMap(([, members]) => members));
+    return busy === right ? { left: sorted, right: busy } : { left: busy, right: sorted };
+}
+
 export function neighborhoodLayout(selected, groups, nodeWidth, nodeHeight) {
     const { incoming, outgoing } = neighborhoodSides(selected, groups);
+    const { left: leftBlocks, right: rightBlocks } = balanceSides(incoming, outgoing);
     const step = nodeWidth + inset * 2 + columnGap;
-    const center = column([selected], 0, nodeWidth, nodeHeight, 'selected');
-    const left = column(incoming, -step, nodeWidth, nodeHeight, 'incoming');
-    const right = column(outgoing, step, nodeWidth, nodeHeight, 'outgoing');
+    const center = column(blocksOf([selected]), 0, nodeWidth, nodeHeight, 'selected');
+    const left = column(leftBlocks, -step, nodeWidth, nodeHeight, 'incoming');
+    const right = column(rightBlocks, step, nodeWidth, nodeHeight, 'outgoing');
     return {
         positions: { ...left.positions, ...right.positions, ...center.positions },
         panels: [...left.panels, ...center.panels, ...right.panels],

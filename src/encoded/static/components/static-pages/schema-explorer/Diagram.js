@@ -219,7 +219,9 @@ export default function Diagram({
     // Group maps and schema neighborhoods size the canvas to their content, so a small neighborhood is neither blown up
     // nor framed by empty bands above and below.
     const fitToContent = groupMap || (neighbors && !!selected);
-    const budgetHeight = Math.max(400, windowHeight * 0.65);
+    // A schema neighborhood keeps one column per side (busy sides are balanced across both), so it may be tall: its
+    // canvas may take the whole window below the toolbar, so the map is seen at once without zooming the page out.
+    const budgetHeight = neighbors && !!selected ? Math.max(400, windowHeight - 140) : Math.max(400, windowHeight * 0.65);
     const layoutSize = useMemo(() => fitToContent ? { width: size.width, height: budgetHeight } : size,
         [fitToContent, size.width, fitToContent ? budgetHeight : size.height]);
     const allPositions = useMemo(() => showDomains ? {} : layout(visible, groups, layoutSize), [showDomains, visible, groups, layoutSize]);
@@ -461,6 +463,9 @@ export default function Diagram({
             layoutSize.width / (bounds.right - bounds.left),
             layoutSize.height / (bounds.bottom - bounds.top)
         );
+        // A tall neighborhood keeps a readable scale and lets its canvas grow (the page scrolls), but it always fits
+        // the canvas's width: a reader can scroll down a page, not sideways inside a map.
+        if (neighbors && !showDomains && readable) return Math.min(layoutSize.width / (bounds.right - bounds.left), Math.max(0.75, fitted));
         return Math.max(showDomains && readable ? externalBundles.length ? 0.65 : 0.85 : 0.05, fitted);
     }, [bounds.left, bounds.right, bounds.top, bounds.bottom, layoutSize, showDomains, externalBundles.length, neighbors]);
     // Set once the reader zooms, pans or drags, so automatic refits stop overriding their view.

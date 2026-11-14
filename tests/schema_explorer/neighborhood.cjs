@@ -4,7 +4,7 @@ const url=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('b
 (async()=>{
  const read=name=>fs.readFileSync(base+name+'.js','utf8');
  const domainsUrl=url(read('domains'));
- const {neighborhoodLayout,neighborhoodSides}=await import(url(read('neighborhood').replace("'./domains'",JSON.stringify(domainsUrl))));
+ const {neighborhoodLayout,neighborhoodSides,balanceSides}=await import(url(read('neighborhood').replace("'./domains'",JSON.stringify(domainsUrl))));
  const {domains,domainFor}=await import(domainsUrl);
  const {routeEdges,segmentClear}=await import(url(read('routing')));
  const {researchLabels}=await import(url(read('research-map')));
@@ -60,6 +60,18 @@ const url=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('b
    }
   }
   if(selected!=='File')assert.equal(Object.keys(labels).length,groups.length,`${selected}: every arrow is labelled`);
+ }
+ // A lopsided neighborhood moves whole groups to its quiet side, so both columns are about even; schemas that link to
+ // the selection never move right.
+ {
+  const groups=neighborhood('OutputFile',['linkTo','calculated','reverse']);
+  const {incoming,outgoing}=neighborhoodSides('OutputFile',groups);
+  const {positions}=neighborhoodLayout('OutputFile',groups,236,66);
+  const left=[...incoming,...outgoing].filter(n=>positions[n].x<0).length,right=[...incoming,...outgoing].filter(n=>positions[n].x>0).length;
+  assert.ok(outgoing.length>8 && Math.abs(left-right)<=Math.ceil((left+right)/3),`OutputFile spreads over both sides (${left} left, ${right} right)`);
+  for(const name of incoming)assert.ok(positions[name].x<0,`${name} links to OutputFile and stays on the left`);
+  const even=balanceSides(['A'],['B','C']);
+  assert.deepEqual([even.left.length,even.right.length],[1,1],'A balanced neighborhood is left as it is');
  }
  console.log('Neighborhood: direction columns, shared inherited links, group panels, routed arrows and unambiguous labels passed.');
 })();
