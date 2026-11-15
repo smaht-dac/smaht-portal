@@ -798,6 +798,8 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.locator('#entity-svg .se-edge-label',{hasText:/^sequence_files\[\]$/}).waitFor();
  assert.equal(await page.locator('#entity-svg .se-edge').count(),beforeSplit+1,'The two fields are drawn as two arrows');
  assert.equal(await page.getByRole('dialog').count(),0,'Splitting does not open the details');
+ await page.waitForTimeout(400);
+ assert.deepEqual(await page.locator('#entity-svg').evaluate(svg=>{const r=svg.getBoundingClientRect();return [...svg.querySelectorAll('.se-edge-label')].filter(l=>{const b=l.getBoundingClientRect();return b.bottom>r.bottom+1||b.top<r.top-1||b.left<r.left-1||b.right>r.right+1;}).map(l=>l.textContent);}),[],'The split arrows\' labels stay on the canvas');
  await page.locator('#entity-svg .se-edge-label',{hasText:/^sequence_files\[\]$/}).click();
  await page.getByRole('dialog').waitFor();
  await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();

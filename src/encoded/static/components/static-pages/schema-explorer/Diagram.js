@@ -222,8 +222,8 @@ export default function Diagram({
     // nor framed by empty bands above and below.
     const fitToContent = groupMap || (neighbors && !!selected);
     // A schema neighborhood keeps one column per side (busy sides are balanced across both), so it may be tall: its
-    // canvas may take the whole window below the toolbar, so the map is seen at once without zooming the page out.
-    const budgetHeight = neighbors && !!selected ? Math.max(400, windowHeight - 140) : Math.max(400, windowHeight * 0.65);
+    // canvas may grow a little past the window (a short scroll) so a busy neighborhood keeps a readable scale.
+    const budgetHeight = neighbors && !!selected ? Math.max(400, windowHeight * 1.15) : Math.max(400, windowHeight * 0.65);
     const layoutSize = useMemo(() => fitToContent ? { width: size.width, height: budgetHeight } : size,
         [fitToContent, size.width, fitToContent ? budgetHeight : size.height]);
     const allPositions = useMemo(() => showDomains ? {} : layout(visible, groups, layoutSize), [showDomains, visible, groups, layoutSize]);
@@ -462,6 +462,12 @@ export default function Diagram({
             // An arrow looping around the outside of a side column carries its label there, so that label is content too.
             const left = Math.min(...neighborhoodView.panels.map(({ panel }) => panel.left));
             const right = Math.max(...neighborhoodView.panels.map(({ panel }) => panel.left + panel.width));
+            // A branch's label sits just above or below its own run (up to 24px off the line, 22px tall), so that band
+            // is content too: a label below the lowest card must not fall off the canvas.
+            Object.values(routes).forEach((route) => {
+                const run = route.labelRun !== undefined && route.points[route.labelRun + 1] ? [route.points[route.labelRun], route.points[route.labelRun + 1]] : null;
+                if (run && run[0].y === run[1].y) points.push({ x: Math.min(run[0].x, run[1].x), y: run[0].y - 44 }, { x: Math.max(run[0].x, run[1].x), y: run[0].y + 44 });
+            });
             // A label sits beside its run and may slide sideways by up to its own width, so the room is a whole label.
             Object.values(routes).flatMap((route) => route.points).filter((p) => p.x <= left + 1 || p.x >= right - 1)
                 .forEach((p) => points.push({ x: p.x + (p.x <= left + 1 ? -240 : 240), y: p.y }));
@@ -495,7 +501,7 @@ export default function Diagram({
         );
         // A tall neighborhood keeps a readable scale and lets its canvas grow (the page scrolls), but it always fits
         // the canvas's width: a reader can scroll down a page, not sideways inside a map.
-        if (neighbors && !showDomains && readable) return Math.min(layoutSize.width / (bounds.right - bounds.left), Math.max(0.75, fitted));
+        if (neighbors && !showDomains && readable) return Math.min(layoutSize.width / (bounds.right - bounds.left), Math.max(0.9, fitted));
         return Math.max(showDomains && readable ? externalBundles.length ? 0.65 : 0.85 : 0.05, fitted);
     }, [bounds.left, bounds.right, bounds.top, bounds.bottom, layoutSize, showDomains, externalBundles.length, neighbors]);
     // Set once the reader zooms, pans or drags, so automatic refits stop overriding their view.
@@ -523,7 +529,7 @@ export default function Diagram({
     const fitHeight = fitToContent ? 0 : size.height;
     useEffect(() => {
         fit();
-    }, [index, hidden, kinds, neighbors, layoutFocus, size.width, fitHeight, full, domain, arrangement, connectionMode, conceptContext, expandedExternal, showExternal, openedArrow]);
+    }, [index, hidden, kinds, neighbors, layoutFocus, size.width, fitHeight, full, domain, arrangement, connectionMode, conceptContext, expandedExternal, showExternal, openedArrow, splitArrow]);
     // A neighborhood settles over a few renders (relationship kinds, routes, the canvas growing to its own height);
     // until the reader moves the view, it is refitted to whatever it finally measures.
     useEffect(() => {
