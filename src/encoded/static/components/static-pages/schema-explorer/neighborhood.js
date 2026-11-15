@@ -126,7 +126,7 @@ export function neighborhoodRoutes(selected, groups, positions, nodeWidth, nodeH
             const n = atCard.get(otherName) || 0, total = meeting.get(otherName) || 1;
             atCard.set(otherName, n + 1);
             // Far enough apart for a label above each branch, and never past the card's own side.
-            const gap = total > 1 ? Math.min(pairGap, (nodeHeight - 16) / (total - 1)) : 0;
+            const gap = total > 1 ? Math.min(pairGap, (nodeHeight - 10) / (total - 1)) : 0;
             const farY = other.y + (n - (total - 1) / 2) * gap;
             const nearY = c.y + (both ? (incoming ? -12 : 12) : 0);
             const farX = other.x - sign * nodeWidth / 2;

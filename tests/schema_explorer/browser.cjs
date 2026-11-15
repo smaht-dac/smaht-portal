@@ -790,6 +790,22 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  // A neighborhood is drawn at most life-size, on a canvas cut to its content.
  const nbFit=await page.locator('#entity-svg').evaluate(svg=>({scale:svg.querySelector(':scope > g').transform.baseVal.consolidate().matrix.a,height:svg.clientHeight,content:svg.querySelector(':scope > g').getBoundingClientRect().height}));
  assert.ok(nbFit.scale<=1.001 && nbFit.height<=nbFit.content+80,`The neighborhood is neither enlarged nor padded (${JSON.stringify(nbFit)})`);
+ // In a neighborhood an arrow carrying several fields opens into one arrow per field; a field's arrow shows its details.
+ await page.evaluate(()=>{location.hash='#schemas/DonorSpecificAssembly/connections';});
+ await page.locator('#entity-svg .se-edge-label',{hasText:/^2 fields$/}).first().waitFor();
+ const beforeSplit=await page.locator('#entity-svg .se-edge').count();
+ await page.locator('#entity-svg .se-edge-label',{hasText:/^2 fields$/}).first().click();
+ await page.locator('#entity-svg .se-edge-label',{hasText:/^sequence_files\[\]$/}).waitFor();
+ assert.equal(await page.locator('#entity-svg .se-edge').count(),beforeSplit+1,'The two fields are drawn as two arrows');
+ assert.equal(await page.getByRole('dialog').count(),0,'Splitting does not open the details');
+ await page.locator('#entity-svg .se-edge-label',{hasText:/^sequence_files\[\]$/}).click();
+ await page.getByRole('dialog').waitFor();
+ await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click();
+ await page.locator('.modal-backdrop').waitFor({state:'detached'});
+ await page.locator('#entity-svg').focus();await page.keyboard.press('Escape');
+ await page.locator('#entity-svg .se-edge-label',{hasText:/^2 fields$/}).waitFor();
+ await page.evaluate(()=>{location.hash='#schemas/ProtectedDonor/connections';});
+ await page.locator('#heading h2',{hasText:/^ProtectedDonor$/}).waitFor();
  const bar=page.getByRole('status',{name:'Selected schema',exact:true});
  assert.equal(await page.locator('#entity-show-neighborhood').textContent(),'Show in group map','The way out of a neighborhood names where it goes');
  assert.equal(await bar.getByRole('button',{name:/^Clear selection of /}).count(),0,'A neighborhood offers no second way to the group map');

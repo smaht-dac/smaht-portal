@@ -121,7 +121,7 @@ export function researchLabels(graph, routes, { avoidRoutes = false, extra = [] 
         for (const { a, b } of own ? segments.filter((segment) => segment.preferred) : segments) {
             // The .61/.39 positions also cover tight horizontal gaps where a
             // centered label misses the few pixels available beside a card.
-            for (const fraction of own ? [0.5, 0.61, 0.39, 0.7, 0.3] : [0.5, 0.61, 0.39, 0.35, 0.65]) {
+            for (const fraction of own ? [0.5, 0.61, 0.39, 0.7, 0.3, 0.25, 0.75] : [0.5, 0.61, 0.39, 0.35, 0.65]) {
                 const x = a.x + (b.x - a.x) * fraction, y = a.y + (b.y - a.y) * fraction;
                 // A vertical run through a narrow column gap only fits a label slid sideways
                 // while it still covers the line, so those shifts are tried last.
@@ -129,11 +129,16 @@ export function researchLabels(graph, routes, { avoidRoutes = false, extra = [] 
                 // Keep labels clear of horizontal connectors so the complete
                 // line and its direction remain visible at a glance.
                 // Branches close together leave room only just above or below their own line.
-                const offsets = a.y === b.y ? [[0, -24], [0, 24], ...(own ? [[0, -12], [0, 12]] : [])] : [[width / 2 + 8, 0], [-width / 2 - 8, 0], [0, 0], ...shifts];
+                // A crowded branch's label goes just above its own line, then onto it.
+                const offsets = a.y === b.y ? [[0, -24], [0, 24], ...(own ? [[0, -12], [0, 12], [0, -8], [0, 0]] : [])] : [[width / 2 + 8, 0], [-width / 2 - 8, 0], [0, 0], ...shifts];
                 for (const [dx, dy] of offsets) {
                     const box = { left: x + dx - width / 2, top: y + dy - height / 2, width, height };
-                    if (obstacles.some((obstacle) => intersects(box, obstacle, 3)) || crosses(box, edge.key)) continue;
-                    chosen = box; break;
+                    // Last resort on a crowded branch: the label sits on its own line (its white halo keeps it legible),
+                    // so only its text height must stay clear of the neighbouring lines and labels.
+                    const onLine = own && a.y === b.y && (dy === 0 || dy === -8);
+                    const check = onLine ? { ...box, top: y + dy - 5, height: 10 } : box;
+                    if (obstacles.some((obstacle) => intersects(check, obstacle, onLine ? 1 : 3)) || crosses(check, edge.key)) continue;
+                    chosen = box; if (onLine) chosen.check = check; break;
                 }
                 if (chosen) break;
             }
@@ -144,7 +149,7 @@ export function researchLabels(graph, routes, { avoidRoutes = false, extra = [] 
             const { a, b } = segments.find((segment) => segment.preferred) || segments[0];
             chosen = { left: (a.x + b.x) / 2 - width / 2, top: (a.y + b.y) / 2 - 12 - height / 2, width, height };
         }
-        if (chosen) { labels[edge.key] = chosen; obstacles.push(chosen); }
+        if (chosen) { labels[edge.key] = chosen; obstacles.push(chosen.check || chosen); }
     }
     return labels;
 }

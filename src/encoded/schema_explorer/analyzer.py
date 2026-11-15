@@ -460,7 +460,9 @@ class Index:
                             edge['via'] = pair[1]
                             edge['reverse'] = True
                     else:
-                        edges.append({'from': model['name'], 'to': pair[0], 'field': field,
+                        # A reverse link always returns a list of items, so it is named as an array like the
+                        # calculated properties that expose one.
+                        edges.append({'from': model['name'], 'to': pair[0], 'field': field + '[]',
                                       'via': pair[1], 'kind': 'reverse'})
         return {'models': sorted(models, key=lambda m: m['name']), 'edges': edges,
                 'warnings': self.warnings, 'packages': {k: str(v) for k, v in self.packages.items()},

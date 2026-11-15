@@ -51,6 +51,8 @@ export default function Diagram({
     const [hoverState, setHoverEdge] = useState(null);
     // A panel arrow the reader opened: drawn as the schema-to-schema arrows it carries.
     const [openedArrow, setOpened] = useState(null);
+    // A schema arrow of a neighborhood that carries several fields, split into one arrow per field.
+    const [splitArrow, setSplitArrow] = useState(null);
     // The arrow or label just clicked disappears as the map redraws, so it never reports the pointer leaving it.
     const setOpenedArrow = (key) => { setHoverEdge(null); setOpened(key); };
     const [neighbors, setNeighbors] = useState(false),
@@ -338,21 +340,36 @@ export default function Diagram({
     // Inherited references are drawn once at their base type, as with shared definitions.
     const schemaArrowsOf = useCallback((panelGroup) => sharedRelationships(index, groupRelationships(panelGroup.edges), names).groups
         .filter((g) => g.from !== g.to), [index, names]);
+    const fieldsOf = (g) => [...new Set(g.edges.map((e) => e.field))];
+    // In a neighborhood an arrow standing for several fields opens into one arrow per field, each with its own label.
+    const splitGroups = useCallback((groups) => groups.flatMap((g) => (g.key !== splitArrow ? [g]
+        : fieldsOf(g).map((field) => { return { ...g, key: `${g.key}|${field}`, edges: g.edges.filter((e) => e.field === field), split: true }; }))), [splitArrow]);
     const shownGroups = useMemo(() => (openedPanel
         ? schemaArrowsOf(openedPanel).map((g) => { return { ...g, key: `open:${g.key}`, opened: true }; })
-        : panelView ? panelView.groups : schemaGroups), [openedPanel, panelView, schemaGroups, schemaArrowsOf]);
+        : panelView ? panelView.groups : neighborhoodView && splitArrow ? splitGroups(schemaGroups) : schemaGroups),
+    [openedPanel, panelView, schemaGroups, schemaArrowsOf, neighborhoodView, splitArrow, splitGroups]);
     // Only a panel arrow that stands for several schema arrows opens; one that stands for a single arrow already
     // shows all there is, so a click goes straight to its details.
     const opensInto = useMemo(() => new Map((panelView?.groups || []).map((g) => [g.key, schemaArrowsOf(g).length])), [panelView, schemaArrowsOf]);
     const activate = (g) => {
-        if (g.panel && !g.cardArrow && (opensInto.get(g.key) || 0) > 1) setOpenedArrow(g.key); else inspect(g);
+        if (g.panel && !g.cardArrow && (opensInto.get(g.key) || 0) > 1) setOpenedArrow(g.key);
+        else if (neighborhoodView && !g.split && fieldsOf(g).length > 1) { setHoverEdge(null); setSplitArrow(g.key); }
+        else inspect(g);
     };
     // While an arrow is open its schemas stay marked and the rest of the map steps back, as when pointing at it.
     const openedTrace = useMemo(() => openedPanel && { key: 'opened', keys: new Set(shownGroups.map((g) => g.key)), edges: openedPanel.edges,
         ends: new Set([openedPanel.from, openedPanel.to, ...openedPanel.edges.flatMap((e) => [e.from, e.to])]) }, [openedPanel, shownGroups]);
-    const hoverEdge = hoverState || openedTrace;
+    // A split arrow keeps the map's attention on its fields' arrows, as an opened panel arrow does.
+    const splitTrace = useMemo(() => {
+        if (!splitArrow) return null;
+        const parts = shownGroups.filter((g) => g.split);
+        return parts.length ? { key: 'split', keys: new Set(parts.map((g) => g.key)), edges: parts.flatMap((g) => g.edges),
+            ends: new Set(parts.flatMap((g) => [g.from, g.to])) } : null;
+    }, [splitArrow, shownGroups]);
+    const hoverEdge = hoverState || openedTrace || splitTrace;
     // Leaving the panel view, or changing what it draws, closes the opened arrow.
     useEffect(() => { setOpened(null); }, [connectionMode, selected, kinds, showExternal]);
+    useEffect(() => { setSplitArrow(null); }, [connectionMode, selected, kinds, showExternal, neighbors]);
     // A single group is named in the toolbar, so its title stays readable at every zoom level.
     const singleFrame = showDomains && clustered.frames.length === 1 ? clustered.frames[0] : null;
     // Explains only the node styles currently drawn; external schemas appear individually or bundled by group depending on how many there are.
@@ -1077,7 +1094,7 @@ export default function Diagram({
                         drag.current = null;
                         if (d && !d.moved && d.name) choose(d.name);
                         // A click on the empty canvas closes an opened arrow.
-                        if (d && !d.moved && !d.name) setOpenedArrow(null);
+                        if (d && !d.moved && !d.name) { setOpenedArrow(null); setSplitArrow(null); }
                         if (e.currentTarget.hasPointerCapture(e.pointerId))
                             e.currentTarget.releasePointerCapture(e.pointerId);
                     }}
@@ -1085,7 +1102,7 @@ export default function Diagram({
                         drag.current = null;
                     }}
                     onKeyDown={(e) => {
-                        if (e.key === 'Escape' && openedArrow) { setOpenedArrow(null); return; }
+                        if (e.key === 'Escape' && (openedArrow || splitArrow)) { setOpenedArrow(null); setSplitArrow(null); return; }
                         if (e.target !== e.currentTarget) return;
                         const delta = {
                             ArrowLeft: [50, 0],
@@ -1126,7 +1143,7 @@ export default function Diagram({
                     </defs>
                     <g
                         data-world=""
-                        className={`${hoverEdge ? 'se-tracing-inheritance' : ''}${openedPanel && !hoverState ? ' se-opened-arrow' : ''}` || undefined}
+                        className={`${hoverEdge ? 'se-tracing-inheritance' : ''}${(openedPanel || splitTrace) && !hoverState ? ' se-opened-arrow' : ''}` || undefined}
                         transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
                         {showDomains && clustered.frames.map((frame) => (
                             <g key={frame.id} className="se-domain-frame">
@@ -1226,7 +1243,7 @@ export default function Diagram({
                                     </path>
                                     {g.panel || g.opened ? null : neighborhoodView ? neighborhoodLabels[g.key] && (
                                         <text className="se-edge-label" x={neighborhoodLabels[g.key].left + neighborhoodLabels[g.key].width / 2}
-                                            y={neighborhoodLabels[g.key].top + 15} onClick={() => inspect(g)}>
+                                            y={neighborhoodLabels[g.key].top + 15} onClick={() => activate(g)}>
                                             {edgeCaption(g, 26)}
                                         </text>
                                     ) : (neighbors ||

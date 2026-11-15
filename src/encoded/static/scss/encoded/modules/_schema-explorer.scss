@@ -336,6 +336,8 @@
         .entity-node:not(.se-covered):not(.se-covered-owner) { opacity: .3; }
         .se-edge:not(.se-traced-edge) { opacity: .08; }
         .se-edge.se-traced-edge { opacity: 1; stroke-width: 3; }
+        // The labels of arrows that are not traced step back with their lines.
+        g:not(:has(> .se-traced-edge)) > .se-edge-label { opacity: .25; }
         .se-panel-edge-chip:not(.se-traced-chip) { opacity: .25; }
         .se-panel-edge-chip.se-traced-chip rect { stroke: $cobalt-70; }
         .se-external-group-card:not(.se-traced-group) { opacity: .4; }
