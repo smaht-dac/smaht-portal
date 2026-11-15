@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Modal from 'react-bootstrap/esm/Modal';
+import ItemLinkDiagram from './ItemLinkDiagram';
 import { navigate } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/navigate';
 import Diagram from './Diagram';
 import ExplorerNav from './ExplorerNav';
@@ -360,7 +361,10 @@ export default function Explorer() {
                 {isAdmin && (
                     <details className="se-live-panel">
                         <summary>Inspect a live {model.name} item <small>Admin only · loads current portal data</small></summary>
-                        <LiveItem index={index} query="" onSelect={select} onBundle={setBundle} onDetail={setDetail} />
+                        {/* A loaded item selects its own schema without moving the reader: the map stays in the view it is
+                            in (group map or neighborhood) and the page does not scroll away from the item. */}
+                        <LiveItem index={index} query="" onBundle={setBundle} onDetail={setDetail}
+                            onSelect={(name) => go({ view: 'schema', schema: name, ...(route.view === 'schema' && route.connections ? { connections: true } : {}) })} />
                     </details>
                 )}
                 <Inspector key={model.name} {...{ model, index, live, links }} query="" onDetail={setDetail} onSource={source} />
@@ -419,7 +423,7 @@ export default function Explorer() {
             <Modal
                 show={!!detail}
                 onHide={closeDetail}
-                size="lg"
+                size={detail?.itemMap ? 'xl' : 'lg'}
                 className="schema-explorer-modal"
                 aria-labelledby="se-detail-title">
                 <Modal.Header closeButton>
@@ -428,7 +432,11 @@ export default function Explorer() {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body id="detail-content">
-                    {detail?.relationship ? (
+                    {detail?.itemMap ? (
+                        <ItemLinkDiagram key={`${detail.itemMap.field}|${detail.itemMap.id}`} map={detail.itemMap.map}
+                            initialField={detail.itemMap.field} initialId={detail.itemMap.id} onSource={source}
+                            onInspect={(id) => { closeDetail(); detail.itemMap.inspect(id); }} />
+                    ) : detail?.relationship ? (
                         <RelationshipDetails references={detail.relationship} index={index}
                             intro={detail.intro} meaning={detail.meaning} sources={detail.sources} onSource={source} />
                     ) : (

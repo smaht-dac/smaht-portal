@@ -71,7 +71,8 @@ export default function Planner({ index, initialSource, onClose, onSource }) {
                     Trace directed links from a starting type to a field on
                     another type. All resolved types are considered.
                 </p>
-                <form
+                {/* data-bypass: handled here, not by the portal app's form navigation (which drops the URL hash). */}
+                <form data-bypass="true"
                     id="path-form"
                     onSubmit={(e) => {
                         e.preventDefault();

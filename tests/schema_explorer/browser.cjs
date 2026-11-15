@@ -92,7 +92,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
   if(url.pathname==='/redirect/')return route.fulfill({status:302,headers:{location:'https://evil.test/demo/'}});
   if(url.pathname==='/demo/'){
    if(url.searchParams.get('frame')==='raw')return route.fulfill({status:403,json:{detail:'Forbidden'}});
-   return route.fulfill({json:{'@id':'/demo/','@type':['Donor'],uuid:'demo',accession:'DEMO',display_title:'Demo donor',principals_allowed:{view:['hidden-principal']},groups:['hidden-group'],donor_groups:['Visible study group'],profile:{roles:['hidden-role'],label:'Visible profile'}}});
+   return route.fulfill({json:{'@id':'/demo/','@type':['Donor'],uuid:'demo',accession:'DEMO',display_title:'Demo donor',principals_allowed:{view:['hidden-principal']},groups:['hidden-group'],donor_groups:['Visible study group'],protected_donor:'/protected-donors/demo-protected/',tissues:['/tissues/demo-tissue-a/','/tissues/demo-tissue-b/'],profile:{roles:['hidden-role'],label:'Visible profile'}}});
   }
   return route.fulfill({status:404,json:{detail:'Not found'}});
  });
@@ -721,8 +721,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  const openLivePanel=async()=>{if(!await page.locator('.se-live-panel').evaluate(panel=>panel.open))await page.locator('.se-live-panel > summary').click();};
  await openSchema('ProtectedDonor');
  await openLivePanel();
- assert.equal(await page.locator('#environments').isDisabled(),true);
- assert.equal(await page.locator('#environments option').count(),1);
+ assert.equal(await page.locator('#environments').count(),0,'Items load from this portal only, so there is no portal to choose');
  assert.equal(search(),'#schemas/ProtectedDonor','Choosing a schema puts it in the URL');
  await page.goBack();await page.goBack(); // Back to the map exactly as it was left.
  assert.equal(search(),mapPlace);
@@ -749,11 +748,48 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.locator('#item-id').fill('/redirect/');await page.locator('#load-item').click();
  await page.waitForFunction(()=>document.getElementById('item-status').textContent==='Item load failed.');
  assert.ok(calls.every(url=>url.startsWith('https://portal.test/')));
+ // Loading an item keeps the map in the view it was in (here the neighborhood) and does not scroll the page away.
+ await page.locator('#entity-show-neighborhood').click();
+ await page.waitForFunction(()=>location.hash.endsWith('/connections'));
+ await page.locator('#item-id').scrollIntoViewIfNeeded();
+ const scrollBefore=await page.evaluate(()=>scrollY);
  await page.locator('#item-id').fill('/demo/');await page.locator('#load-item').click();
  await page.waitForFunction(()=>document.getElementById('item-heading').textContent.includes('Demo donor'));
+ await page.waitForTimeout(300);
+ assert.match(search(),/^#schemas\/[^/]+\/connections$/,'A loaded item keeps the neighborhood view');
+ assert.equal(await page.locator('#entity-show-neighborhood').getAttribute('aria-pressed'),'true');
+ assert.ok(Math.abs(await page.evaluate(()=>scrollY)-scrollBefore)<200,'Loading an item does not scroll the page to the map');
  assert.match(await page.locator('#item-notes').textContent(),/raw unavailable.*403/);
  assert.doesNotMatch(await page.locator('.se-value-tree').textContent(),/principals_allowed|hidden-principal|hidden-group|hidden-role/);
  assert.match(await page.locator('.se-value-tree').textContent(),/donor_groups/);
+ // A loaded item's fields are one table (Field | Value | Source), all shown at once rather than in a scrolling box.
+ assert.ok(await page.locator('.se-value-tree tbody > tr').count()>1,'Each field is a table row');
+ assert.equal(await page.locator('#item-status').textContent(),'','Once loaded, the facts under the title say when and how');
+ assert.equal(await page.locator('.se-value-tree').evaluate(t=>getComputedStyle(t.parentElement).overflowY==='auto'||getComputedStyle(t).maxHeight!=='none'),false,'The fields are not hidden in a scrolling box');
+ // A linked value opens a map of everything this item links to, with that link highlighted, instead of loading
+ // the other item straight away.
+ const itemCalls=calls.length, itemHash=search();
+ await page.locator('.se-value-tree tr',{has:page.locator('th code',{hasText:/^protected_donor$/})}).locator('.se-item-link').click();
+ const linkDialog=page.getByRole('dialog');
+ await linkDialog.locator('.se-item-link-diagram').waitFor();
+ assert.equal(await linkDialog.locator('.se-link-card').count(),2,'Every linking field is on the map');
+ assert.equal(await linkDialog.locator('.se-link-card[aria-pressed=true]').getAttribute('aria-label'),'protected_donor: 1 ProtectedDonor (stored link)');
+ assert.deepEqual(await linkDialog.locator('.se-link-facts dt').allTextContents(),['Field','Link','Type','Item'],'The chosen link reads as label | value rows');
+ assert.deepEqual((await linkDialog.locator('.se-link-facts dd').allTextContents()).map(t=>t.trim()),['protected_donor','Stored link · schemas/donor.json:63','ProtectedDonor','demo-protected'],'Its kind sits beside the source that declares it');
+ assert.equal(search(),itemHash,'Opening a link does not move the explorer');
+ assert.equal(calls.length,itemCalls,'Opening a link does not load the other item');
+ assert.equal(await linkDialog.getByRole('link',{name:'Open item page'}).getAttribute('href'),'/protected-donors/demo-protected/');
+ assert.equal(await linkDialog.getByRole('button',{name:'Inspect this ProtectedDonor here'}).count(),1,'Loading the linked item stays one choice away');
+ // Choosing another card moves the highlight inside the popup.
+ await linkDialog.locator('.se-link-card[aria-label^="tissues"]').click();
+ assert.equal(await linkDialog.locator('.se-link-card[aria-label^="tissues"]').getAttribute('aria-pressed'),'true');
+ assert.equal(await linkDialog.locator('.se-link-card[aria-label^="protected_donor"]').getAttribute('aria-pressed'),'false');
+ assert.equal(await linkDialog.getByRole('link',{name:'Open item page'}).getAttribute('href'),'/tissues/demo-tissue-a/');
+ await linkDialog.getByRole('button',{name:'demo-tissue-b',exact:true}).click();
+ assert.equal(await linkDialog.getByRole('link',{name:'Open item page'}).getAttribute('href'),'/tissues/demo-tissue-b/');
+ assert.equal(calls.length,itemCalls);
+ await linkDialog.getByRole('button',{name:'Close',exact:true}).click();
+ await page.locator('.modal-backdrop').waitFor({state:'detached'});
  await page.locator('#open-path-finder').click();
  await page.selectOption('#path-source','TissueSample');await page.selectOption('#path-target','Donor');await page.selectOption('#path-field','study');
  await page.locator('#path-form button[type=submit]').click();

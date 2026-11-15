@@ -289,6 +289,32 @@
     .se-concept-meta { display: inline-flex; align-items: center; font-size: 15px; > span:first-child { padding-right: .75rem; margin-right: .75rem; color: #5d5e63; border-right: 1px solid #dee2e6; } }
     .se-concept-eyebrow { color: $gray-70; font-size: 15px; font-weight: 400; }
     .se-concept-description { margin: .6rem 0 0; font-size: 14.5px; line-height: 1.6; color: #5d5e63; }
+    // A linked item's popup: this item and the linked one, joined by the field that holds the link (highlighted in
+    // the traced colour).
+    .se-item-link-detail { margin-bottom: 1rem; }
+    .se-item-link-diagram { display: block; width: 100%; height: auto; margin-bottom: .5rem;
+        .se-link-box rect { fill: white; stroke: #ced4da; stroke-width: 1.25; }
+        .se-link-box.se-link-to rect { stroke: $seafoam-60; stroke-width: 2; }
+        .se-link-type { font-size: 12px; fill: #5d5e63; }
+        .se-link-title { font-size: 13.5px; font-weight: 600; fill: $gray-70; }
+        .se-link-arrow { fill: none; stroke: $seafoam-60; stroke-width: 2.5; }
+        .se-link-head { fill: $seafoam-60; }
+        .se-link-field { font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12.5px; fill: $gray-70; }
+        .se-link-type-right { text-anchor: end; }
+        .se-link-more { font-weight: 400; fill: #5d5e63; }
+        .se-link-side { font-size: 12px; font-weight: 600; fill: #5d5e63; }
+        .se-link-side-right { text-anchor: end; }
+        .se-link-card { cursor: pointer; outline: none; &:hover rect, &:focus-visible rect { stroke: $gray-70; } }
+        .se-link-card.se-link-to:hover rect, .se-link-card.se-link-to:focus-visible rect { stroke: $seafoam-60; }
+        .se-link-from rect { fill: #f7f8fa; stroke: #9aa1ab; }
+        .se-link-arrow-muted { fill: none; stroke: #c3c8cf; stroke-width: 1.25; }
+        .se-link-head-muted { fill: #c3c8cf; }
+    }
+    .se-item-link-selected { font-size: 14px;
+        .se-link-facts { grid-template-columns: max-content minmax(0, 1fr); dd { padding-right: 0; overflow-wrap: anywhere; } code { color: $gray-70; font-size: 13.5px; } .se-sources { display: inline; } }
+        .se-link-items { margin: 0; padding: 0; list-style: none; li + li { margin-top: .2rem; } button[aria-pressed='true'] { font-weight: 600; color: $gray-70; text-decoration: none; } }
+        .se-item-link-actions { display: flex; align-items: center; gap: 1rem; margin-top: .9rem; }
+    }
     .se-relationship-section { margin-top: 1.1rem; }
     h5.se-relationship-section-title { margin: 0 0 .5rem; font-size: .75rem; font-weight: 500; color: #5d5e63; > span { display: inline-block; margin-left: .25rem; padding: 0 .35rem; border-radius: .25rem; background: #f2f2f2; font-weight: 600; } }
     .se-relationship-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid $mercury; border-radius: 0; background: white; font-size: 13px;
@@ -382,7 +408,30 @@
     .se-edge { opacity: .45; stroke-linejoin: round; }
     .se-active .se-edge, .se-edge:hover, .se-edge:focus { opacity: .9; }
     .se-fullscreen { position: fixed; inset: 0; z-index: 1035; background: white; padding: 1rem; overflow: auto; .se-canvas { height: 65vh; } }
-    .se-value-tree { max-height: 650px; overflow: auto; } .se-value-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; padding: .6rem 0; border-top: 1px solid #dee2e6; } .se-value { flex: 1; overflow-wrap: anywhere; } .se-value-children { padding-left: 1rem; border-left: 1px solid #dee2e6; }
+    // A loaded item's fields: the Links tab's table (Field | Value | Source | actions), every field shown at once, nested
+    // values behind +/- with indented rows.
+    .se-value-tree {
+        .se-col-field { width: 26%; } .se-col-source { width: 120px; } .se-col-action { width: 100px; }
+        tbody th { font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .se-value { overflow-wrap: anywhere; color: $gray-70; }
+        .se-value-source { color: #5d5e63; }
+        // A linked item reads as a link to load it, with its type in grey after it.
+        button.se-item-link, button.se-item-more { padding: 0; font: inherit; font-weight: 600; color: $primary; background: none; border: 0; text-align: left; &:hover, &:focus { background: none; text-decoration: underline; } }
+        button.se-item-more { margin-left: .4rem; font-weight: 400; }
+        .se-item-type { display: inline-block; min-width: 0; margin-right: .5rem; padding-right: .5rem; border-right: 1px solid #d6d7da; font-size: 13px; color: #343741; }
+        .se-item-keys { color: #5d5e63; font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; }
+        button.se-value-toggle { width: 18px; margin-right: .3rem; padding: 0; font-size: 10px; color: #5d5e63; background: transparent; border: 0; &:hover, &:focus { color: $primary; background: transparent; } }
+        .se-value-toggle-space { display: inline-block; width: 18px; margin-right: .3rem; }
+    }
+    .se-relationship-section-title .se-value-filter { float: right; width: 220px; margin-top: -.3rem; padding: .2rem .5rem; font-size: 13px; font-weight: 400; border: 1px solid #ced4da; border-radius: .25rem; }
+    .se-live .se-item-notes { margin: .6rem 0 .25rem; font-size: 13px; color: #5d5e63; summary { cursor: pointer; } }
+    // One line: the identifier, its frame and the action; Clear appears once an item is loaded.
+    .se-live-form { display: flex; align-items: center; gap: .5rem; margin: .5rem 0 .25rem;
+        input { flex: 1 1 auto; min-width: 0; padding: .35rem .6rem; font-size: 14px; border: 1px solid #ced4da; border-radius: .25rem; }
+        select { flex: none; width: auto; padding: .35rem .5rem; font-size: 13px; border: 1px solid #ced4da; border-radius: .25rem; }
+    }
+    .se-live-status { margin: 0 0 .25rem; font-size: 13px; color: #5d5e63; &:empty { display: none; } }
+    .se-live #item-heading { h3 { margin: .25rem 0 .4rem; font-size: 20px; font-weight: 600; color: $gray-70; overflow-wrap: anywhere; } .se-schema-facts { margin-bottom: .25rem; } }
     .se-planner-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; label { display: flex; flex-direction: column; align-items: stretch; } }
     .se-route { border: 1px solid #dee2e6; border-radius: 5px; padding: .75rem; margin: .5rem 0; } .se-chain { padding: .75rem 0; > div { margin: .5rem; } }
     @media (max-width: 850px) { .se-planner-controls { grid-template-columns: 1fr; } }
