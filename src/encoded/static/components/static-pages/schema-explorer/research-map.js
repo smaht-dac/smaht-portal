@@ -110,10 +110,11 @@ export function researchLabels(graph, routes, { avoidRoutes = false, extra = [] 
         const route = routes[edge.key];
         if (!route) continue;
         const width = Math.max(56, edge.label.length * 5.8 + 12), height = 22;
+        // A route may name the run its label belongs on (`labelRun`); that run is tried first.
         const segments = route.points.slice(1).map((b, i) => {
             const a = route.points[i];
-            return { a, b, length: Math.hypot(b.x - a.x, b.y - a.y) };
-        }).sort((a, b) => b.length - a.length);
+            return { a, b, length: Math.hypot(b.x - a.x, b.y - a.y), preferred: i === route.labelRun };
+        }).sort((a, b) => b.preferred - a.preferred || b.length - a.length);
         let chosen;
         for (const { a, b } of segments) {
             // The .61/.39 positions also cover tight horizontal gaps where a

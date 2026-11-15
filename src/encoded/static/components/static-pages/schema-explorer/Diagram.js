@@ -16,7 +16,7 @@ import { externalContextGroups } from './external-context';
 import { mapSentence, researchLabels, buildResearchMap, concepts } from './research-map';
 import { conceptConnections } from './concept-connections';
 import { overviewRoute } from './explorer-route';
-import { neighborhoodLayout } from './neighborhood';
+import { neighborhoodLayout, neighborhoodRoutes } from './neighborhood';
 import CrossGroupConnections, { outsideConnections } from './CrossGroupConnections';
 import { Badge, Filters, visibleEdge, edgeLabel, exportPNG, InfoPopover } from './shared';
 
@@ -411,9 +411,11 @@ export default function Diagram({
             return { ...routeEdges(positions, shownGroups.filter((g) => !own[g.key]), width, height, headings, { spreadPorts: true, avoid: segmentsOf(own) }), ...own };
         };
         if (openedPanel) return cardRoutes(clustered.layers.filter((layer) => layer.panel));
-        // In a neighborhood most arrows meet the one selected card, whose sides cannot give each its own point; there
-        // only cards facing each other get the straight line, and the rest keep the shared trunks beside the selection.
-        if (neighborhoodView) return cardRoutes(neighborhoodView.panels, { straightOnly: true });
+        // In a neighborhood every arrow meets the one selected card: they run along a bus on each side of it.
+        if (neighborhoodView) {
+            const bus = neighborhoodRoutes(neighborhoodSelection, shownGroups, positions, cardWidth, cardHeight);
+            return { ...routeEdges(positions, shownGroups.filter((g) => !bus[g.key]), width, height, headings, { spreadPorts: true, avoid: segmentsOf(bus) }), ...bus };
+        }
         if (panelView) {
             // An arrow to a group card never loops around the whole map; if it has no straight or Z shape it threads
             // through the gaps between panels instead.
@@ -421,7 +423,7 @@ export default function Diagram({
             return { ...routeEdges(panelView.anchors, shownGroups.filter((g) => !own[g.key]), width, height, [], { spreadPorts: true, avoid: segmentsOf(own) }), ...own };
         }
         return routed ? routeEdges(positions, shownGroups, width, height, headings, { spreadPorts: true }) : {};
-    }, [panelView, openedPanel, neighborhoodView, routed, positions, shownGroups, headings, visible, cardWidth, cardHeight, clustered]);
+    }, [panelView, openedPanel, neighborhoodView, neighborhoodSelection, routed, positions, shownGroups, headings, visible, cardWidth, cardHeight, clustered]);
     // A panel arrow's ends are panels; the label names the panel, and its schemas are traced with it.
     const endLabel = (name) => panelView?.labels.get(name) || externalBundles.find((bundle) => bundle.name === name)?.label || name;
     // Pointing at a panel arrow marks its two panels and only the schemas its references join, so the reader sees which
@@ -683,7 +685,8 @@ export default function Diagram({
         return lines.join('\n');
     };
     // The map verb next to the exact field ties a schema arrow to its Donor to data sentence.
-    const edgeCaption = (g) => {
+    // `room` (characters) drops the map verb when the caption would not fit its branch; the tooltip keeps it.
+    const edgeCaption = (g, room = Infinity) => {
         if (g.panel) {
             const unique = [...new Set(g.edges.map((e) => e.field))];
             return unique.length === 1 ? unique[0] : `${unique.length} fields`;
@@ -696,7 +699,9 @@ export default function Diagram({
         // An arrow drawn once at a base type stands for the base and its subtypes; the base's card shows that (a stack
         // with "+N subtypes"), so the label keeps to the fields. Without a card of its own the label still says it.
         const onCard = sharedBases.has(g.from) && positions[g.from];
-        return [fields, sentence?.verb, heirs && !onCard && `${g.from} + ${heirs} ${heirs === 1 ? 'subtype' : 'subtypes'}`].filter(Boolean).join(' · ');
+        const parts = [fields, sentence?.verb, heirs && !onCard && `${g.from} + ${heirs} ${heirs === 1 ? 'subtype' : 'subtypes'}`].filter(Boolean);
+        const full = parts.join(' · ');
+        return full.length <= room ? full : parts.filter((part) => part !== sentence?.verb).join(' · ');
     };
     // Neighborhood labels reuse the metadata map's placement: each sits on its arrow's longest run,
     // clear of every card and of the labels placed before it.
@@ -774,7 +779,8 @@ export default function Diagram({
     const neighborhoodLabels = neighborhoodView ? researchLabels({
         nodes: visible.map((n) => {return { id: n.name };}),
         positions, nodeWidth: width, nodeHeight: height,
-        edges: shownGroups.map((g) => {return { key: g.key, label: edgeCaption(g) };}),
+        // A branch between the bus and a card holds about 34 characters.
+        edges: shownGroups.map((g) => {return { key: g.key, label: edgeCaption(g, 34) };}),
     }, routes, { avoidRoutes: true, extra: neighborhoodView.panels.map((panel) => {
         // Each group's title, as drawn above its cards.
         return { left: panel.left - 4, top: panel.top - 2, width: panel.label.length * 10 + 12, height: 28 };
@@ -1216,7 +1222,7 @@ export default function Diagram({
                                     {g.panel || g.opened ? null : neighborhoodView ? neighborhoodLabels[g.key] && (
                                         <text className="se-edge-label" x={neighborhoodLabels[g.key].left + neighborhoodLabels[g.key].width / 2}
                                             y={neighborhoodLabels[g.key].top + 15} onClick={() => inspect(g)}>
-                                            {edgeCaption(g)}
+                                            {edgeCaption(g, 34)}
                                         </text>
                                     ) : (neighbors ||
                                     (!showDomains && visible.length <= 12)) && (

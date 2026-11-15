@@ -1,4 +1,5 @@
 import { domains, domainFor } from './domains';
+import { roundedPath } from './routing';
 
 // A schema neighborhood reads left to right like its references: schemas that link to the selected
 // schema on the left, the selected schema in the middle and the schemas it links to on the right.
@@ -88,4 +89,46 @@ export function neighborhoodLayout(selected, groups, nodeWidth, nodeHeight) {
         positions: { ...left.positions, ...right.positions, ...center.positions },
         panels: [...left.panels, ...center.panels, ...right.panels],
     };
+}
+
+// Arrows of a neighborhood run along one bus on each side of the selected card, in the gap between the columns.
+// Every arrow into the selection from one side joins that bus and enters the card at one point, so their heads make
+// one clear head instead of a cluster; arrows out of it leave at their own point and branch off to their cards. When a
+// side has arrows both ways, the incoming ones enter just above the card's middle and the outgoing ones leave below it.
+export function neighborhoodRoutes(selected, groups, positions, nodeWidth, nodeHeight, { busGap = 40, pairGap = 8 } = {}) {
+    const c = positions[selected];
+    if (!c) return {};
+    const routes = {}, bySide = { left: [], right: [] }, pairs = new Map();
+    for (const g of groups) {
+        if (g.from === g.to || (g.from !== selected && g.to !== selected)) continue;
+        const other = g.from === selected ? g.to : g.from;
+        if (!positions[other]) continue;
+        bySide[positions[other].x < c.x ? 'left' : 'right'].push(g);
+    }
+    for (const [side, list] of Object.entries(bySide)) {
+        const sign = side === 'left' ? -1 : 1;
+        const edgeX = c.x + sign * nodeWidth / 2, busX = edgeX + sign * busGap;
+        const both = list.some((g) => g.to === selected) && list.some((g) => g.from === selected);
+        for (const g of [...list].sort((a, b) => a.key.localeCompare(b.key))) {
+            const incoming = g.to === selected, other = positions[incoming ? g.from : g.to];
+            // Parallel links between the same two schemas leave the far card at their own heights.
+            const pair = `${g.from}>${g.to}`, n = pairs.get(pair) || 0;
+            pairs.set(pair, n + 1);
+            const farY = other.y + (n ? (n % 2 ? 1 : -1) * Math.ceil(n / 2) * pairGap : 0);
+            const nearY = c.y + (both ? (incoming ? -12 : 12) : 0);
+            const farX = other.x - sign * nodeWidth / 2;
+            const near = [{ x: edgeX, y: nearY }, { x: busX, y: nearY }], far = [{ x: busX, y: farY }, { x: farX, y: farY }];
+            let points = incoming ? [...far.reverse(), ...near.reverse()] : [...near, ...far];
+            // Drop repeated corners, so a card level with the selection gets one straight line.
+            points = points.filter((p, i) => !i || p.x !== points[i - 1].x || p.y !== points[i - 1].y);
+            points = points.filter((p, i) => i === 0 || i === points.length - 1
+                || !((points[i - 1].x === p.x && p.x === points[i + 1].x) || (points[i - 1].y === p.y && p.y === points[i + 1].y)));
+            const end = points[points.length - 1], before = points[points.length - 2];
+            const length = Math.hypot(end.x - before.x, end.y - before.y) || 1;
+            // The label belongs on the arrow's own branch (the run at the far card), never on the shared bus.
+            const farRun = incoming ? 0 : points.length - 2;
+            routes[g.key] = { points, d: roundedPath(points), end, ux: (end.x - before.x) / length, uy: (end.y - before.y) / length, labelRun: farRun };
+        }
+    }
+    return routes;
 }

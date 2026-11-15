@@ -6,7 +6,7 @@ export function segmentClear(a, b, obstacles) {
         : a.y === b.y && !(a.y > r.top && a.y < r.bottom && Math.max(a.x, b.x) > r.left && Math.min(a.x, b.x) < r.right));
 }
 
-function roundedPath(points) {
+export function roundedPath(points) {
     let d = `M${points[0].x},${points[0].y}`;
     for (let i = 1; i < points.length - 1; i++) {
         const a = points[i - 1], b = points[i], c = points[i + 1];
