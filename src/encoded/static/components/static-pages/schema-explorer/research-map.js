@@ -116,17 +116,20 @@ export function researchLabels(graph, routes, { avoidRoutes = false, extra = [] 
             return { a, b, length: Math.hypot(b.x - a.x, b.y - a.y), preferred: i === route.labelRun };
         }).sort((a, b) => b.preferred - a.preferred || b.length - a.length);
         let chosen;
-        for (const { a, b } of segments) {
+        // A label that belongs on its own branch stays there: placing it on a shared run would leave it ownerless.
+        const own = route.labelRun !== undefined;
+        for (const { a, b } of own ? segments.filter((segment) => segment.preferred) : segments) {
             // The .61/.39 positions also cover tight horizontal gaps where a
             // centered label misses the few pixels available beside a card.
-            for (const fraction of [0.5, 0.61, 0.39, 0.35, 0.65]) {
+            for (const fraction of own ? [0.5, 0.61, 0.39, 0.7, 0.3] : [0.5, 0.61, 0.39, 0.35, 0.65]) {
                 const x = a.x + (b.x - a.x) * fraction, y = a.y + (b.y - a.y) * fraction;
                 // A vertical run through a narrow column gap only fits a label slid sideways
                 // while it still covers the line, so those shifts are tried last.
                 const shifts = Array.from({ length: Math.floor(width / 8) }, (_, i) => (i + 1) * 4).flatMap((dx) => [[-dx, 0], [dx, 0]]);
                 // Keep labels clear of horizontal connectors so the complete
                 // line and its direction remain visible at a glance.
-                const offsets = a.y === b.y ? [[0, -24], [0, 24]] : [[width / 2 + 8, 0], [-width / 2 - 8, 0], [0, 0], ...shifts];
+                // Branches close together leave room only just above or below their own line.
+                const offsets = a.y === b.y ? [[0, -24], [0, 24], ...(own ? [[0, -12], [0, 12]] : [])] : [[width / 2 + 8, 0], [-width / 2 - 8, 0], [0, 0], ...shifts];
                 for (const [dx, dy] of offsets) {
                     const box = { left: x + dx - width / 2, top: y + dy - height / 2, width, height };
                     if (obstacles.some((obstacle) => intersects(box, obstacle, 3)) || crosses(box, edge.key)) continue;
@@ -135,6 +138,11 @@ export function researchLabels(graph, routes, { avoidRoutes = false, extra = [] 
                 if (chosen) break;
             }
             if (chosen) break;
+        }
+        // Nowhere clear on its own branch: it still goes there, just above the line, rather than somewhere misleading.
+        if (!chosen && own) {
+            const { a, b } = segments.find((segment) => segment.preferred) || segments[0];
+            chosen = { left: (a.x + b.x) / 2 - width / 2, top: (a.y + b.y) / 2 - 12 - height / 2, width, height };
         }
         if (chosen) { labels[edge.key] = chosen; obstacles.push(chosen); }
     }

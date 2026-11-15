@@ -94,11 +94,20 @@ export function neighborhoodLayout(selected, groups, nodeWidth, nodeHeight) {
 // Arrows of a neighborhood run along one bus on each side of the selected card, in the gap between the columns.
 // Every arrow into the selection from one side joins that bus and enters the card at one point, so their heads make
 // one clear head instead of a cluster; arrows out of it leave at their own point and branch off to their cards. When a
-// side has arrows both ways, the incoming ones enter just above the card's middle and the outgoing ones leave below it.
-export function neighborhoodRoutes(selected, groups, positions, nodeWidth, nodeHeight, { busGap = 40, pairGap = 8 } = {}) {
+// side has arrows both ways, they use two buses (incoming nearer the card, outgoing further out) and enter just above
+// and leave just below the card's middle, so neither direction's arrows run along the other's. Several arrows meeting
+// one far card each take their own height on it.
+export function neighborhoodRoutes(selected, groups, positions, nodeWidth, nodeHeight, { busGap = 40, laneGap = 16, pairGap = 26 } = {}) {
     const c = positions[selected];
     if (!c) return {};
-    const routes = {}, bySide = { left: [], right: [] }, pairs = new Map();
+    const routes = {}, bySide = { left: [], right: [] }, atCard = new Map();
+    // How many arrows meet each far card, to spread their branches over its side.
+    const meeting = new Map();
+    for (const g of groups) {
+        if (g.from === g.to || (g.from !== selected && g.to !== selected)) continue;
+        const other = g.from === selected ? g.to : g.from;
+        meeting.set(other, (meeting.get(other) || 0) + 1);
+    }
     for (const g of groups) {
         if (g.from === g.to || (g.from !== selected && g.to !== selected)) continue;
         const other = g.from === selected ? g.to : g.from;
@@ -107,14 +116,18 @@ export function neighborhoodRoutes(selected, groups, positions, nodeWidth, nodeH
     }
     for (const [side, list] of Object.entries(bySide)) {
         const sign = side === 'left' ? -1 : 1;
-        const edgeX = c.x + sign * nodeWidth / 2, busX = edgeX + sign * busGap;
+        const edgeX = c.x + sign * nodeWidth / 2;
         const both = list.some((g) => g.to === selected) && list.some((g) => g.from === selected);
+        const busFor = (incoming) => edgeX + sign * (busGap - (both ? (incoming ? laneGap / 2 : -laneGap / 2) : 0));
         for (const g of [...list].sort((a, b) => a.key.localeCompare(b.key))) {
             const incoming = g.to === selected, other = positions[incoming ? g.from : g.to];
-            // Parallel links between the same two schemas leave the far card at their own heights.
-            const pair = `${g.from}>${g.to}`, n = pairs.get(pair) || 0;
-            pairs.set(pair, n + 1);
-            const farY = other.y + (n ? (n % 2 ? 1 : -1) * Math.ceil(n / 2) * pairGap : 0);
+            const otherName = incoming ? g.from : g.to, busX = busFor(incoming);
+            // Arrows meeting one far card each take their own height on its side, centred on its middle.
+            const n = atCard.get(otherName) || 0, total = meeting.get(otherName) || 1;
+            atCard.set(otherName, n + 1);
+            // Far enough apart for a label above each branch, and never past the card's own side.
+            const gap = total > 1 ? Math.min(pairGap, (nodeHeight - 16) / (total - 1)) : 0;
+            const farY = other.y + (n - (total - 1) / 2) * gap;
             const nearY = c.y + (both ? (incoming ? -12 : 12) : 0);
             const farX = other.x - sign * nodeWidth / 2;
             const near = [{ x: edgeX, y: nearY }, { x: busX, y: nearY }], far = [{ x: busX, y: farY }, { x: farX, y: farY }];

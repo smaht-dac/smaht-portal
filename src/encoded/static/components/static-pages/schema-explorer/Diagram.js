@@ -701,7 +701,12 @@ export default function Diagram({
         const onCard = sharedBases.has(g.from) && positions[g.from];
         const parts = [fields, sentence?.verb, heirs && !onCard && `${g.from} + ${heirs} ${heirs === 1 ? 'subtype' : 'subtypes'}`].filter(Boolean);
         const full = parts.join(' · ');
-        return full.length <= room ? full : parts.filter((part) => part !== sentence?.verb).join(' · ');
+        if (full.length <= room) return full;
+        const shorter = parts.filter((part) => part !== sentence?.verb);
+        // Still too long: a nested field path keeps its first step, which tells sibling paths apart (the full path is
+        // in the tooltip).
+        if (shorter.join(' · ').length > room && unique.length === 1 && unique[0].includes('.')) shorter[0] = `${unique[0].split('.')[0]}…`;
+        return shorter.join(' · ');
     };
     // Neighborhood labels reuse the metadata map's placement: each sits on its arrow's longest run,
     // clear of every card and of the labels placed before it.
@@ -779,8 +784,8 @@ export default function Diagram({
     const neighborhoodLabels = neighborhoodView ? researchLabels({
         nodes: visible.map((n) => {return { id: n.name };}),
         positions, nodeWidth: width, nodeHeight: height,
-        // A branch between the bus and a card holds about 34 characters.
-        edges: shownGroups.map((g) => {return { key: g.key, label: edgeCaption(g, 34) };}),
+        // A branch between the bus and a card holds about 26 characters.
+        edges: shownGroups.map((g) => {return { key: g.key, label: edgeCaption(g, 26) };}),
     }, routes, { avoidRoutes: true, extra: neighborhoodView.panels.map((panel) => {
         // Each group's title, as drawn above its cards.
         return { left: panel.left - 4, top: panel.top - 2, width: panel.label.length * 10 + 12, height: 28 };
@@ -1222,7 +1227,7 @@ export default function Diagram({
                                     {g.panel || g.opened ? null : neighborhoodView ? neighborhoodLabels[g.key] && (
                                         <text className="se-edge-label" x={neighborhoodLabels[g.key].left + neighborhoodLabels[g.key].width / 2}
                                             y={neighborhoodLabels[g.key].top + 15} onClick={() => inspect(g)}>
-                                            {edgeCaption(g, 34)}
+                                            {edgeCaption(g, 26)}
                                         </text>
                                     ) : (neighbors ||
                                     (!showDomains && visible.length <= 12)) && (
