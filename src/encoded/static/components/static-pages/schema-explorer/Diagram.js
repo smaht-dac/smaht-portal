@@ -389,26 +389,31 @@ export default function Diagram({
     // The routes one router drew, as segments the other must not run along.
     const segmentsOf = (drawn) => Object.values(drawn).flatMap((route) => route.points.slice(1).map((p, i) => [route.points[i], p]));
     const routes = useMemo(() => {
-        if (openedPanel) {
-            // An opened arrow's schema arrows run between cards with the panel router's rules: each meets a card at its
-            // own point and keeps a lane of its own; the few it cannot shape are routed around the cards.
+        // Schema-to-schema arrows between cards (an opened panel arrow, a schema's neighborhood) follow the panel
+        // router's rules: facing cards get a straight line, every arrow meets a card at its own point and keeps a lane
+        // of its own; the few it cannot shape are routed around the cards without running along the others.
+        const cardRoutes = (panels, { straightOnly = false } = {}) => {
             const cards = Object.fromEntries(visible.filter((n) => positions[n.name]).map((n) => [n.name, { ...positions[n.name], width: cardWidth, height: cardHeight }]));
             // Panel titles are obstacles too, so no arrow runs through one.
-            clustered.layers.filter((layer) => layer.panel).forEach(({ id, label, panel }) => {
+            panels.forEach(({ id, label, panel }) => {
                 const titleWidth = Math.min(panel.width, (label || '').length * 10 + 140);
                 cards[`title:${id}`] = { x: panel.left + titleWidth / 2, y: panel.top + 20, width: titleWidth, height: 40 };
             });
-            // Card sides are short, so ends sit closer than on panels. An arrow with a card in its way runs as a U along
-            // the nearest clear lane past its two cards.
             // Panel frames are lines too: an arrow whose lane sits on one reads as part of the frame, so lanes keep off them.
-            const frames = clustered.layers.filter((layer) => layer.panel).flatMap(({ panel }) => {
+            const frames = panels.flatMap(({ panel }) => {
                 const { left, top } = panel, right = left + panel.width, bottom = top + panel.height;
                 return [[{ x: left, y: top }, { x: left, y: bottom }], [{ x: right, y: top }, { x: right, y: bottom }],
                     [{ x: left, y: top }, { x: right, y: top }], [{ x: left, y: bottom }, { x: right, y: bottom }]];
             });
-            const own = panelRoutes(cards, shownGroups, { spacing: 14, lane: 18, around: 'ends', frames });
+            // Card sides are short, so ends sit closer than on panels; an arrow with a card in its way runs as a U along
+            // the nearest clear lane past its two cards.
+            const own = panelRoutes(cards, shownGroups, { spacing: 14, lane: 18, around: 'ends', frames, straightOnly });
             return { ...routeEdges(positions, shownGroups.filter((g) => !own[g.key]), width, height, headings, { spreadPorts: true, avoid: segmentsOf(own) }), ...own };
-        }
+        };
+        if (openedPanel) return cardRoutes(clustered.layers.filter((layer) => layer.panel));
+        // In a neighborhood most arrows meet the one selected card, whose sides cannot give each its own point; there
+        // only cards facing each other get the straight line, and the rest keep the shared trunks beside the selection.
+        if (neighborhoodView) return cardRoutes(neighborhoodView.panels, { straightOnly: true });
         if (panelView) {
             // An arrow to a group card never loops around the whole map; if it has no straight or Z shape it threads
             // through the gaps between panels instead.
@@ -416,7 +421,7 @@ export default function Diagram({
             return { ...routeEdges(panelView.anchors, shownGroups.filter((g) => !own[g.key]), width, height, [], { spreadPorts: true, avoid: segmentsOf(own) }), ...own };
         }
         return routed ? routeEdges(positions, shownGroups, width, height, headings, { spreadPorts: true }) : {};
-    }, [panelView, openedPanel, routed, positions, shownGroups, headings, visible, cardWidth, cardHeight, clustered]);
+    }, [panelView, openedPanel, neighborhoodView, routed, positions, shownGroups, headings, visible, cardWidth, cardHeight, clustered]);
     // A panel arrow's ends are panels; the label names the panel, and its schemas are traced with it.
     const endLabel = (name) => panelView?.labels.get(name) || externalBundles.find((bundle) => bundle.name === name)?.label || name;
     // Pointing at a panel arrow marks its two panels and only the schemas its references join, so the reader sees which
@@ -435,6 +440,12 @@ export default function Diagram({
         if (neighborhoodView) {
             neighborhoodView.panels.forEach(({ panel }) => points.push({ x: panel.left, y: panel.top }, { x: panel.left + panel.width, y: panel.top + panel.height }));
             Object.values(routes).forEach((route) => points.push(...route.points));
+            // An arrow looping around the outside of a side column carries its label there, so that label is content too.
+            const left = Math.min(...neighborhoodView.panels.map(({ panel }) => panel.left));
+            const right = Math.max(...neighborhoodView.panels.map(({ panel }) => panel.left + panel.width));
+            // A label sits beside its run and may slide sideways by up to its own width, so the room is a whole label.
+            Object.values(routes).flatMap((route) => route.points).filter((p) => p.x <= left + 1 || p.x >= right - 1)
+                .forEach((p) => points.push({ x: p.x + (p.x <= left + 1 ? -240 : 240), y: p.y }));
         }
         if (showDomains) {
             // A single group's title lives in the toolbar, so its reserved heading band is not content.

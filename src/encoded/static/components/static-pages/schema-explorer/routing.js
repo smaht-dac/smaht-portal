@@ -204,7 +204,8 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
 // `around` picks where a U's lane starts: 'map' just outside every box, 'ends' just past the two boxes it joins (the
 // nearest clear lane, for cards inside panels), or false for no U at all.
 // `aroundIf(group)` may withhold the U from some arrows (they are then left unrouted for routeEdges).
-export function panelRoutes(boxes, groups, { spacing = 30, lane = 26, clearance = 6, around: aroundFrom = 'map', frames = [], aroundIf = () => true } = {}) {
+// `straightOnly` draws only the straight arrows and leaves every other one to routeEdges.
+export function panelRoutes(boxes, groups, { spacing = 30, lane = 26, clearance = 6, around: aroundFrom = 'map', frames = [], aroundIf = () => true, straightOnly = false } = {}) {
     // Boxes without a size (a point anchor) are not obstacles and cannot be joined.
     const rects = new Map(Object.entries(boxes).filter(([, p]) => [p.x, p.y, p.width, p.height].every(Number.isFinite)).map(([name, p]) => [name, {
         name, left: p.x - p.width / 2, right: p.x + p.width / 2, top: p.y - p.height / 2, bottom: p.y + p.height / 2,
@@ -332,6 +333,7 @@ export function panelRoutes(boxes, groups, { spacing = 30, lane = 26, clearance 
     const ordered = [...groups].filter((g) => rects.has(g.from) && rects.has(g.to) && g.from !== g.to).sort((x, y) => x.key.localeCompare(y.key));
     // Straight arrows claim the middle of their sides first; the others fit around them.
     const rest = ordered.filter((g) => !straight(g, rects.get(g.from), rects.get(g.to)));
+    if (straightOnly) return routes;
     for (const g of rest) {
         const a = rects.get(g.from), b = rects.get(g.to);
         // Of the two Z shapes, the one crossing fewer arrows (then the shorter) is drawn.
