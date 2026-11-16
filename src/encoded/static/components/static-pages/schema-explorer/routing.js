@@ -54,6 +54,9 @@ class Queue {
 // them, and no route leaves or enters a box where one of them does.
 export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = [], options = {}) {
     const { padding = 10, portGap = 18, avoid = [] } = options;
+    // `portKey(group, name)` names the port an arrow uses on the card `name`; arrows given one name share that port
+    // (a fan-in of one field into one card enters it at one point). By default every arrow has its own.
+    const portKey = options.portKey || ((group) => group.key);
     const runsAlongAvoided = (a, b, near = 10) => avoid.some(([c, d]) => {
         if (a.y === b.y && c.y === d.y) return Math.abs(a.y - c.y) < near && Math.min(Math.max(a.x, b.x), Math.max(c.x, d.x)) > Math.max(Math.min(a.x, b.x), Math.min(c.x, d.x));
         if (a.x === b.x && c.x === d.x) return Math.abs(a.x - c.x) < near && Math.min(Math.max(a.y, b.y), Math.max(c.y, d.y)) > Math.max(Math.min(a.y, b.y), Math.min(c.y, d.y));
@@ -66,7 +69,7 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
     });
     const obstacles = [...boxes, ...headings.map((h) => {return { left: h.left, right: h.left + h.width, top: h.top, bottom: h.top + h.height };})];
     const expanded = obstacles.map((r) => {return { left: r.left - padding, right: r.right + padding, top: r.top - padding, bottom: r.bottom + padding };});
-    const connections = new Map(boxes.map((box) => [box.name, [...new Set(groups.filter((group) => group.from === box.name || group.to === box.name).map((group) => group.key))].sort()]));
+    const connections = new Map(boxes.map((box) => [box.name, [...new Set(groups.filter((group) => group.from === box.name || group.to === box.name).map((group) => portKey(group, box.name)))].sort()]));
     const rawPorts = (box, key, gap = portGap) => {
         const keys = connections.get(box.name);
         const slots = options.spreadPorts || options.spreadNodes?.includes(box.name) ? Math.min(5, keys.length) : 1;
@@ -86,7 +89,7 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
     boxes.forEach((r) => {
         xs.add((r.left + r.right) / 2); ys.add((r.top + r.bottom) / 2);
         for (const key of connections.get(r.name)) {
-            const loop = groups.some((group) => group.key === key && group.from === group.to);
+            const loop = groups.some((group) => portKey(group, r.name) === key && group.from === group.to);
             for (const port of [...rawPorts(r, key), ...(loop ? rawPorts(r, key, padding) : [])]) { xs.add(port.x); ys.add(port.y); }
         }
     });
@@ -131,8 +134,8 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
     for (const group of [...groups].sort((a, b) => a.key.localeCompare(b.key))) {
         if (!positions[group.from] || !positions[group.to]) continue;
         const same = group.from === group.to, pair = `${group.from}\0${group.to}`;
-        const starts = same ? ports(group.from, group.key, true).filter((p) => p.axis === 0 && p.x > positions[group.from].x) : ports(group.from, group.key);
-        const ends = same ? ports(group.to, group.key, true).filter((p) => p.axis === 1) : ports(group.to, group.key);
+        const starts = same ? ports(group.from, portKey(group, group.from), true).filter((p) => p.axis === 0 && p.x > positions[group.from].x) : ports(group.from, portKey(group, group.from));
+        const ends = same ? ports(group.to, portKey(group, group.to), true).filter((p) => p.axis === 1) : ports(group.to, portKey(group, group.to));
         if (!starts.length || !ends.length) continue;
         const targets = new Map(ends.map((p) => [idFor(p), p]));
         const heuristic = (id) => {

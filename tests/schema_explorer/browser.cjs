@@ -453,6 +453,13 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await page.getByRole('checkbox',{name:'Calculated links'}).uncheck();
  await page.getByRole('checkbox',{name:'Admin & ontology links'}).uncheck();
  assert.equal(await page.locator('#atlas-svg .se-edge').count(),storedArrows);
+ // Full screen, as on a schema's map: the canvas takes the window and Escape leaves it.
+ const atlasHeight=(await page.locator('#atlas-svg').boundingBox()).height;
+ await page.locator('#atlas-fullscreen').click();
+ assert.equal(await page.locator('#atlas-fullscreen').getAttribute('aria-pressed'),'true');
+ assert.ok((await page.locator('#atlas-svg').boundingBox()).height>atlasHeight,'Full screen gives the map more room');
+ await page.keyboard.press('Escape');
+ assert.equal(await page.locator('#atlas-fullscreen').getAttribute('aria-pressed'),'false','Escape leaves full screen');
  const zoomBefore=await page.locator('.se-atlas .se-zoom-controls span').textContent();
  await page.locator('.se-atlas').getByRole('button',{name:'Zoom in',exact:true}).click();
  assert.notEqual(await page.locator('.se-atlas .se-zoom-controls span').textContent(),zoomBefore);

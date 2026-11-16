@@ -184,22 +184,33 @@
         .se-atlas-options { display: flex; gap: 1rem; font-size: 14px; color: $gray-70; label { display: inline-flex; align-items: center; gap: .35rem; margin: 0; font-weight: 400; } }
     }
     .se-atlas-stage { position: relative; }
+    // Full screen: the canvas takes the window under the map's own controls.
+    .se-atlas.se-fullscreen .se-atlas-canvas { height: calc(100vh - 80px); min-height: 0; }
     .se-atlas-canvas { height: 75vh; min-height: 520px; cursor: grab; &:active { cursor: grabbing; } .entity-node { cursor: pointer; } }
-    .se-atlas-column-title { font-size: 16px; font-weight: 600; fill: $gray-70; .se-atlas-count { font-size: 13px; font-weight: 400; fill: #5d5e63; } }
+    // Each group as on its own map, with a light outline so the groups read apart on one canvas.
+    .se-atlas-frame rect { fill: none; stroke: #dee2e6; }
+    // A card's arrows into widely used schemas, drawn only when traced, are named just under it.
+    .entity-node text.se-atlas-hub-tag { font-size: 11px; fill: #5d5e63; }
     // Tracing steps the other arrows and their labels back, as on a schema's map.
     .se-atlas-tracing {
         .se-atlas-off .se-edge { opacity: .08; }
-        .se-atlas-off .se-edge-label { opacity: .2; }
+        .se-atlas-label-off { opacity: .2; }
         .se-edge.se-traced-edge { stroke-width: 3; }
     }
-    .se-atlas-minimap { position: absolute; right: 12px; bottom: 12px; background: white; border: 1px solid #ced4da; border-radius: 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, .12); cursor: pointer; touch-action: none;
+    // The minimap is small: a sixth of the network's detail is enough to say where the view is. Its strokes are in
+    // map units, so they are drawn thick to show at its scale.
+    // A titled box with a firmer border and shadow, so it reads as a control rather than decoration.
+    .se-atlas-minimap-box { position: absolute; right: 12px; bottom: 12px; padding: 4px 6px 6px; background: white; border: 1px solid #9aa1ab; border-radius: 5px; box-shadow: 0 2px 8px rgba(0, 0, 0, .18); }
+    .se-atlas-minimap-title { margin-bottom: 3px; font-size: 12px; font-weight: 600; color: $gray-70; span { font-weight: 400; color: #5d5e63; } }
+    .se-atlas-minimap { display: block; background: white; border: 1px solid #dee2e6; cursor: pointer; touch-action: none;
         .se-atlas-mini-bg { fill: white; }
-        .se-atlas-mini-edge { fill: none; stroke: #c3c8cf; stroke-width: 3; }
-        .se-atlas-mini-on { stroke: $seafoam-60; stroke-width: 8; }
-        .se-atlas-mini-card { fill: #aeb4bd; }
+        .se-atlas-mini-frame-group { fill: $slate-10; }
+        .se-atlas-mini-edge { fill: none; stroke: #c3c8cf; stroke-width: 10; }
+        .se-atlas-mini-on { stroke: $seafoam-60; stroke-width: 24; }
+        .se-atlas-mini-card { fill: #8f969f; }
         .se-atlas-mini-linked { fill: $seafoam-60; opacity: .7; }
         .se-atlas-mini-current, .se-atlas-mini-match { fill: $seafoam-60; }
-        .se-atlas-mini-frame { fill: rgba(35, 104, 170, .06); stroke: $cobalt-70; stroke-width: 10; }
+        .se-atlas-mini-frame { fill: rgba(35, 104, 170, .12); stroke: $cobalt-70; stroke-width: 36; }
     }
     .se-catalog-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: stretch;
         @media (max-width: 1200px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
