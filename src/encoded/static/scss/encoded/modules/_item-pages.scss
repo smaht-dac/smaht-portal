@@ -4373,7 +4373,7 @@ $pathology-reports-muted: #B0B0B0;
                 }
             }
 
-            .tissue-autolysis-info-icon {
+            .pathology-header-info-icon {
                 margin-left: 6px;
                 font-size: 0.8125rem;
                 color: #bfbbe2;
@@ -5872,12 +5872,13 @@ Popover Styles for Item Pages
 
 // PathologyReportsTable.js's popovers -- rendered at <body> level, outside
 // .tissue-view, so styled at the top level.
+// Narrower than .description-definitions-popover's 600px (equal
+// specificity, later in source) -- header info is a short note.
+.popover.pathology-header-info-popover {
+    max-width: 320px;
+}
+
 .tissue-autolysis-legend-popover {
-    // Narrower than .description-definitions-popover's 600px (equal
-    // specificity, later in source) -- the content is a short legend.
-    &.popover {
-        max-width: 320px;
-    }
 
     .tissue-autolysis-legend-row {
         display: flex;

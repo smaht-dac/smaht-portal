@@ -13,6 +13,7 @@ import {
     getLinkId,
     getUuidFromAtId,
     AutolysisHeaderInfo,
+    FindingsHeaderInfo,
     FindingsChip,
     HistologyImagesLink,
     groupReportsByDonorUuid,
@@ -340,7 +341,10 @@ export default function BrainPathologyReportsTable({
                         {renderSortableHeader('autolysisScore', 'Autolysis')}
                         <AutolysisHeaderInfo />
                     </th>
-                    <th>{renderSortableHeader('findings', 'Unexpected/Pathologic Finding')}</th>
+                    <th>
+                        {renderSortableHeader('findings', 'Unexpected/Pathologic Finding')}
+                        <FindingsHeaderInfo isBrain />
+                    </th>
                     <th>{renderSortableHeader('staining', 'Neuropathology Staining')}</th>
                     <th>Histology Images</th>
                 </tr>
