@@ -92,10 +92,13 @@ const getBrainFindings = (report) =>
     });
 
 // Artifacts is a specimen/staining quality flag, not a pathologic finding --
-// left out of the findings count, same as has_pathologic_finding.
+// left out of the findings count (same as has_pathologic_finding) and not
+// highlighted in the findings table, so the highlights match the count.
+const isPathologicFinding = ({ category, present }) => present && category !== 'Artifacts';
+
 const getPresentFindings = (report) =>
     getBrainFindings(report)
-        .filter((finding) => finding.present && finding.category !== 'Artifacts')
+        .filter(isPathologicFinding)
         .map((finding) => {
             return { type: finding.category, text: finding.description || 'Present' };
         });
@@ -196,8 +199,8 @@ const BrainReportDetails = ({ report, tissueCode, tissueTypeValue, enableConditi
                     <table className="pathology-aliquot-table">
                         <colgroup>
                             <col style={{ width: '14%' }} />
-                            <col style={{ width: '60%' }} />
-                            <col style={{ width: '26%' }} />
+                            <col style={{ width: '43%' }} />
+                            <col style={{ width: '43%' }} />
                         </colgroup>
                         <thead>
                             <tr>
@@ -234,15 +237,20 @@ const BrainReportDetails = ({ report, tissueCode, tissueTypeValue, enableConditi
                     </thead>
                     <tbody>
                         <tr>
-                            {getBrainFindings(report).map(({ category, present, description }) => (
-                                <td key={category} className={present ? 'is-finding-present' : undefined}>
-                                    {present ? (
-                                        description || 'Present'
-                                    ) : present === false ? (
-                                        <span className="text-muted-placeholder">Absent</span>
-                                    ) : null}
-                                </td>
-                            ))}
+                            {getBrainFindings(report).map((finding) => {
+                                const { category, present, description } = finding;
+                                return (
+                                    <td
+                                        key={category}
+                                        className={isPathologicFinding(finding) ? 'is-finding-present' : undefined}>
+                                        {present ? (
+                                            description || 'Present'
+                                        ) : present === false ? (
+                                            <span className="text-muted-placeholder">Absent</span>
+                                        ) : null}
+                                    </td>
+                                );
+                            })}
                         </tr>
                     </tbody>
                 </table>
