@@ -174,6 +174,33 @@
     }
     .se-concept-heading button.se-diagram-back { display: block; margin: 0 0 .5rem -.5rem; padding: .2rem .5rem; font-size: 13px; font-weight: 600; color: $primary; background: transparent; border-color: transparent; &:hover:not(:disabled), &:focus { background: transparent; text-decoration: underline; } }
     // Three groups per row, as in the former canvas overview; narrower screens step down to two and one.
+    // List | Map: the inspector's tab strip, without its grey band, over the catalog.
+    .se-catalog-tabs { margin-bottom: 1rem; padding: 0; background: transparent; }
+    .se-catalog-grid[hidden] { display: none; }
+    // The map of all schemas: a schema map's own cards and arrows (entity-node, se-edge) on a large canvas, group
+    // names over their columns, and a minimap in the lower right corner that is always there.
+    .se-atlas-bar { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1.25rem; margin-bottom: .5rem;
+        .se-atlas-status { flex: 1 1 320px; margin: 0; font-size: 14px; color: #5d5e63; strong { color: $gray-70; } .se-text-link { margin-left: .75rem; } }
+        .se-atlas-options { display: flex; gap: 1rem; font-size: 14px; color: $gray-70; label { display: inline-flex; align-items: center; gap: .35rem; margin: 0; font-weight: 400; } }
+    }
+    .se-atlas-stage { position: relative; }
+    .se-atlas-canvas { height: 75vh; min-height: 520px; cursor: grab; &:active { cursor: grabbing; } .entity-node { cursor: pointer; } }
+    .se-atlas-column-title { font-size: 16px; font-weight: 600; fill: $gray-70; .se-atlas-count { font-size: 13px; font-weight: 400; fill: #5d5e63; } }
+    // Tracing steps the other arrows and their labels back, as on a schema's map.
+    .se-atlas-tracing {
+        .se-atlas-off .se-edge { opacity: .08; }
+        .se-atlas-off .se-edge-label { opacity: .2; }
+        .se-edge.se-traced-edge { stroke-width: 3; }
+    }
+    .se-atlas-minimap { position: absolute; right: 12px; bottom: 12px; background: white; border: 1px solid #ced4da; border-radius: 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, .12); cursor: pointer; touch-action: none;
+        .se-atlas-mini-bg { fill: white; }
+        .se-atlas-mini-edge { fill: none; stroke: #c3c8cf; stroke-width: 3; }
+        .se-atlas-mini-on { stroke: $seafoam-60; stroke-width: 8; }
+        .se-atlas-mini-card { fill: #aeb4bd; }
+        .se-atlas-mini-linked { fill: $seafoam-60; opacity: .7; }
+        .se-atlas-mini-current, .se-atlas-mini-match { fill: $seafoam-60; }
+        .se-atlas-mini-frame { fill: rgba(35, 104, 170, .06); stroke: $cobalt-70; stroke-width: 10; }
+    }
     .se-catalog-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: stretch;
         @media (max-width: 1200px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         @media (max-width: 760px) { grid-template-columns: minmax(0, 1fr); }

@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
+import SchemaAtlas from './SchemaAtlas';
 import { domains, domainFor, abstractTypes } from './domains';
 import { nodePresentation } from './node-presentation';
 
-// Every schema grouped by area, as readable text: the entry screen of Schema details.
+// Every schema grouped by area, as readable text (List) or on one canvas (Map): the entry screen of Schema details.
 export default function SchemaCatalog({ index, query, onOpen, onOpenGroup }) {
+    const [tab, setTab] = useState('list');
     const needle = query.trim().toLowerCase();
     const groups = domains.map((domain) => {
         const all = index.models.filter((model) => domainFor(model.name) === domain.id)
@@ -20,7 +22,13 @@ export default function SchemaCatalog({ index, query, onOpen, onOpenGroup }) {
                 <h2>All schemas</h2>
                 {needle && <p className="se-catalog-match" role="status">{shown} of {index.models.length} schemas match “{query.trim()}”</p>}
             </header>
-            <div className="se-catalog-grid">
+            <div className="se-inspector-tabs se-catalog-tabs" role="tablist" aria-label="Show schemas as">
+                {[['list', 'List'], ['map', 'Map']].map(([id, label]) => (
+                    <button type="button" role="tab" key={id} id={`catalog-tab-${id}`} aria-selected={tab === id} onClick={() => setTab(id)}>{label}</button>
+                ))}
+            </div>
+            {tab === 'map' && <SchemaAtlas index={index} query={query} onOpen={onOpen} />}
+            <div className="se-catalog-grid" hidden={tab !== 'list'}>
                 {groups.filter((group) => group.members.length).map((group) => (
                     // A portal panel: a plain title band (name, count, text link), then a ruled, zebra list.
                     <section className="se-catalog-group" key={group.id} aria-label={group.label}>

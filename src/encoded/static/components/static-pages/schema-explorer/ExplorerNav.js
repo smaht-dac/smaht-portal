@@ -54,6 +54,18 @@ export default function ExplorerNav({ route, onNavigate }) {
     });
     return (
         <nav className="sidebar-nav-body" aria-label="Schema Explorer">
+            {/* Every schema first: the catalog is where most readers start looking. */}
+            <div className="benchmarking-nav-section">
+                <div className="benchmarking-nav-section-title text-small text-600">Schema reference</div>
+                <div className="accordion">
+                    <ul>
+                        {/* The catalog leads to every group map and schema, so it stays marked on those pages too. */}
+                        <NavLink top route={{ view: 'schemas' }} active={['schemas', 'schema', 'group'].includes(route.view)}
+                            current={route.view === 'schemas'} onNavigate={onNavigate} title="All schemas" />
+                    </ul>
+                </div>
+            </div>
+            <hr />
             <div className="benchmarking-nav-section">
                 <div className="benchmarking-nav-section-title text-small text-600">Metadata map</div>
                 <div className="accordion">
@@ -69,17 +81,6 @@ export default function ExplorerNav({ route, onNavigate }) {
                                 </NavGroup>
                             );
                         })}
-                    </ul>
-                </div>
-            </div>
-            <hr />
-            <div className="benchmarking-nav-section">
-                <div className="benchmarking-nav-section-title text-small text-600">Schema reference</div>
-                <div className="accordion">
-                    <ul>
-                        {/* The catalog leads to every group map and schema, so it stays marked on those pages too. */}
-                        <NavLink top route={{ view: 'schemas' }} active={['schemas', 'schema', 'group'].includes(route.view)}
-                            current={route.view === 'schemas'} onNavigate={onNavigate} title="All schemas" />
                     </ul>
                 </div>
             </div>
