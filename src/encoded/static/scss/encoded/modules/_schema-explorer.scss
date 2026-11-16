@@ -57,6 +57,15 @@
         // Sub-pages are set a step smaller with a shorter indent, so full group names fit one line; a name that
         // still wraps keeps its indent (the portal indents sub-links with an inline span).
         .accordion > ul > li > div.collapse > ul > li.sidenav-link > a { font-size: .875rem; > span { display: block; padding-left: 10px; } }
+        // A group inside a group (Experiment / FileSet under Overview) lines up with its sibling sub-pages, and its own
+        // pages sit one indent further in.
+        .accordion > ul > li > div.collapse > ul > li > .title-toggle-container {
+            .title { font-size: .875rem; padding: 2px 5px 2px 15px; }
+            i { padding: 4px 8px; }
+        }
+        .accordion > ul > li > div.collapse > ul > li > div.collapse > ul { padding-left: 0; list-style: none;
+            > li.sidenav-link > a { font-size: .875rem; > span { display: block; padding-left: 25px; } }
+        }
     }
     // Popovers, full screen and sticky toolbars need the content column to stay unclipped.
     .sliding-sidebar-layout-container { overflow: visible; min-width: 0; }
@@ -88,6 +97,9 @@
     .se-map-discovery { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; min-width: 0; > input[type='search'] { flex: 0 1 440px; width: min(440px, 100%); min-width: 180px; } > .se-type-picker { margin-left: auto; } }
     .se-map-tools { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .65rem; padding-top: .55rem; border-top: 1px solid #dee2e6; }
     .se-map-tool-section { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; }
+    // A control and its info icon stay together.
+    .se-control-info { display: inline-flex; align-items: center; button.se-info-tooltip { padding: 0 .15rem 0 .35rem; } }
+    .popover.se-info-popover p:last-child { margin-bottom: 0; }
     // Zoom reads as one joined button group (Bootstrap .btn-group), with the scale between its buttons.
     .se-zoom-controls { display: inline-flex; align-items: stretch;
         > * { margin: 0; border-radius: 0; }
@@ -259,10 +271,11 @@
     .se-selection-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; margin: 0 0 .5rem; padding: 0 0 .5rem; font-size: 14px; color: $gray-70; border-bottom: 1px solid #dee2e6;
         strong { font-size: 14px; color: $homepage-header-text-color; }
         .se-selection-meta { color: #5d5e63; }
-        .se-selection-actions { display: flex; flex-wrap: wrap; gap: .35rem; margin-left: auto; }
+        .se-selection-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .6rem; margin-left: auto; }
         button { padding: .2rem .6rem; font-size: 13px; background: white; }
         button.se-selection-back { color: $primary; background: transparent; border-color: transparent; &:hover, &:focus { color: $primary; background: transparent; text-decoration: underline; } }
-        button.se-selection-clear { color: #5d5e63; background: transparent; border-color: transparent; &:hover, &:focus { background: $slate-20; } }
+        // Deselect stays a plain text action, in the portal's link blue and bold so it reads as an action beside the buttons.
+        button.se-selection-clear { color: $primary; font-weight: 600; background: transparent; border-color: transparent; &:hover, &:focus { color: $primary; background: transparent; text-decoration: underline; } }
     }
     .se-selected-panel { margin-top: 1rem; padding: 0 15px 15px; border: 1px solid $mercury; background: white;
         > header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 0 -15px 10px; padding: .6rem 15px; background: $baby-20; border-bottom: 1px solid $gray-30; h3 { margin: 0; font-size: 1.25rem; font-weight: 500; color: $gray-70; } p { margin: .15rem 0 0; max-width: 90ch; font-size: 13.5px; color: #5d5e63; } }

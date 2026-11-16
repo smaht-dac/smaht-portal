@@ -945,22 +945,46 @@ export default function Diagram({
             <div className="se-diagram-controls">
                 <div className="se-map-tool-section" role="group" aria-label="Diagram filters">
                     {(showDomains || neighborhoodView) && (
-                        <label>Connections
-                            <select aria-label="Connection detail" value={selected && !neighborhoodView ? 'selected' : neighborhoodView && connectionMode === 'panels' ? 'shared' : connectionMode} onChange={(event) => { setConnectionMode(event.target.value); setMoves({}); }} disabled={!!selected && !neighborhoodView}>
-                                {selected && !neighborhoodView && <option value="selected">Selected type: exact links</option>}
-                                {!neighborhoodView && <option value="panels">Between panels</option>}
-                                <option value="shared">Shared definitions</option>
-                                <option value="all">All references</option>
-                            </select>
-                        </label>
+                        <span className="se-control-info">
+                            <label>Connections
+                                <select aria-label="Connection detail" value={selected && !neighborhoodView ? 'selected' : neighborhoodView && connectionMode === 'panels' ? 'shared' : connectionMode} onChange={(event) => { setConnectionMode(event.target.value); setMoves({}); }} disabled={!!selected && !neighborhoodView}>
+                                    {selected && !neighborhoodView && <option value="selected">Selected type: exact links</option>}
+                                    {!neighborhoodView && <option value="panels">Between panels</option>}
+                                    <option value="shared">Shared definitions</option>
+                                    <option value="all">All references</option>
+                                </select>
+                            </label>
+                            <InfoPopover id="se-connections-info" label="About Connections" title="Connections">
+                                {/* The option in use is explained first, under the same name the menu shows. */}
+                                {selected && !neighborhoodView && (
+                                    <p><strong>Selected type: exact links</strong>: shown while a schema is selected. Only that schema&apos;s own arrows are drawn, field by field, so this choice is fixed. Deselect the schema to choose one of the views below.</p>
+                                )}
+                                {!neighborhoodView && <p><strong>Between panels</strong>: one arrow for each pair of panels, carrying all the links between them. Click an arrow to see its schema arrows.</p>}
+                                <p><strong>Shared definitions</strong>: arrows between schemas. A link that subtypes inherit is drawn once, from their base type.</p>
+                                <p><strong>All references</strong>: every schema&apos;s own arrows, including each subtype&apos;s copy of an inherited link.</p>
+                            </InfoPopover>
+                        </span>
                     )}
                     {showDomains && domain && !neighbors && (
-                        <label className="se-external-toggle"><input type="checkbox" checked={showExternal} onChange={(e) => { setShowExternal(e.target.checked); setMoves({}); }} />Links to other groups</label>
+                        <span className="se-control-info">
+                            <label className="se-external-toggle"><input type="checkbox" checked={showExternal} onChange={(e) => { setShowExternal(e.target.checked); setMoves({}); }} />Links to other groups</label>
+                            <InfoPopover id="se-external-info" label="About Links to other groups" title="Links to other groups">
+                                <p>Cards on the right stand for the other groups this group links to or from, each with its number of links. Expand a card to show its schemas.</p>
+                                <p>Turn this off to see this group on its own.</p>
+                            </InfoPopover>
+                        </span>
                     )}
-                    <details ref={relationshipMenu}>
-                        <summary>Relationships {kinds.length}/3 <i className="icon icon-angle-down fas" aria-hidden="true" /></summary>
-                        <div className="se-link-filter-popover"><Filters kinds={kinds} onChange={setKinds} /></div>
-                    </details>
+                    <span className="se-control-info">
+                        <details ref={relationshipMenu}>
+                            <summary>Relationships {kinds.length}/3 <i className="icon icon-angle-down fas" aria-hidden="true" /></summary>
+                            <div className="se-link-filter-popover"><Filters kinds={kinds} onChange={setKinds} /></div>
+                        </details>
+                        <InfoPopover id="se-relationships-info" label="About Relationships" title="Relationships">
+                            <p><strong>Link</strong>: a field stored on the item that points to another item (solid arrow).</p>
+                            <p><strong>Calculated</strong>: a field the portal computes when the item is read (dashed arrow).</p>
+                            <p><strong>Reverse</strong>: a calculated field that lists the items linking back to this one.</p>
+                        </InfoPopover>
+                    </span>
                     <details className="se-type-picker" ref={typePicker}>
                         <summary>Types {nodes.filter((n) => !hidden.includes(n.name)).length}/{nodes.length} <i className="icon icon-angle-down fas" aria-hidden="true" /></summary>
                         <div className="se-type-popover">
@@ -1034,20 +1058,45 @@ export default function Diagram({
                     <span className="se-selection-actions">
                         {/* Each action names where it goes. A schema opened from the catalog can go straight back to it. */}
                         {openedFromCatalog && (
-                            <button type="button" className="se-selection-back" onClick={onBrowseAll}>
-                                <i className="icon icon-fw icon-angle-left fas" aria-hidden="true" /> All schemas
-                            </button>
+                            <span className="se-control-info">
+                                <button type="button" className="se-selection-back" onClick={onBrowseAll}>
+                                    <i className="icon icon-fw icon-angle-left fas" aria-hidden="true" /> All schemas
+                                </button>
+                                <InfoPopover id="se-back-info" label="About All schemas" title="All schemas" placement="bottom-end">
+                                    <p>Goes back to the All schemas catalog this schema was opened from.</p>
+                                </InfoPopover>
+                            </span>
                         )}
-                        <button type="button" id="entity-show-neighborhood" aria-pressed={neighbors} onClick={() => {
-                            if (!neighbors) showConnected();
-                            else showGroupMap();
-                        }}>{neighbors ? 'Show in group map' : 'Show only its connections'}
-                        </button>
-                        <button type="button" onClick={() => svg.current?.closest('.se-diagram')?.querySelector('#entity-details')?.scrollIntoView({ block: 'start', behavior: 'smooth' })}>
-                            Go to details <i className="icon icon-fw icon-angle-down fas" aria-hidden="true" />
-                        </button>
+                        <span className="se-control-info">
+                            <button type="button" id="entity-show-neighborhood" aria-pressed={neighbors} onClick={() => {
+                                if (!neighbors) showConnected();
+                                else showGroupMap();
+                            }}>{neighbors ? 'Show in group map' : 'Show only its connections'}
+                            </button>
+                            <InfoPopover id="se-neighborhood-info" label={neighbors ? 'About Show in group map' : 'About Show only its connections'}
+                                title={neighbors ? 'Show in group map' : 'Show only its connections'} placement="bottom-end">
+                                {neighbors
+                                    ? <p>Goes back to the whole group map, with {selected} still selected and its arrows highlighted.</p>
+                                    : <p>Shows {selected} on its own, with only the schemas it links to and from, each arrow named by its field. Other groups&apos; schemas are included.</p>}
+                            </InfoPopover>
+                        </span>
+                        <span className="se-control-info">
+                            <button type="button" onClick={() => svg.current?.closest('.se-diagram')?.querySelector('#entity-details')?.scrollIntoView({ block: 'start', behavior: 'smooth' })}>
+                                Go to details <i className="icon icon-fw icon-angle-down fas" aria-hidden="true" />
+                            </button>
+                            <InfoPopover id="se-details-info" label="About Go to details" title="Go to details" placement="bottom-end">
+                                <p>Scrolls down to {selected}&apos;s details under the map: its links, fields, embeds and diagnostics, and its Python and JSON schema sources.</p>
+                            </InfoPopover>
+                        </span>
                         {/* On the group map, deselecting leaves the schema; in a neighborhood it would only repeat the group map. */}
-                        {!neighbors && <button type="button" className="se-selection-clear" onClick={clearSelection} aria-label={`Clear selection of ${selected}`}><i className="icon icon-fw icon-times fas" aria-hidden="true" /> Deselect</button>}
+                        {!neighbors && (
+                            <span className="se-control-info">
+                                <button type="button" className="se-selection-clear" onClick={clearSelection} aria-label={`Clear selection of ${selected}`}><i className="icon icon-fw icon-times fas" aria-hidden="true" /> Deselect</button>
+                                <InfoPopover id="se-deselect-info" label="About Deselect" title="Deselect" placement="bottom-end">
+                                    <p>Clears the selection and shows the group map with all its arrows again.</p>
+                                </InfoPopover>
+                            </span>
+                        )}
                     </span>
                 </div>
             )}

@@ -329,7 +329,7 @@ export default function Explorer() {
                         </dd>
                         {modelConcept && (
                             <>
-                                <dt>Metadata map</dt>
+                                <dt>Donor to data</dt>
                                 <dd>
                                     <a href={routeHash({ view: 'concept', concept: modelConcept.id })} onClick={(event) => follow(event, { view: 'concept', concept: modelConcept.id })}>
                                         {modelConcept.step ? `${modelConcept.step}. ` : ''}{modelConcept.label}

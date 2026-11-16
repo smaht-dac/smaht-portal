@@ -77,20 +77,23 @@ export default function ExplorerNav({ route, onNavigate }) {
             </div>
             <hr />
             <div className="benchmarking-nav-section">
-                <div className="benchmarking-nav-section-title text-small text-600">Metadata map</div>
+                <div className="benchmarking-nav-section-title text-small text-600">Donor to data</div>
                 <div className="accordion">
                     <ul>
-                        <NavLink top route={{ view: 'overview' }} active={route.view === 'overview'} onNavigate={onNavigate} title="Overview" />
-                        {steps.map((step) => {
-                            const under = branches(step.id);
-                            if (!under.length) return <NavLink top key={step.id} route={conceptRoute(step.id)} active={conceptOpen(step.id)} onNavigate={onNavigate} title={step.label} />;
-                            return (
-                                <NavGroup key={step.id} route={conceptRoute(step.id)} active={conceptOpen(step.id)} open={open.has(step.id)}
-                                    onToggle={() => toggle(step.id)} onNavigate={onNavigate} title={step.label}>
-                                    {under.map((branch) => <NavLink key={branch.id} route={conceptRoute(branch.id)} active={conceptOpen(branch.id)} onNavigate={onNavigate} title={branch.label} />)}
-                                </NavGroup>
-                            );
-                        })}
+                        {/* The overview is the way into the path, so the steps sit under it, open unless folded away. */}
+                        <NavGroup route={{ view: 'overview' }} active={route.view === 'overview'} open={!open.has('overview-folded')}
+                            onToggle={() => toggle('overview-folded')} onNavigate={onNavigate} title="Overview">
+                            {steps.map((step) => {
+                                const under = branches(step.id);
+                                if (!under.length) return <NavLink key={step.id} route={conceptRoute(step.id)} active={conceptOpen(step.id)} onNavigate={onNavigate} title={step.label} />;
+                                return (
+                                    <NavGroup key={step.id} route={conceptRoute(step.id)} active={conceptOpen(step.id)} open={open.has(step.id)}
+                                        onToggle={() => toggle(step.id)} onNavigate={onNavigate} title={step.label}>
+                                        {under.map((branch) => <NavLink key={branch.id} route={conceptRoute(branch.id)} active={conceptOpen(branch.id)} onNavigate={onNavigate} title={branch.label} />)}
+                                    </NavGroup>
+                                );
+                            })}
+                        </NavGroup>
                     </ul>
                 </div>
             </div>

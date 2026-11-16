@@ -176,6 +176,10 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  const finderBox=async()=>finder().evaluate(input=>{const r=input.getBoundingClientRect(),m=input.closest('.se-main').getBoundingClientRect();return [Math.round(r.left-m.left),Math.round(r.top-m.top),Math.round(r.width)];});
  const conceptFinder=await finderBox();
  assert.equal(await sideNav.locator('[aria-current="page"]').textContent(),'Sample','The side menu marks the open concept');
+ // The overview is the way into the path: the steps sit under it, open by default.
+ const overviewGroup=sideNav.locator('li:has(> .title-toggle-container a[href="#overview"])');
+ assert.equal(await overviewGroup.locator('> .title-toggle-container button').getAttribute('aria-expanded'),'true','The path is open under Overview');
+ assert.ok(await overviewGroup.getByRole('link',{name:'Sample',exact:true}).count(),'Steps are listed under Overview');
  assert.equal(await sideNav.getByRole('link').first().textContent(),'All schemas','The catalog of every schema heads the side menu');
  if(await allSchemasToggle().getAttribute('aria-expanded')==='true') await allSchemasToggle().click();
  assert.equal(await sideNav.getByRole('link',{name:'Samples, Tissue & Cell Lines'}).count(),0,'The arrow folds the group list away');
@@ -393,7 +397,7 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  // The heading lists its facts as ruled label | value rows, as on the portal's item pages.
  const facts=await page.locator('#entity-details .se-schema-facts').evaluate(dl=>Object.fromEntries([...dl.querySelectorAll('dt')].map(dt=>[dt.textContent,dt.nextElementSibling.textContent])));
  assert.equal(facts['Schema group'],'Donor & Clinical History','A schema names its catalog group');
- assert.equal(facts['Metadata map'],'1. Donor','A schema links its place on the metadata map, numbered as on the path');
+ assert.equal(facts['Donor to data'],'1. Donor','A schema links its place on the donor-to-data path, numbered as on the path');
  assert.match(facts.Source,/^Python source/);
  assert.deepEqual(await finderBox(),conceptFinder,'The schema search sits in the same place on concept and schema pages');
  await page.getByRole('button',{name:/^Clear selection of /}).click();
@@ -487,6 +491,13 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await catalog.getByRole('region',{name:'Donor & Clinical History',exact:true}).getByRole('button',{name:'Open group map',exact:true}).click();
  assert.equal(await page.getByLabel('Diagram layout',{exact:true}).inputValue(),'hierarchical');
  await shell.screenshot({path:path.join(output,'hierarchical-map.png')});
+ // The map's harder controls explain themselves behind an info icon.
+ for(const name of ['About Connections','About Links to other groups','About Relationships'])assert.equal(await page.getByRole('button',{name,exact:true}).count(),1,`${name} has an info icon`);
+ await page.getByRole('button',{name:'About Connections',exact:true}).hover();
+ await page.locator('#se-connections-info').waitFor();
+ for(const option of ['Between panels','Shared definitions','All references'])assert.match(await page.locator('#se-connections-info').textContent(),new RegExp(option),`The note explains ${option}`);
+ await page.locator('h2').first().hover();
+ await page.locator('#se-connections-info').waitFor({state:'detached'});
  // A group's page: Map (the default) or List, the group's catalog panel in place of the map.
  assert.equal(await page.locator('#group-tab-map').getAttribute('aria-selected'),'true','A group opens on its map');
  await page.locator('#group-tab-list').click();
@@ -499,6 +510,16 @@ const output=fs.mkdtempSync(path.join(os.tmpdir(),'schema-explorer-browser-'));
  await groupList.locator('li button').filter({hasText:/^ProtectedDonor/}).click();
  await page.waitForFunction(()=>location.hash==='#schemas/ProtectedDonor');
  assert.equal(await page.locator('#entity-svg').isVisible(),true,'A schema opens on the map');
+ // With a schema selected, the Connections note explains the menu's locked choice under its own name, first.
+ await page.waitForFunction(()=>document.querySelector('[aria-label="Connection detail"]')?.value==='selected',null,{timeout:5000});
+ await page.getByRole('button',{name:'About Connections',exact:true}).hover();
+ await page.locator('#se-connections-info').waitFor();
+ assert.match(await page.locator('#se-connections-info .popover-body p').first().textContent(),/^Selected type: exact links: /,'The note names the option the menu shows');
+ await page.locator('h2').first().hover();
+ await page.locator('#se-connections-info').waitFor({state:'detached'});
+ // The selection bar's actions explain themselves too, and Deselect stands out as bold text.
+ for(const name of ['About Show only its connections','About Go to details','About Deselect'])assert.equal(await page.getByRole('button',{name,exact:true}).count(),1,`${name} has an info icon`);
+ assert.ok(Number(await page.getByRole('button',{name:/^Clear selection of /}).evaluate(b=>getComputedStyle(b).fontWeight))>=600,'Deselect is set bold so it stands out');
  await page.goBack();
  await page.waitForFunction(()=>location.hash==='#groups/donors');
  await page.locator('#group-tab-map').click();
