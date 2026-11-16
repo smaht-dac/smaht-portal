@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { concepts, branchOf } from './research-map';
 import { routeHash } from './explorer-route';
+import { domains, domainFor } from './domains';
 
 // The explorer's one navigation. It renders inside the portal's SlidingSidebarLayout with the benchmarking data
 // pages' side menu markup (section titles, .sidenav-link rows, .title-toggle-container groups), so both menus look
-// and collapse alike. It holds one grouping only: the donor-to-data path. Schema groups and single schemas are
-// reached from the catalog, so the menu never shows two overlapping ways of dividing the model.
+// and collapse alike. The schema reference lists the catalog and, under it, every schema group's map; the metadata
+// map lists the donor-to-data path.
 // Links carry their URL so they can also be opened in a new tab.
 const follow = (event, onNavigate, route) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
@@ -39,12 +40,14 @@ function NavGroup({ route, active, open, onToggle, onNavigate, title, children }
 }
 
 export default function ExplorerNav({ route, onNavigate }) {
+    const groups = domains.filter((domain) => domain.types);
     const steps = concepts.filter((concept) => concept.step);
     const branches = (id) => concepts.filter((concept) => branchOf[concept.id] === id);
     const conceptOpen = (id) => route.view === 'concept' && route.concept === id;
     const conceptRoute = (id) => { return { view: 'concept', concept: id }; };
-    // The step holding the current concept opens on its own; others open on demand.
-    const current = route.view === 'concept' ? branchOf[route.concept] || route.concept : '';
+    // The step holding the current concept opens on its own, as does All schemas on a group map or schema; others
+    // (and All schemas on its own page) open on demand.
+    const current = route.view === 'concept' ? branchOf[route.concept] || route.concept : ['group', 'schema'].includes(route.view) ? 'schemas' : '';
     const [open, setOpen] = useState(() => new Set(current ? [current] : []));
     useEffect(() => { if (current) setOpen((o) => (o.has(current) ? o : new Set([...o, current]))); }, [current]);
     const toggle = (id) => setOpen((o) => {
@@ -59,9 +62,16 @@ export default function ExplorerNav({ route, onNavigate }) {
                 <div className="benchmarking-nav-section-title text-small text-600">Schema reference</div>
                 <div className="accordion">
                     <ul>
-                        {/* The catalog leads to every group map and schema, so it stays marked on those pages too. */}
-                        <NavLink top route={{ view: 'schemas' }} active={['schemas', 'schema', 'group'].includes(route.view)}
-                            current={route.view === 'schemas'} onNavigate={onNavigate} title="All schemas" />
+                        {/* Every group map sits under the catalog; a group is marked on its map and while one of its
+                            schemas is open. */}
+                        <NavGroup route={{ view: 'schemas' }} active={route.view === 'schemas'} open={open.has('schemas')}
+                            onToggle={() => toggle('schemas')} onNavigate={onNavigate} title="All schemas">
+                            {groups.map((group) => (
+                                <NavLink key={group.id} route={{ view: 'group', group: group.id }}
+                                    active={(route.view === 'group' && route.group === group.id) || (route.view === 'schema' && domainFor(route.schema) === group.id)}
+                                    current={route.view === 'group' && route.group === group.id} onNavigate={onNavigate} title={group.label} />
+                            ))}
+                        </NavGroup>
                     </ul>
                 </div>
             </div>

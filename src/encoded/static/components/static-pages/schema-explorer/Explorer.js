@@ -8,7 +8,7 @@ import SchemaFinder from './SchemaFinder';
 import { domains, domainFor } from './domains';
 import { concepts } from './research-map';
 import SlidingSidebarLayout from '../../shared/SlidingSidebarLayout';
-import { overviewRoute, parseRoute, routeHash, sameRoute, isMapRoute } from './explorer-route';
+import { overviewRoute, startRoute, parseRoute, routeHash, sameRoute, isMapRoute } from './explorer-route';
 import SchemaCatalog from './SchemaCatalog';
 import { explorerIndex } from './explorer-scope';
 import RelationshipDetails from './RelationshipDetails';
@@ -187,7 +187,7 @@ export default function Explorer() {
     const [refresh, setRefresh] = useState(0),
         [query, setQuery] = useState('');
     // Where the reader is (see explorer-route.js). The map keeps its last place while schema details are open.
-    const [route, setRoute] = useState(overviewRoute),
+    const [route, setRoute] = useState(startRoute),
         [mapRoute, setMapRoute] = useState(overviewRoute);
     // A schema chosen from the catalog opens on its own connections (its neighborhood), and can go straight back.
     const [catalogSchema, setCatalogSchema] = useState('');

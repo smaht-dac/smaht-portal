@@ -54,6 +54,9 @@
     .sliding-sidebar-nav-container .sliding-sidebar-nav { font-size: 1rem; @include benchmarking-side-nav;
         // Plain top-level links line up with the section and group titles (8px, less the row's 1px border), as most menu rows here are links.
         .accordion > ul > li.sidenav-link > a { padding-left: 7px; }
+        // Sub-pages are set a step smaller with a shorter indent, so full group names fit one line; a name that
+        // still wraps keeps its indent (the portal indents sub-links with an inline span).
+        .accordion > ul > li > div.collapse > ul > li.sidenav-link > a { font-size: .875rem; > span { display: block; padding-left: 10px; } }
     }
     // Popovers, full screen and sticky toolbars need the content column to stay unclipped.
     .sliding-sidebar-layout-container { overflow: visible; min-width: 0; }
@@ -177,6 +180,11 @@
     // List | Map: the inspector's tab strip, without its grey band, over the catalog.
     .se-catalog-tabs { margin-bottom: 1rem; padding: 0; background: transparent; }
     .se-catalog-grid[hidden] { display: none; }
+    // A group's List tab: its catalog panel in place of the map, whose controls and canvas step aside.
+    .se-diagram.se-group-listing { .se-diagram-controls, .se-selection-bar, .se-canvas-wrap, .se-diagram-empty { display: none; } }
+    .se-group-list { margin-top: .25rem; }
+    // The tabs sit clear of the ruled facts row above them.
+    .se-diagram-header .se-catalog-tabs { margin: .9rem 0 0; }
     // The map of all schemas: a schema map's own cards and arrows (entity-node, se-edge) on a large canvas, group
     // names over their columns, and a minimap in the lower right corner that is always there.
     .se-atlas-bar { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1.25rem; margin-bottom: .5rem;

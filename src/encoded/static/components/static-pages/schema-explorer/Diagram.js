@@ -16,6 +16,7 @@ import { externalContextGroups } from './external-context';
 import { mapSentence, researchLabels, buildResearchMap, concepts } from './research-map';
 import { conceptConnections } from './concept-connections';
 import { overviewRoute } from './explorer-route';
+import { CatalogPanel, catalogGroup } from './SchemaCatalog';
 import { neighborhoodLayout, neighborhoodRoutes } from './neighborhood';
 import CrossGroupConnections, { outsideConnections } from './CrossGroupConnections';
 import { Badge, Filters, visibleEdge, edgeLabel, exportPNG, InfoPopover } from './shared';
@@ -41,6 +42,8 @@ export default function Diagram({
     const [crossLinks, setCrossLinks] = useState(true);
     // Group maps open with arrows between panels; schema-level arrows come with a selection or on request.
     const [connectionMode, setConnectionMode] = useState('panels');
+    // A group's page shows its map (the default) or its schemas as the catalog's list.
+    const [groupTab, setGroupTab] = useState('map');
     const [hidden, setHidden] = useState(defaults);
     // Links and their reverse links are drawn by default; calculated relationships are opt-in.
     const [kinds, setKinds] = useState(['linkTo', 'reverse']);
@@ -122,6 +125,7 @@ export default function Diagram({
         setNeighbors(false);
         setMoves({});
         setConnectionMode('panels');
+        setGroupTab('map');
         // The card or arrow being pointed at belongs to the previous map.
         setHoverEdge(null);
         setOpenedArrow(null);
@@ -902,9 +906,11 @@ export default function Diagram({
             )}
         </>
     );
+    const groupPage = route.view === 'group' && !!domain && !conceptContext;
+    const groupList = groupPage && groupTab === 'list';
     const diagram = (
         <section
-            className={`se-diagram${conceptContext ? ' se-concept-diagram' : ''}${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}`}
+            className={`se-diagram${conceptContext ? ' se-concept-diagram' : ''}${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}${groupList ? ' se-group-listing' : ''}`}
             aria-label={
                 'All schema relationships'
             }>
@@ -921,7 +927,20 @@ export default function Diagram({
                             </p>
                         )}
                     </div>
+                    {groupPage && (
+                        <div className="se-inspector-tabs se-catalog-tabs" role="tablist" aria-label="Show the group as">
+                            {[['map', 'Map'], ['list', 'List']].map(([id, label]) => (
+                                <button type="button" role="tab" key={id} id={`group-tab-${id}`} aria-selected={groupTab === id} onClick={() => setGroupTab(id)}>{label}</button>
+                            ))}
+                        </div>
+                    )}
                 </header>
+            )}
+            {/* The list keeps the map mounted underneath (hidden), so switching back finds it as it was left. */}
+            {groupList && (
+                <div className="se-group-list">
+                    <CatalogPanel titled={false} group={catalogGroup(index, domains.find((d) => d.id === domain))} onOpen={(name) => onNavigate({ view: 'schema', schema: name })} />
+                </div>
             )}
             <div className="se-diagram-controls">
                 <div className="se-map-tool-section" role="group" aria-label="Diagram filters">
