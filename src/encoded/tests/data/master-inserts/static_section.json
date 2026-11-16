@@ -1083,7 +1083,7 @@
     {
         "identifier": "p25_collection",
         "file": "/docs/public/p25_collection.jsx",
-        "status": "in review",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
