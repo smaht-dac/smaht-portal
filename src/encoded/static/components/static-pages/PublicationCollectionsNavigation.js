@@ -16,8 +16,7 @@ const pageLinks = {
         description:
             'The P25 Donor paper collection is coming soon and will be announced upon its release in the proper journals.',
         href: '/publication-collections/p25',
-        linkText: 'Coming Soon',
-        disabled: true,
+        linkText: 'Learn More',
     },
     p150: {
         label: 'P150',
