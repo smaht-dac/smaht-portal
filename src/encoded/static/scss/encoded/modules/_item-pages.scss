@@ -4377,7 +4377,6 @@ $pathology-reports-muted: #B0B0B0;
                 margin-left: 6px;
                 font-size: 0.8125rem;
                 color: #bfbbe2;
-                cursor: help;
             }
 
             .pathology-findings-cell {
@@ -5874,11 +5873,10 @@ Popover Styles for Item Pages
 // PathologyReportsTable.js's popovers -- rendered at <body> level, outside
 // .tissue-view, so styled at the top level.
 .tissue-autolysis-legend-popover {
-    font-size: 0.8125rem;
-
-    .tissue-autolysis-legend-title {
-        font-weight: 600;
-        margin-bottom: 6px;
+    // Narrower than .description-definitions-popover's 600px (equal
+    // specificity, later in source) -- the content is a short legend.
+    &.popover {
+        max-width: 320px;
     }
 
     .tissue-autolysis-legend-row {

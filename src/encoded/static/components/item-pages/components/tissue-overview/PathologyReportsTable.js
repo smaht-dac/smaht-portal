@@ -1,7 +1,7 @@
 'use strict';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
+import { OverlayTrigger, Popover, PopoverBody, PopoverHeader } from 'react-bootstrap';
 import {
     SortableHeaderLabel,
     compareSortValues,
@@ -124,9 +124,16 @@ export const AutolysisHeaderInfo = () => (
         trigger={['hover', 'focus']}
         placement="top"
         overlay={
-            <Popover id="tissue-autolysis-legend-popover" className="tissue-autolysis-legend-popover">
-                <PopoverBody>
-                    <div className="tissue-autolysis-legend-title">Tissue autolysis score</div>
+            <Popover
+                id="tissue-autolysis-legend-popover"
+                className="description-definitions-popover tissue-autolysis-legend-popover">
+                <PopoverHeader>Tissue Autolysis Score</PopoverHeader>
+                <PopoverBody className="p-3">
+                    <p>
+                        How far the tissue has broken down after death, as graded by the pathologist. The donor row
+                        shows the highest score across that donor&apos;s reports. An overall score of 3 makes a sample
+                        unacceptable.
+                    </p>
                     {AUTOLYSIS_SCORE_LABELS.map((label, score) => (
                         <div className="tissue-autolysis-legend-row" key={score}>
                             <span className={`tissue-autolysis-legend-swatch score-${score}`}>{score}</span>
