@@ -4,31 +4,23 @@ import _ from 'underscore';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { TISSUE_SAMPLE_TYPE_FIELD } from './tissue-sample-types';
 import { getDisplayedTerm, getRecordedTerms } from './merge-terms';
-import { getAliquotKeyFromExternalId } from '../../util/data';
 
 /**
- * Browse by Tissue's Cohort View chart counts tissue samples with histology
- * images and/or pathology reports -- not samples with released files, which
- * is what the File-based /bar_plot_aggregations/ the other browse pages use
- * would count. So this chart is built here, from TissueSample search, into
- * that same response shape (see visualization.py's bar_plot_chart).
+ * Browse by Tissue's Cohort View chart: every visible tissue sample of the
+ * released-donor Production population, by tissue and sample type (or
+ * submission center) -- the same samples, counted the same way, as the
+ * Tissue Overview page's Sequencing/Histology & Pathology cards. Counted
+ * server side by /tissue_sample_aggregations/ (visualization.py) as one
+ * sample per physical aliquot: a Frozen aliquot's Cores, and a GCC's own
+ * copy of each core it receives, count once -- the same unit as a Fixed
+ * aliquot. Built into /bar_plot_aggregations/'s response shape here.
  *
- * A HistologyImage always links a PathologyReport (a required field), so "has
- * an image and/or a report" comes down to "has a report", which a sample can
- * have in 2 ways:
- * - a Fixed sample's own `pathology_reports` (the report is about it), or
- * - a Frozen sample's `associated_pathology_reports` (the reports of the
- *   Fixed sample cut from the same tissue block, see types/tissue_sample.py).
- * Snovault filters can't OR 2 fields, so each is its own search.
+ * Fresh tissues (Buccal Swab, Fibroblast, ...) are charted as "Fresh"
+ * whatever their samples' own type (mostly Frozen) -- see visualization.py's
+ * TISSUE_SAMPLE_TYPE_SCRIPT.
  *
- * Fresh tissues (Buccal Swab, Fibroblast, ...) are the exception: their
- * protocols have no Fixed counterpart to link (see types/tissue_sample.py's
- * linked_fixed_samples validation), so they can't have a report either way.
- * Per request, their samples are charted anyway, as "Fresh", by a 3rd search
- * with no report filter.
- *
- * These are plain searches, so every viewer only counts what they are allowed
- * to see -- per explicit request, rather than a permission-free count.
+ * Plain searches, so every viewer only counts what they are allowed to see --
+ * per explicit request, rather than a permission-free count.
  */
 
 // The chart's own field keys -- the x axis and "Sample Type" keep the File
@@ -38,13 +30,23 @@ export const TISSUE_FIELD = 'sample_summary.tissues';
 export const SUBMISSION_CENTER_FIELD = 'submission_centers.display_title';
 
 // Same released-donor Production population as the rest of Browse by Tissue
-// (see types/tissue_sample.py's sample_sources.donor.* embeds).
-const SAMPLES_SEARCH_HREF =
-    '/search/?type=TissueSample' +
-    '&sample_sources.donor.study=Production&sample_sources.donor.tags=has_released_files' +
-    '&limit=all&field=external_id&field=preservation_type&field=submission_centers.display_title' +
-    '&field=sample_sources.tissue_type&field=sample_sources.donor.display_title&field=pathology_reports';
-
+// (see types/tissue_sample.py's sample_sources.donor.* embeds). Samples with
+// no preservation type of their own are left out for now (per request, until
+// it's worked out what they are).
+const SAMPLE_SEARCH_PARAMS = {
+    'status!': ['deleted'],
+    'sample_sources.donor.study': ['Production'],
+    'sample_sources.donor.tags': ['has_released_files'],
+    'preservation_type!': ['No value'],
+};
+// The chart's field keys -> the TissueSample fields /tissue_sample_aggregations/
+// groups by ("sample_type" is its own Fresh-aware preservation type, see
+// visualization.py's TISSUE_SAMPLE_TYPE_SCRIPT).
+const AGGREGATION_FIELDS = {
+    [TISSUE_FIELD]: 'sample_sources.tissue_type',
+    [TISSUE_SAMPLE_TYPE_FIELD]: 'sample_type',
+    [SUBMISSION_CENTER_FIELD]: 'submission_centers.display_title',
+};
 // Every visible HistologyImage with the report(s) it shows -- a bar's images
 // are the ones of its samples' own reports.
 const HISTOLOGY_IMAGES_SEARCH_HREF = '/search/?type=HistologyImage&limit=all&field=pathology_reports';
@@ -54,28 +56,9 @@ const HISTOLOGY_IMAGES_SEARCH_HREF = '/search/?type=HistologyImage&limit=all&fie
 // the list its link opens.
 const FILE_COUNT_FIELDS = [TISSUE_FIELD, TISSUE_SAMPLE_TYPE_FIELD];
 
-const SAMPLES_WITH_REPORT_FILTERS = [
-    'pathology_reports.accession!=No+value',
-    'associated_pathology_reports.pathology_reports.accession!=No+value',
-];
-
-const FRESH_SAMPLE_TYPE = 'Fresh';
-const FRESH_TISSUE_FILTER = 'sample_sources.preservation_type=' + FRESH_SAMPLE_TYPE;
-
 const MISSING_TERM = 'Not specified';
-
-// Samples with no preservation type of their own are left out of the chart
-// altogether for now (per request, until it's worked out what they are) --
-// set to false to chart them again, as "Not specified".
-const HIDE_UNSPECIFIED_SAMPLE_TYPES = true;
-
-const TERMS_BY_FIELD = {
-    [TISSUE_FIELD]: (sample) => _.pluck(sample.sample_sources || [], 'tissue_type'),
-    // The sample's OWN preservation type -- not its Tissue's, which File's
-    // sample_summary.preservation_types reads.
-    [TISSUE_SAMPLE_TYPE_FIELD]: (sample) => [sample.preservation_type],
-    [SUBMISSION_CENTER_FIELD]: (sample) => _.pluck(sample.submission_centers || [], 'display_title'),
-};
+// What visualization.py answers for a sample with no value for the field.
+const NO_VALUE_TERM = 'No value';
 
 function fetchSearchGraph(href) {
     return new Promise((resolve) => {
@@ -85,35 +68,24 @@ function fetchSearchGraph(href) {
     });
 }
 
-function fetchSamples(reportFilter) {
-    return fetchSearchGraph(SAMPLES_SEARCH_HREF + '&' + reportFilter);
-}
-
-// A Fresh tissue's samples are mostly recorded as Frozen themselves, so they
-// are charted by their tissue's preservation type instead of their own.
-function fetchFreshTissueSamples() {
-    const asFresh = (sample) => {
-        return { ...sample, preservation_type: FRESH_SAMPLE_TYPE };
-    };
-    return fetchSearchGraph(SAMPLES_SEARCH_HREF + '&' + FRESH_TISSUE_FILTER).then((samples) => samples.map(asFresh));
-}
-
 // An embedded link's @id -- `field=` returns either the object or just the id.
 const getLinkId = (item) => (typeof item === 'string' ? item : item?.['@id']) || null;
 
-function getReportIds(sample) {
-    return _.compact(_.map(sample.pathology_reports || [], getLinkId));
-}
+// "/non-brain-pathology-reports/<uuid>/" -> "<uuid>" -- the aggregation
+// names a bar's reports by uuid.
+const getUuidFromAtId = (atId) => String(atId || '').split('/')[2] || null;
 
-function fetchImageIdsByReportId() {
+function fetchImageIdsByReportUuid() {
     return fetchSearchGraph(HISTOLOGY_IMAGES_SEARCH_HREF).then((images) => {
-        const imageIdsByReportId = {};
+        const imageIdsByReportUuid = {};
         images.forEach((image) => {
             _.compact(_.map(image.pathology_reports || [], getLinkId)).forEach((reportId) => {
-                (imageIdsByReportId[reportId] || (imageIdsByReportId[reportId] = [])).push(image['@id']);
+                const uuid = getUuidFromAtId(reportId);
+                if (!uuid) return;
+                (imageIdsByReportUuid[uuid] || (imageIdsByReportUuid[uuid] = [])).push(image['@id']);
             });
         });
-        return imageIdsByReportId;
+        return imageIdsByReportUuid;
     });
 }
 
@@ -130,110 +102,78 @@ function fetchFileCountTerms(fileSearchParams) {
     });
 }
 
-let cachedSamples = null;
 let cachedLinkedCounts = null;
 
 /**
- * Every visible TissueSample with a pathology report, either way, plus every
- * Fresh tissue's samples (see the comment at the top). A TPC and a
- * GCC can each register their own record of the same aliquot (same
- * external_id), so samples are deduplicated by it.
- *
- * Pass `reuse` to skip refetching when only the chart's fields changed --
- * a session change has to refetch, since visibility depends on it.
+ * The chart's sample counts for `fields` ([x axis field, optional group by
+ * field], the chart's own keys), counted server side by
+ * /tissue_sample_aggregations/ -- one sample per physical aliquot, the same
+ * count as the Tissue Overview page's cards. Resolves to that endpoint's
+ * response, or null when it fails.
  */
-export function loadTissueHistologySamples({ reuse = false } = {}) {
-    if (reuse && cachedSamples) return cachedSamples;
-    // The Fresh tissue samples come last, so a sample that does have a
-    // report keeps its own preservation type when deduplicated.
-    const searches = SAMPLES_WITH_REPORT_FILTERS.map(fetchSamples).concat(fetchFreshTissueSamples());
-    cachedSamples = Promise.all(searches).then((results) =>
-        _.uniq(_.flatten(results, true), false, (sample) => sample.external_id || sample['@id'])
-            .filter((sample) => !HIDE_UNSPECIFIED_SAMPLE_TYPES || sample.preservation_type)
-    );
-    return cachedSamples;
+export function loadTissueSampleAggregations(fields = []) {
+    return new Promise((resolve) => {
+        ajax.load(
+            '/tissue_sample_aggregations/',
+            (resp) => resolve(resp || null),
+            'POST',
+            () => resolve(null),
+            JSON.stringify({
+                search_query_params: SAMPLE_SEARCH_PARAMS,
+                fields_to_aggregate_for: _.compact(fields.map((field) => AGGREGATION_FIELDS[field])),
+            })
+        );
+    });
 }
 
 /**
  * What the popovers count besides samples: the histology images of each
  * pathology report, and Browse by File's file counts per tissue/preservation
  * type (a /bar_plot_aggregations/ `terms`) for `fileSearchParams`, Browse by
- * File's own base filters. `reuse` works as in loadTissueHistologySamples.
+ * File's own base filters. Pass `reuse` to skip refetching when only the
+ * chart's fields changed -- a session change has to refetch, since
+ * visibility depends on it.
  */
 export function loadTissueHistologyLinkedCounts({ reuse = false, fileSearchParams = {} } = {}) {
     if (reuse && cachedLinkedCounts) return cachedLinkedCounts;
-    cachedLinkedCounts = Promise.all([fetchImageIdsByReportId(), fetchFileCountTerms(fileSearchParams)]).then(
-        ([imageIdsByReportId, fileCountTerms]) => {
-            return { imageIdsByReportId, fileCountTerms };
+    cachedLinkedCounts = Promise.all([fetchImageIdsByReportUuid(), fetchFileCountTerms(fileSearchParams)]).then(
+        ([imageIdsByReportUuid, fileCountTerms]) => {
+            return { imageIdsByReportUuid, fileCountTerms };
         }
     );
     return cachedLinkedCounts;
 }
 
-function getTerms(sample, field) {
-    const getTermsForField = TERMS_BY_FIELD[field];
-    const terms = _.uniq(_.compact(getTermsForField ? getTermsForField(sample) : []));
-    return terms.length > 0 ? terms : [MISSING_TERM];
-}
+const EMPTY_COUNTS = { samples: 0, all_donors_ids: [], pathology_report_uuids: [] };
 
-function getDonorIds(sample) {
-    return _.compact(_.map(sample.sample_sources || [], (source) => source?.donor?.display_title));
-}
-
-function addSample(counter, sampleKey, donorIds, reportIds, imageIds) {
-    counter.samples.add(sampleKey);
-    donorIds.forEach((donorId) => counter.donors.add(donorId));
-    reportIds.forEach((reportId) => counter.reports.add(reportId));
-    imageIds.forEach((imageId) => counter.images.add(imageId));
-}
-
-function newCounter() {
-    return { samples: new Set(), donors: new Set(), reports: new Set(), images: new Set() };
-}
-
-function toCounts(counter, files = 0) {
-    const donorIds = Array.from(counter.donors).sort();
+function toCounts(counts = EMPTY_COUNTS, imageIdsByReportUuid = {}, files = 0) {
+    const reportUuids = counts.pathology_report_uuids || [];
+    const imageIds = _.uniq(_.flatten(reportUuids.map((uuid) => imageIdsByReportUuid[uuid] || [])));
+    const donorIds = counts.all_donors_ids || [];
     return {
-        doc_count: counter.samples.size,
+        doc_count: counts.samples || 0,
         files,
-        samples: counter.samples.size,
+        samples: counts.samples || 0,
         donors: donorIds.length,
         all_donors_ids: donorIds,
-        pathology_reports: counter.reports.size,
-        histology_images: counter.images.size,
+        pathology_reports: reportUuids.length,
+        histology_images: imageIds.length,
     };
 }
 
+const toChartTerm = (term) => (term === NO_VALUE_TERM ? MISSING_TERM : term);
+
 /**
  * The /bar_plot_aggregations/-shaped chart data for `fields` ([x axis field,
- * optional group by field]) -- every count is distinct samples/donors, plus
- * the distinct pathology reports/histology images of those samples and, from
- * `linkedCounts` (see loadTissueHistologyLinkedCounts), the tissue's files.
+ * optional group by field]) out of a /tissue_sample_aggregations/ response
+ * (see loadTissueSampleAggregations): distinct samples (aliquots)/donors per
+ * bar, the distinct pathology reports/histology images of those samples and,
+ * from `linkedCounts` (see loadTissueHistologyLinkedCounts), the tissue's files.
  */
-export function buildTissueHistologyBarplotData(samples = [], fields = [], linkedCounts = {}) {
+export function buildTissueHistologyBarplotData(aggregations = null, fields = [], linkedCounts = {}) {
     const [xAxisField, groupByField] = fields;
-    const { imageIdsByReportId = {}, fileCountTerms = {} } = linkedCounts;
-    const total = newCounter();
-    const countersByTerm = {};
-
-    samples.forEach((sample) => {
-        // One per physical aliquot -- a Frozen aliquot's Cores count once,
-        // the same unit as a Fixed aliquot (see getAliquotKeyFromExternalId).
-        const sampleKey = getAliquotKeyFromExternalId(sample.external_id) || sample['@id'];
-        const donorIds = getDonorIds(sample);
-        const reportIds = getReportIds(sample);
-        const imageIds = _.flatten(reportIds.map((reportId) => imageIdsByReportId[reportId] || []));
-        addSample(total, sampleKey, donorIds, reportIds, imageIds);
-        getTerms(sample, xAxisField).forEach((term) => {
-            const termCounters = countersByTerm[term] || (countersByTerm[term] = { counter: newCounter(), subCounters: {} });
-            addSample(termCounters.counter, sampleKey, donorIds, reportIds, imageIds);
-            if (!groupByField) return;
-            getTerms(sample, groupByField).forEach((subTerm) => {
-                const subCounter = termCounters.subCounters[subTerm] || (termCounters.subCounters[subTerm] = newCounter());
-                addSample(subCounter, sampleKey, donorIds, reportIds, imageIds);
-            });
-        });
-    });
+    const { imageIdsByReportUuid = {}, fileCountTerms = {} } = linkedCounts;
+    const aggTerms = aggregations?.terms || {};
 
     // Files are only counted by tissue and preservation type (FILE_COUNT_FIELDS).
     const getFileCount = (term, subTerm, subTerms) => {
@@ -251,15 +191,24 @@ export function buildTissueHistologyBarplotData(samples = [], fields = [], linke
         );
     };
 
-    const terms = _.mapObject(countersByTerm, ({ counter, subCounters }, term) => {
-        if (!groupByField) return toCounts(counter, getFileCount(term));
-        const subTerms = _.keys(subCounters).sort();
-        return {
+    const terms = {};
+    _.forEach(aggTerms, (node, rawTerm) => {
+        const term = toChartTerm(rawTerm);
+        if (!groupByField) {
+            terms[term] = toCounts(node, imageIdsByReportUuid, getFileCount(term));
+            return;
+        }
+        const subNodes = {};
+        _.forEach(node.terms || {}, (subNode, rawSubTerm) => {
+            subNodes[toChartTerm(rawSubTerm)] = subNode;
+        });
+        const subTerms = _.keys(subNodes).sort();
+        terms[term] = {
             term,
             field: groupByField,
-            total: toCounts(counter, getFileCount(term)),
-            terms: _.mapObject(subCounters, (subCounter, subTerm) =>
-                toCounts(subCounter, getFileCount(term, subTerm, subTerms))
+            total: toCounts(node.total, imageIdsByReportUuid, getFileCount(term)),
+            terms: _.mapObject(subNodes, (subNode, subTerm) =>
+                toCounts(subNode, imageIdsByReportUuid, getFileCount(term, subTerm, subTerms))
             ),
             other_doc_count: 0,
         };
@@ -268,7 +217,7 @@ export function buildTissueHistologyBarplotData(samples = [], fields = [], linke
     return {
         field: xAxisField,
         terms,
-        total: toCounts(total),
+        total: toCounts(aggregations?.total, imageIdsByReportUuid),
         other_doc_count: 0,
         meta: {},
     };

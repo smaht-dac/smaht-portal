@@ -6,7 +6,7 @@ import _ from 'underscore';
 import { ajax, console, isServerSide, object, searchFilters } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { navigate } from './../util';
 import {
-    loadTissueHistologySamples,
+    loadTissueSampleAggregations,
     loadTissueHistologyLinkedCounts,
     buildTissueHistologyBarplotData,
 } from './BarPlot/tissue-histology-samples';
@@ -767,16 +767,16 @@ export const ChartDataController = {
 
 
     /**
-     * Browse by Tissue's chart data: tissue samples with histology images
-     * and/or pathology reports, bucketed client-side -- see
-     * viz/BarPlot/tissue-histology-samples.js. Always unfiltered: the page
-     * has no filters of its own to narrow it by.
+     * Browse by Tissue's chart data: tissue samples counted per aliquot by
+     * /tissue_sample_aggregations/ -- see viz/BarPlot/tissue-histology-samples.js.
+     * Always unfiltered: the page has no filters of its own to narrow it by.
      *
      * @private
      * @static
      * @param {function} [callback] - Optional callback function.
-     * @param {Object} [opts] - `reuseSourceData` skips refetching the samples
-     *   (and the images/files their popovers count).
+     * @param {Object} [opts] - `reuseSourceData` skips refetching the
+     *   images/files the popovers count (the sample counts are refetched for
+     *   the chart's current fields either way -- a single aggregation).
      * @returns {void} Nothing
      */
     fetchTissueHistologyBarPlotData : function(callback = null, opts = {}){
@@ -784,9 +784,9 @@ export const ChartDataController = {
         const reuse = !!opts.reuseSourceData;
         notifyLoadStartCallbacks();
         Promise.all([
-            loadTissueHistologySamples({ reuse }),
+            loadTissueSampleAggregations(state.barplot_data_fields),
             loadTissueHistologyLinkedCounts({ reuse, 'fileSearchParams' : navigate.getBrowseBaseParams(null, 'all') })
-        ]).then(function([samples, linkedCounts]){
+        ]).then(function([aggregations, linkedCounts]){
             // Another page's chart now owns `state`.
             if (activeMapping !== 'tissue') return;
             if (loadId !== tissueHistologyLoadId) {
@@ -796,7 +796,7 @@ export const ChartDataController = {
                 return;
             }
             ChartDataController.setState({
-                'barplot_data_unfiltered' : buildTissueHistologyBarplotData(samples, state.barplot_data_fields, linkedCounts),
+                'barplot_data_unfiltered' : buildTissueHistologyBarplotData(aggregations, state.barplot_data_fields, linkedCounts),
                 'barplot_data_filtered' : null,
                 'isLoadingChartData' : false
             }, callback, opts);
