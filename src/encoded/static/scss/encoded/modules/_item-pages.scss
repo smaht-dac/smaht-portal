@@ -4551,6 +4551,15 @@ $pathology-reports-muted: #B0B0B0;
                     text-align: left;
                 }
 
+                // A finding's description reads as running text -- left
+                // aligned; "Absent"/"None" placeholders stay centered.
+                // `:first-child` too, to outweigh the brain findings
+                // table's centered first column above.
+                td.is-finding-text,
+                td.is-finding-text:first-child {
+                    text-align: left;
+                }
+
                 tbody tr td:not(.autolysis-score-cell) {
                     background-color: #ffffff;
                 }

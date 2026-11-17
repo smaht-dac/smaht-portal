@@ -243,7 +243,14 @@ const BrainReportDetails = ({ report, tissueCode, tissueTypeValue, enableConditi
                                 return (
                                     <td
                                         key={category}
-                                        className={isPathologicFinding(finding) ? 'is-finding-present' : undefined}>
+                                        className={
+                                            [
+                                                isPathologicFinding(finding) ? 'is-finding-present' : null,
+                                                present ? 'is-finding-text' : null,
+                                            ]
+                                                .filter(Boolean)
+                                                .join(' ') || undefined
+                                        }>
                                         {present ? (
                                             description || 'Present'
                                         ) : present === false ? (
