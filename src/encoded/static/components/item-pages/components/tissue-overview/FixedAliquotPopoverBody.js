@@ -29,28 +29,28 @@ function getPathologyReportItems(reports) {
 }
 
 // Body of the (wide) popover a Fixed slice opens -- same layout as
-// FrozenAliquotPopoverBody.js: a slice swatch + donor/tissue/aliquot card on
-// the left, this slice's pathology reports in a table on the right.
+// FrozenAliquotPopoverBody.js: the donor/tissue/aliquot card and the slice's
+// place in the block on the left, its pathology reports in a table on the
+// right.
 // Presentational only -- AliquotVisualization.js owns the popover itself.
 export default function FixedAliquotPopoverBody({
     slice,
     sequenceLabel,
-    swatchStyle,
     donorLabel,
     tissueLabel,
     // Optional -- see helpers.js's openPathologyReport.
     onPathologyReportClick = null,
     // Optional -- see AliquotVisualization.js's prop of the same name.
     tissueCodeLabels = null,
+    // Optional read-only AliquotVisualization showing where this slice sits
+    // in the block (AliquotVisualization.js passes it in).
+    positionViz = null,
 }) {
     const reportItems = getPathologyReportItems(slice?.pathologyReports);
 
     return (
         <div className="aliquot-detail-layout">
             <div className="aliquot-detail-left">
-                <div className="aliquot-popover-visual">
-                    <span className="aliquot-visual-swatch" style={swatchStyle} />
-                </div>
                 <AliquotInfoCard
                     donorLabel={donorLabel}
                     specimenLabel="Fixed"
@@ -58,6 +58,7 @@ export default function FixedAliquotPopoverBody({
                     aliquotLabel={sequenceLabel}
                     tissueCodeLabels={tissueCodeLabels}
                 />
+                {positionViz}
             </div>
             <div className="aliquot-detail-right">
                 <section className="aliquot-detail-section">

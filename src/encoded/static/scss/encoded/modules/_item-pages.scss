@@ -4898,6 +4898,25 @@ $pathology-reports-muted: #B0B0B0;
         // signals "no data here yet".
     }
 
+    // Read-only mini copy inside a slice popover (AliquotVisualization's
+    // readOnly) -- colors come from the component (DIMMED_SLICE_STYLES).
+    &.aliquot-visualization--mini {
+        .aliquot-canvas-wrap {
+            padding: 0;
+        }
+
+        // Capped low -- it only has to show where the slice sits, and the
+        // popover's left column is already the taller one.
+        .aliquot-canvas {
+            width: auto;
+            max-height: 84px;
+        }
+
+        .aliquot-slice {
+            pointer-events: none;
+        }
+    }
+
     // A real slice's side face, redrawn in a later pass on top of the
     // placeholder that would otherwise fully hide it (see
     // AliquotVisualization.js's markSideCaps/needsSideCap) -- translucent so
@@ -5141,13 +5160,15 @@ $pathology-reports-muted: #B0B0B0;
     // tables on the right -- so it needs far more room than the narrow
     // Fixed one. Capped to the viewport so it never spills off a small screen.
     &.aliquot-popover--wide {
-        --aliquot-detail-width: min(800px, calc(100vw - 32px));
+        // Left column +72px over the original 800/620 (see
+        // .aliquot-detail-layout) -- the right column keeps its width.
+        --aliquot-detail-width: min(872px, calc(100vw - 32px));
 
         // A Fixed slice's table is just Pathology Report / Outcome, so it
         // doesn't need the width Frozen's 3-column core table does -- at the
         // full width it left most of the right half empty.
         &.aliquot-popover--compact {
-            --aliquot-detail-width: min(620px, calc(100vw - 32px));
+            --aliquot-detail-width: min(692px, calc(100vw - 32px));
         }
 
         width: var(--aliquot-detail-width);
@@ -5203,15 +5224,6 @@ $pathology-reports-muted: #B0B0B0;
         width: 44px;
         height: auto;
         overflow: visible;
-    }
-
-    .aliquot-visual-swatch {
-        display: block;
-        width: 88px;
-        height: 88px;
-        border-radius: 6px;
-        border: 1px solid;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
     }
 
     .aliquot-visual-grid-wrap {
@@ -5405,7 +5417,10 @@ $pathology-reports-muted: #B0B0B0;
 
     .aliquot-detail-layout {
         display: grid;
-        grid-template-columns: 260px minmax(0, 1fr);
+        // Wide enough for the info card's longest Tissue line on one row
+        // ("3AO - Frozen Brain, Hippocampus, R", ~243px in Inter 14px) next
+        // to its labels and padding.
+        grid-template-columns: 332px minmax(0, 1fr);
         gap: 1.5rem;
         align-items: start;
 

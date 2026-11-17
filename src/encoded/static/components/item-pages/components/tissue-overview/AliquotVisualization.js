@@ -55,6 +55,16 @@ const PLACEHOLDER_SLICE_STYLES = {
     },
 };
 
+// Every slice but the open one in the read-only mini copy (see readOnly) --
+// one flat neutral grey, real and placeholder alike, so only the open
+// slice carries color.
+const DIMMED_SLICE_STYLES = {
+    front: '#DDE0E3',
+    top: '#E6E8EA',
+    side: '#D3D7DB',
+    border: '#B9BFC5',
+};
+
 const DEFAULT_FROZEN_CORE_POSITIONS = ['A1', 'C2'];
 
 const PATHOLOGY_REPORT_PROPTYPE = PropTypes.oneOfType([
@@ -271,6 +281,11 @@ export default function AliquotVisualization({
     // is left out without it.
     tissueCodeLabels = null,
     histologyImageIdsByReportId = null,
+    // Read-only mini copy (the slice popovers' "where is this slice" view):
+    // no dimension arrows, labels, click targets or popover -- only
+    // `highlightedSliceIndex` keeps its color, the rest is flat grey.
+    readOnly = false,
+    highlightedSliceIndex = null,
 }) {
     const [selectedSliceIndex, setSelectedSliceIndex] = useState(null);
     const [selectedTarget, setSelectedTarget] = useState(null);
@@ -522,15 +537,16 @@ export default function AliquotVisualization({
         // split, or just the one box's width when it isn't.
         widthPx = cursorX;
     }
-    const viewBoxMinX = -76;
-    const viewBoxMinY = -42;
-    const viewBoxWidth = widthPx + depthX + 180;
+    // Read-only drops the dimension arrows, so it only needs a stroke margin.
+    const viewBoxMinX = readOnly ? -4 : -76;
+    const viewBoxMinY = readOnly ? -4 : -42;
+    const viewBoxWidth = widthPx + depthX + (readOnly ? 8 : 180);
     // Nothing is ever drawn below y = depthY + heightPx (the box's own
     // bottom edge) -- the height dimension arrow runs alongside the box,
     // not beneath it -- so this is just a bottom margin, kept modest like
     // viewBoxMinY's top margin rather than leaving a lot of dead space
     // beneath the diagram.
-    const viewBoxHeight = heightPx + depthY + 32;
+    const viewBoxHeight = heightPx + depthY + (readOnly ? 8 : 32);
     const {
         widthLabel = `${totalWidthCm} cm`,
         heightLabel = `${heightCm} cm`,
@@ -544,6 +560,21 @@ export default function AliquotVisualization({
         ? `${selectedSlice.idPrefix || idPrefix || selectedStyles.idPrefix}-${selectedSlice.sequenceLabel}`
         : null;
     const isSelectedSliceFrozen = selectedSlice?.type === 'yellow';
+    // The open slice's place in the whole block, inside its own popover.
+    const positionViz =
+        !readOnly && selectedSlice ? (
+            <AliquotVisualization
+                slices={slices}
+                dimensions={dimensions}
+                idPrefix={idPrefix}
+                enableBivalvedSplit={enableBivalvedSplit}
+                enableMedialLateralLayers={enableMedialLateralLayers}
+                showLegend={false}
+                className="aliquot-visualization--mini"
+                readOnly
+                highlightedSliceIndex={selectedSliceIndex}
+            />
+        ) : null;
     const selectedFrozenCorePositions =
         selectedSlice?.frozenCorePositions || DEFAULT_FROZEN_CORE_POSITIONS;
     // Only reachable for real data -- demo/illustrative slices never set
@@ -684,7 +715,7 @@ export default function AliquotVisualization({
 
     return (
         <div className={'aliquot-visualization' + (className ? ` ${className}` : '')}>
-            {title ? <div className="aliquot-title">{title}</div> : null}
+            {title && !readOnly ? <div className="aliquot-title">{title}</div> : null}
             <div className="aliquot-canvas-wrap">
                 <svg
                     className="aliquot-canvas"
@@ -704,7 +735,7 @@ export default function AliquotVisualization({
                     viewBox={`${viewBoxMinX} ${viewBoxMinY} ${viewBoxWidth} ${viewBoxHeight}`}
                     role="img"
                     aria-label="Aliquot slice visualization">
-                    {hasBivalvedSplit ? (
+                    {readOnly ? null : hasBivalvedSplit ? (
                         sliceGroups.map((group, groupIndex) => {
                             const groupTopLine = offsetLine(
                                 depthX + group.startX,
@@ -743,22 +774,24 @@ export default function AliquotVisualization({
                             labelY={topMidpoint.y - 14}
                         />
                     )}
-                    <DimensionArrow
-                        x1={depthDimensionLine.x1}
-                        y1={depthDimensionLine.y1}
-                        x2={depthDimensionLine.x2}
-                        y2={depthDimensionLine.y2}
-                        label={depthLabel}
-                        // Centered (textAnchor="middle") and pushed along the
-                        // line's own normal (depthDimensionLine.nx/ny, the
-                        // same direction offsetLine already moved this line
-                        // away from the box by) so the label stays symmetric
-                        // around the line's midpoint with consistent
-                        // clearance regardless of the depth diagonal's angle.
-                        labelX={depthMidpoint.x - depthDimensionLine.nx * 20}
-                        labelY={depthMidpoint.y - depthDimensionLine.ny * 20}
-                        textAnchor="middle"
-                    />
+                    {readOnly ? null : (
+                        <DimensionArrow
+                            x1={depthDimensionLine.x1}
+                            y1={depthDimensionLine.y1}
+                            x2={depthDimensionLine.x2}
+                            y2={depthDimensionLine.y2}
+                            label={depthLabel}
+                            // Centered (textAnchor="middle") and pushed along the
+                            // line's own normal (depthDimensionLine.nx/ny, the
+                            // same direction offsetLine already moved this line
+                            // away from the box by) so the label stays symmetric
+                            // around the line's midpoint with consistent
+                            // clearance regardless of the depth diagonal's angle.
+                            labelX={depthMidpoint.x - depthDimensionLine.nx * 20}
+                            labelY={depthMidpoint.y - depthDimensionLine.ny * 20}
+                            textAnchor="middle"
+                        />
+                    )}
 
                     {sliceGroups.map((group, groupIndex) => {
                         const groupX1 = group.startX + group.widthPx;
@@ -773,7 +806,7 @@ export default function AliquotVisualization({
                             </g>
                         );
                     })}
-                    {hasBivalvedSplit
+                    {hasBivalvedSplit && !readOnly
                         ? sliceGroups.map((group, groupIndex) =>
                             group.halfLabel ? (
                                 <text
@@ -789,9 +822,12 @@ export default function AliquotVisualization({
                         : null}
 
                     {geometry.map((slice) => {
-                        const styles = slice.isPlaceholder
-                            ? PLACEHOLDER_SLICE_STYLES[slice.type]
-                            : SLICE_TYPE_STYLES[slice.type];
+                        const isDimmed = readOnly && slice.index !== highlightedSliceIndex;
+                        const styles = isDimmed
+                            ? DIMMED_SLICE_STYLES
+                            : slice.isPlaceholder
+                                ? PLACEHOLDER_SLICE_STYLES[slice.type]
+                                : SLICE_TYPE_STYLES[slice.type];
                         // A Medial-layer slice (medial/lateral mode -- see
                         // enableMedialLateralLayers) has no visible front
                         // face of its own (it's the box's back half, hidden
@@ -811,7 +847,7 @@ export default function AliquotVisualization({
                                 className={
                                     'aliquot-slice' +
                                     (slice.isPlaceholder ? ' is-placeholder' : '') +
-                                    (selectedSliceIndex === slice.index
+                                    ((readOnly ? highlightedSliceIndex : selectedSliceIndex) === slice.index
                                         ? ' is-selected'
                                         : '')
                                 }>
@@ -837,7 +873,7 @@ export default function AliquotVisualization({
                                         stroke={styles.border}
                                     />
                                 )}
-                                {slice.isPlaceholder ? null : slice.hideFrontFace ? (
+                                {slice.isPlaceholder || readOnly ? null : slice.hideFrontFace ? (
                                     // No front face to overlay a rectangular
                                     // foreignObject/button on (the top face
                                     // is a skewed parallelogram) -- a plain
@@ -875,17 +911,19 @@ export default function AliquotVisualization({
                                         </button>
                                     </foreignObject>
                                 )}
-                                <text
-                                    className="slice-inline-label slice-sequence-label"
-                                    x={labelX}
-                                    y={
-                                        showSliceLabels && !slice.hideFrontFace
-                                            ? labelY - 10
-                                            : labelY
-                                    }>
-                                    {slice.sequenceLabel}
-                                </text>
-                                {showSliceLabels && !slice.hideFrontFace ? (
+                                {readOnly ? null : (
+                                    <text
+                                        className="slice-inline-label slice-sequence-label"
+                                        x={labelX}
+                                        y={
+                                            showSliceLabels && !slice.hideFrontFace
+                                                ? labelY - 10
+                                                : labelY
+                                        }>
+                                        {slice.sequenceLabel}
+                                    </text>
+                                )}
+                                {showSliceLabels && !slice.hideFrontFace && !readOnly ? (
                                     <text
                                         className="slice-inline-label"
                                         x={labelX}
@@ -908,85 +946,95 @@ export default function AliquotVisualization({
                                 key={`side-cap-${slice.id || slice.index}`}
                                 className="slice-face slice-side-cap"
                                 points={slice.sidePoints}
-                                fill={SLICE_TYPE_STYLES[slice.type].side}
-                                stroke={SLICE_TYPE_STYLES[slice.type].border}
+                                fill={
+                                    readOnly && slice.index !== highlightedSliceIndex
+                                        ? DIMMED_SLICE_STYLES.side
+                                        : SLICE_TYPE_STYLES[slice.type].side
+                                }
+                                stroke={
+                                    readOnly && slice.index !== highlightedSliceIndex
+                                        ? DIMMED_SLICE_STYLES.border
+                                        : SLICE_TYPE_STYLES[slice.type].border
+                                }
                                 pointerEvents="none"
                             />
                         ))}
-                    <DimensionArrow
-                        x1={heightDimensionLine.x1}
-                        y1={heightDimensionLine.y1 + 8}
-                        x2={heightDimensionLine.x2}
-                        y2={heightDimensionLine.y2 - 4}
-                        label={heightLabel}
-                        labelX={heightMidpoint.x + 14}
-                        labelY={heightMidpoint.y}
-                        textAnchor="start"
-                    />
+                    {readOnly ? null : (
+                        <DimensionArrow
+                            x1={heightDimensionLine.x1}
+                            y1={heightDimensionLine.y1 + 8}
+                            x2={heightDimensionLine.x2}
+                            y2={heightDimensionLine.y2 - 4}
+                            label={heightLabel}
+                            labelX={heightMidpoint.x + 14}
+                            labelY={heightMidpoint.y}
+                            textAnchor="start"
+                        />
+                    )}
                 </svg>
-                <Overlay
-                    show={!!selectedSlice && !!selectedTarget}
-                    target={selectedTarget}
-                    placement="right"
-                    popperConfig={ALIQUOT_POPOVER_POPPER_CONFIG}
-                    rootClose
-                    rootCloseEvent="mousedown"
-                    // eslint-disable-next-line react/jsx-no-bind
-                    onHide={handleHidePopover}>
-                    {/* Overlay requires a render prop here. */}
-                    {/* eslint-disable-next-line react/jsx-no-bind */}
-                    {(overlayProps) => (
-                        <Popover
-                            {...overlayProps}
-                            id={`${popoverId}-slice-popover`}
-                            className={
-                                'aliquot-popover aliquot-popover--wide' +
+                {readOnly ? null : (
+                    <Overlay
+                        show={!!selectedSlice && !!selectedTarget}
+                        target={selectedTarget}
+                        placement="right"
+                        popperConfig={ALIQUOT_POPOVER_POPPER_CONFIG}
+                        rootClose
+                        rootCloseEvent="mousedown"
+                        // eslint-disable-next-line react/jsx-no-bind
+                        onHide={handleHidePopover}>
+                        {/* Overlay requires a render prop here. */}
+                        {/* eslint-disable-next-line react/jsx-no-bind */}
+                        {(overlayProps) => (
+                            <Popover
+                                {...overlayProps}
+                                id={`${popoverId}-slice-popover`}
+                                className={
+                                    'aliquot-popover aliquot-popover--wide' +
                                 (isSelectedSliceFrozen
                                     ? ' aliquot-popover--frozen'
                                     : ' aliquot-popover--fixed aliquot-popover--compact')
-                            }>
-                            <PopoverHeader as="h3">
-                                {selectedAliquotId} - {selectedStyles.label} Tissue
-                            </PopoverHeader>
-                            <PopoverBody>
-                                {isSelectedSliceFrozen ? (
-                                    <FrozenAliquotPopoverBody
-                                        slice={selectedSlice}
-                                        aliquotId={selectedAliquotId}
-                                        sequenceLabel={selectedSlice?.sequenceLabel}
-                                        donorLabel={donorLabel}
-                                        tissueLabel={tissueLabel}
-                                        highlightedPositions={selectedFrozenCorePositions}
-                                        groups={selectedFrozenCorePositionGroups}
-                                        centerColors={submissionCenterColors}
-                                        showNoCorePositionsNote={showNoCorePositionsNote}
-                                        assayPlatformsBySampleName={assayPlatformsBySampleName}
-                                        hoveredPosition={hoveredCorePosition}
-                                        onHoverPosition={setHoveredCorePosition}
-                                        onPathologyReportClick={onPathologyReportClick}
-                                        tissueCodeLabels={tissueCodeLabels}
-                                        histologyImageIdsByReportId={histologyImageIdsByReportId}
-                                    />
-                                ) : (
-                                    <FixedAliquotPopoverBody
-                                        slice={selectedSlice}
-                                        sequenceLabel={selectedSlice?.sequenceLabel}
-                                        swatchStyle={{
-                                            backgroundColor: selectedStyles.front,
-                                            borderColor: selectedStyles.border,
-                                        }}
-                                        donorLabel={donorLabel}
-                                        tissueLabel={tissueLabel}
-                                        onPathologyReportClick={onPathologyReportClick}
-                                        tissueCodeLabels={tissueCodeLabels}
-                                    />
-                                )}
-                            </PopoverBody>
-                        </Popover>
-                    )}
-                </Overlay>
+                                }>
+                                <PopoverHeader as="h3">
+                                    {selectedAliquotId} - {selectedStyles.label} Tissue
+                                </PopoverHeader>
+                                <PopoverBody>
+                                    {isSelectedSliceFrozen ? (
+                                        <FrozenAliquotPopoverBody
+                                            slice={selectedSlice}
+                                            aliquotId={selectedAliquotId}
+                                            sequenceLabel={selectedSlice?.sequenceLabel}
+                                            donorLabel={donorLabel}
+                                            tissueLabel={tissueLabel}
+                                            highlightedPositions={selectedFrozenCorePositions}
+                                            groups={selectedFrozenCorePositionGroups}
+                                            centerColors={submissionCenterColors}
+                                            showNoCorePositionsNote={showNoCorePositionsNote}
+                                            assayPlatformsBySampleName={assayPlatformsBySampleName}
+                                            hoveredPosition={hoveredCorePosition}
+                                            onHoverPosition={setHoveredCorePosition}
+                                            onPathologyReportClick={onPathologyReportClick}
+                                            tissueCodeLabels={tissueCodeLabels}
+                                            histologyImageIdsByReportId={histologyImageIdsByReportId}
+                                            positionViz={positionViz}
+                                        />
+                                    ) : (
+                                        <FixedAliquotPopoverBody
+                                            slice={selectedSlice}
+                                            sequenceLabel={selectedSlice?.sequenceLabel}
+                                            donorLabel={donorLabel}
+                                            tissueLabel={tissueLabel}
+                                            onPathologyReportClick={onPathologyReportClick}
+                                            tissueCodeLabels={tissueCodeLabels}
+                                            positionViz={positionViz}
+                                        />
+                                    )}
+                                </PopoverBody>
+                            </Popover>
+                        )}
+                    </Overlay>
+                )}
             </div>
-            {showLegend ? (
+            {showLegend && !readOnly ? (
                 <div className="aliquot-legend">
                     {Object.entries(SLICE_TYPE_STYLES).map(([key, styles]) => (
                         <div className="aliquot-legend-item" key={key}>
@@ -1031,6 +1079,8 @@ AliquotVisualization.propTypes = {
     onPathologyReportClick: PropTypes.func,
     tissueCodeLabels: PropTypes.arrayOf(PropTypes.string),
     histologyImageIdsByReportId: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)),
+    readOnly: PropTypes.bool,
+    highlightedSliceIndex: PropTypes.number,
     dimensions: PropTypes.shape({
         heightCm: PropTypes.number,
         depthCm: PropTypes.number,
