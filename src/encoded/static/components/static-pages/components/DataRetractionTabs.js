@@ -1,6 +1,6 @@
 'use strict';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
     DotRouter,
@@ -57,11 +57,38 @@ const DATA_RETRACTION_TABS = [
 ];
 
 /**
+ * Returns the selected tab's dotPath from the URL hash (e.g.
+ * `#data-retraction.renamed`). Falls back to the first tab, which DotRouter
+ * shows by default when the hash has no valid dotPath.
+ */
+const getSelectedDotPath = (href) => {
+    const dotPath = DotRouter.getDotPath(href || '');
+    return DATA_RETRACTION_TABS.some((tab) => tab.dotPath === dotPath)
+        ? dotPath
+        : DATA_RETRACTION_TABS[0].dotPath;
+};
+
+/**
  * Retracted and renamed files tables, each in its own tab. The selected tab
  * is kept in the URL hash (e.g. `#data-retraction.renamed`) so each table can
- * be linked to directly. Only the selected tab's table is mounted.
+ * be linked to directly. A tab's table is mounted the first time the tab is
+ * opened and kept mounted after, so its filters and loaded rows are still
+ * there when the user switches back.
  */
 export function DataRetractionTabs({ href, schemas, session }) {
+    const selectedDotPath = getSelectedDotPath(href);
+    const [openedDotPaths, setOpenedDotPaths] = useState(
+        () => new Set([selectedDotPath])
+    );
+
+    useEffect(() => {
+        setOpenedDotPaths((prev) =>
+            prev.has(selectedDotPath)
+                ? prev
+                : new Set(prev).add(selectedDotPath)
+        );
+    }, [selectedDotPath]);
+
     return (
         <DotRouter
             href={href}
@@ -91,6 +118,7 @@ export function DataRetractionTabs({ href, schemas, session }) {
                             </>
                         }
                         arrowTabs={false}
+                        cache={openedDotPaths.has(dotPath)}
                         default={index === 0}>
                         <div className="data-retraction-panel">
                             <h2 className="data-retraction-panel-title">
