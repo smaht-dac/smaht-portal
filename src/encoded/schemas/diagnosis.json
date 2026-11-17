@@ -29,7 +29,7 @@
             "$ref": "mixins.json#/schema_version"
         },
         {
-            "$ref": "mixins.json#/status"
+            "$ref": "mixins.json#/protected_status"
         },
         {
             "$ref": "mixins.json#/submitted"
