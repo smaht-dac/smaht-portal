@@ -422,7 +422,7 @@ const AliquotReportsTable = ({ reports, highlightedReportId, enableConditionalCo
                         {FINDING_TYPES.map((type) => {
                             const lines = findings.filter((f) => f.type === type).map((f) => f.text);
                             return (
-                                <td key={type} className={lines.length > 0 ? 'is-finding-present' : undefined}>
+                                <td key={type} className={lines.length > 0 ? 'is-finding-present is-finding-text' : undefined}>
                                     <StackedLines lines={lines} />
                                 </td>
                             );
