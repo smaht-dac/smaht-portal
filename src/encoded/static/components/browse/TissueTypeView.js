@@ -24,7 +24,7 @@ import BrainPathologyReportsTable, {
 } from '../item-pages/components/tissue-overview/BrainPathologyReportsTable';
 import { useUserDownloadAccess } from '../util/hooks';
 import { pageTitleViews } from '../PageTitleSection';
-import { getAliquotKeyFromExternalId, getTissueInternalCodeFromFacetTerm } from '../util/data';
+import { getTissueInternalCodeFromFacetTerm } from '../util/data';
 import {
     getDisplayText,
     dedupeTissuesByDonor,
@@ -908,43 +908,41 @@ export default function TissueTypeView({
         }
         let ignore = false;
         setSampleStats(null);
-        // Counted per physical aliquot, not per TissueSample record (see
-        // getAliquotKeyFromExternalId) -- the same unit as the Cohort View
-        // chart (viz/BarPlot/tissue-histology-samples.js).
-        const params = new URLSearchParams({
-            type: 'TissueSample',
-            'status!': 'deleted',
-            'sample_sources.tissue_type': tissueMatrixFilterValue,
-            limit: 'all',
-        });
-        Object.entries(SAMPLE_DONOR_POPULATION_PARAMS).forEach(([key, values]) =>
-            values.forEach((value) => params.append(key, value))
-        );
-        ['external_id', 'preservation_type', 'sample_sources.donor.external_id'].forEach((field) =>
-            params.append('field', field)
-        );
+        // Counted per physical aliquot by /tissue_sample_aggregations/
+        // (visualization.py) -- the same count as the Cohort View chart.
         const onResponse = (resp) => {
             if (ignore) return;
             const groups = {
-                sequencing: { aliquots: new Set(), donors: new Set() },
-                histology: { aliquots: new Set(), donors: new Set() },
+                sequencing: { samples: 0, donors: new Set() },
+                histology: { samples: 0, donors: new Set() },
             };
-            (resp?.['@graph'] || []).forEach((sample) => {
-                // Samples with no preservation type belong to neither card.
-                if (!sample?.preservation_type || !sample.external_id) return;
-                const group = isFixedPreservation(sample.preservation_type) ? groups.histology : groups.sequencing;
-                group.aliquots.add(getAliquotKeyFromExternalId(sample.external_id));
-                (sample.sample_sources || []).forEach((source) => {
-                    if (source?.donor?.external_id) group.donors.add(source.donor.external_id);
-                });
+            Object.entries(resp?.terms || {}).forEach(([sampleType, counts]) => {
+                const group = isFixedPreservation(sampleType) ? groups.histology : groups.sequencing;
+                group.samples += counts?.samples || 0;
+                (counts?.all_donors_ids || []).forEach((donorId) => group.donors.add(donorId));
             });
             setSampleStats({
-                sequencing: { samples: groups.sequencing.aliquots.size, donors: groups.sequencing.donors.size },
-                histology: { samples: groups.histology.aliquots.size, donors: groups.histology.donors.size },
+                sequencing: { samples: groups.sequencing.samples, donors: groups.sequencing.donors.size },
+                histology: { samples: groups.histology.samples, donors: groups.histology.donors.size },
             });
         };
-        // An empty search answers 404 with an empty @graph.
-        ajax.load(`/search/?${params.toString()}`, onResponse, 'GET', onResponse);
+        ajax.load(
+            '/tissue_sample_aggregations/',
+            onResponse,
+            'POST',
+            () => {
+                if (!ignore) setSampleStats(emptyStats);
+            },
+            JSON.stringify({
+                search_query_params: {
+                    'status!': ['deleted'],
+                    'sample_sources.tissue_type': [tissueMatrixFilterValue],
+                    ...SAMPLE_DONOR_POPULATION_PARAMS,
+                },
+                // Fresh-aware sample type (visualization.py's TISSUE_SAMPLE_TYPE_SCRIPT).
+                fields_to_aggregate_for: ['sample_type'],
+            })
+        );
         return () => {
             ignore = true;
         };
