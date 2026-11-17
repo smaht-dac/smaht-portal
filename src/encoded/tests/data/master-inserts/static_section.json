@@ -638,7 +638,6 @@
     {
         "identifier": "renamed-files",
         "title": "List of Renamed Files",
-        "file": "/docs/public/renamed_files.jsx",
         "status": "deleted",
         "options": {
             "filetype": "jsx",
