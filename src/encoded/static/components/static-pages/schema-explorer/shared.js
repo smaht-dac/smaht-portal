@@ -1,4 +1,6 @@
 import React from 'react';
+import OverlayTrigger from 'react-bootstrap/esm/OverlayTrigger';
+import Popover from 'react-bootstrap/esm/Popover';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 export const labels = {
@@ -31,7 +33,7 @@ export function SourceLinks({ sources = [], onSource }) {
                     type="button"
                     key={`${source.file}:${source.line}:${i}`}
                     onClick={() => onSource(source)}>
-                    {source.file.split('/').slice(-2).join('/')}:{source.line} ↗
+                    {source.file.split('/').slice(-2).join('/')}:{source.line} <i className="icon icon-fw icon-external-link-alt fas" aria-hidden="true" />
                 </button>
             ))}
         </span>
@@ -186,11 +188,17 @@ export async function exportPNG(svg, name) {
 }
 
 // Summary and Map are two views of one concept; the tabs make the switch read as staying on the same page.
-export function ConceptTabs({ active, label, onSummary, onMap }) {
+// Reading help behind an info icon, as on the portal's chart titles; hover opens it and focus keeps it keyboard-accessible.
+export function InfoPopover({ id, label, title, className = '', placement = 'bottom-start', children }) {
+    const popover = (
+        <Popover id={id} className={`se-info-popover ${className}`}>
+            <Popover.Header as="h3">{title}</Popover.Header>
+            <Popover.Body>{children}</Popover.Body>
+        </Popover>
+    );
     return (
-        <div className="se-concept-tabs" role="tablist" aria-label={`${label} views`}>
-            <button type="button" role="tab" aria-selected={active === 'summary'} onClick={active === 'summary' ? undefined : onSummary}>Summary</button>
-            <button type="button" role="tab" aria-selected={active === 'map'} onClick={active === 'map' ? undefined : onMap}>Map</button>
-        </div>
+        <OverlayTrigger trigger={['hover', 'focus']} placement={placement} overlay={popover}>
+            <button type="button" className="se-info-tooltip" aria-label={label}><i className="icon icon-info-circle fas" aria-hidden="true" /></button>
+        </OverlayTrigger>
     );
 }

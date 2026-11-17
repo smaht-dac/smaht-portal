@@ -2,8 +2,11 @@ import React from 'react';
 import { SourceLinks } from './shared';
 import { relationshipPresentation } from './relationship-presentation';
 
-export default function RelationshipDetails({ references, index, intro, sources, onSource }) {
-    const entries = relationshipPresentation(references, index);
+// `meaning`, when given, is the link-specific explanation written for a single relationship; it replaces the
+// field's generic meaning on its card.
+export default function RelationshipDetails({ references, index, intro, meaning, sources, onSource }) {
+    const presented = relationshipPresentation(references, index);
+    const entries = meaning && presented.length === 1 ? [{ ...presented[0], meaning }] : presented;
     return (
         <div className="se-connection-details">
             {entries.map((entry) => (

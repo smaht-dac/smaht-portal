@@ -70,7 +70,13 @@ const flow = ['donors', 'samples', 'sequencing', 'workflows', 'files'];
 
 const orderedDomains = [...flow, 'administrative', 'other'].map((id) => domains.find((d) => d.id === id));
 
-export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], viewport = { width: 1200, height: 650 }) {
+// A group map has one grouping: the donor-to-data concepts (`concepts`, in path order, named and numbered as on the
+// path) come first, and schemas outside every concept keep their unnumbered stage. A stage that a concept only
+// partly covers gives its remaining schemas to "Supporting types", so no stage repeats a concept under another name;
+// a base type left out of the concepts joins the group's last such panel, beside the subtypes it is the base of.
+// `gap` is the space between panels; the explorer widens it so arrows between panels have a channel, and
+// `columnGap` (side by side panels) further, so an arrow across it has room for its label.
+export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], viewport = { width: 1200, height: 650 }, concepts = [], { gap = 20, columnGap = gap } = {}) {
     const positions = {}, frames = [], layers = [];
     const members = new Set(nodes.map((n) => n.name));
     const adjacency = new Map(nodes.map((n) => [n.name, new Set()]));
@@ -82,12 +88,28 @@ export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], vie
     let groupTop = 0;
     for (const domain of orderedDomains) {
         const remaining = new Set(nodes.filter((n) => domainFor(n.name) === domain.id).map((n) => n.name));
-        const rows = [];
-        for (const [label, names] of stages[domain.id] || []) {
-            const namesInStage = names.split(' ').filter((name) => remaining.delete(name));
-            if (namesInStage.length) rows.push({ label, names: namesInStage });
+        const rows = [], supporting = [], bases = [];
+        for (const concept of concepts.filter((c) => c.domain === domain.id)) {
+            const inConcept = concept.types.split(' ').filter((name) => remaining.delete(name));
+            if (inConcept.length) rows.push({ name: concept.label, label: concept.step ? `${concept.step}. ${concept.label}` : concept.label, concept: concept.id, names: inConcept });
         }
-        if (remaining.size) rows.push({ label: 'Other types', names: [...remaining].sort() });
+        for (const [label, names] of stages[domain.id] || []) {
+            const shown = names.split(' ').filter((name) => members.has(name));
+            const namesInStage = shown.filter((name) => remaining.delete(name));
+            if (!namesInStage.length) continue;
+            if (label === 'Base types' && rows.length) bases.push(...namesInStage);
+            else if (namesInStage.length === shown.length) rows.push({ name: label, label, names: namesInStage });
+            else supporting.push(...namesInStage);
+        }
+        if (supporting.length) {
+            const row = rows.find((r) => r.name === 'Supporting types');
+            if (row) row.names.push(...supporting); else rows.push({ name: 'Supporting types', label: 'Supporting types', names: supporting });
+        }
+        if (bases.length) {
+            const row = rows.findLast((r) => !r.concept);
+            if (row) row.names.unshift(...bases); else rows.push({ name: 'Supporting types', label: 'Supporting types', names: bases });
+        }
+        if (remaining.size) rows.push({ name: 'Other types', label: 'Other types', names: [...remaining].sort() });
         if (!rows.length) continue;
         const ranks = new Map(rows.flatMap((row) => row.names.map((name, i) => [name, i])));
         const layerFor = new Map(rows.flatMap((row, i) => row.names.map((name) => [name, i])));
@@ -96,12 +118,13 @@ export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], vie
                 const previous = [...adjacency.get(name)].filter((n) => ranks.has(n) && layerFor.get(n) < layerFor.get(name));
                 return [name, previous.length ? previous.reduce((sum, n) => sum + ranks.get(n), 0) / previous.length : ranks.get(name)];
             }));
-            row.names.sort((a, b) => scores.get(a) - scores.get(b) || a.localeCompare(b));
+            // A panel's abstract base leads it; the rest follow their links to earlier panels.
+            row.names.sort((a, b) => abstractTypes.has(b) - abstractTypes.has(a) || scores.get(a) - scores.get(b) || a.localeCompare(b));
             row.names.forEach((name, i) => ranks.set(name, i));
         }
-        const base = rows.find((row) => row.label === 'Base types');
+        const base = rows.find((row) => row.name === 'Base types');
         const main = rows.filter((row) => row !== base);
-        const gap = 20, nodeGap = 24, padding = 24;
+        const nodeGap = 24, padding = 24;
         const inset = 18, headerHeight = 40, bottomInset = 16;
         let best;
         const targets = new Set([600, viewport.width, viewport.width / 0.85,
@@ -121,7 +144,7 @@ export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], vie
                             const across = Math.ceil(row.names.length / down);
                             return { row, index: start + i + 1, across, width: across * nodeWidth + (across - 1) * nodeGap + inset * 2 };
                         });
-                        const width = tiles.reduce((sum, tile) => sum + tile.width, 0) + (tiles.length - 1) * gap;
+                        const width = tiles.reduce((sum, tile) => sum + tile.width, 0) + (tiles.length - 1) * columnGap;
                         if (width > available || tiles.some((tile) => tile.across > 4)) continue;
                         const count = Math.max(...tiles.map((tile) => Math.ceil(tile.row.names.length / tile.across)));
                         const rowHeight = headerHeight + count * nodeHeight + (count - 1) * nodeGap + bottomInset;
@@ -144,7 +167,7 @@ export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], vie
                 let left = padding;
                 for (const tile of row.tiles) {
                     tiles.push({ ...tile, left, top, height: row.height });
-                    left += tile.width + gap;
+                    left += tile.width + columnGap;
                 }
                 top += row.height + gap;
             }
@@ -159,7 +182,7 @@ export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], vie
         }
         const placeStage = (row, left, top, width, across, label, index, height) => {
             const heading = { left: left + inset, top: groupTop + top + 10, width: Math.min(width - inset * 2, label.length * 10 + 12), height: 24 };
-            layers.push({ ...heading, id: `${domain.id}-${row.label}`, label, domain: domain.id, stage: index, names: [...row.names],
+            layers.push({ ...heading, id: `${domain.id}-${row.name}`, label, domain: domain.id, stage: index, concept: row.concept, names: [...row.names],
                 panel: { left, top: groupTop + top, width, height } });
             for (let start = 0; start < row.names.length; start += across) {
                 const names = row.names.slice(start, start + across);
@@ -172,7 +195,7 @@ export function hierarchicalLayout(nodes, nodeWidth, nodeHeight, edges = [], vie
         if (base) {
             placeStage(base, padding, 54, best.width - padding * 2, best.baseColumns, base.label, 0, best.baseHeight);
         }
-        for (const tile of best.tiles) placeStage(tile.row, tile.left, tile.top, tile.width, tile.across, `${tile.index}. ${tile.row.label}`, tile.index, tile.height);
+        for (const tile of best.tiles) placeStage(tile.row, tile.left, tile.top, tile.width, tile.across, tile.row.label, tile.index, tile.height);
         frames.push({ id: domain.id, label: domain.label, left: 0, top: groupTop, width: best.width, height: best.height, count: rows.reduce((sum, row) => sum + row.names.length, 0) });
         groupTop += best.height + 64;
     }

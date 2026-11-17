@@ -4,9 +4,10 @@ const url=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('b
 (async()=>{
  const read=name=>fs.readFileSync(base+name+'.js','utf8');
  const domainsUrl=url(read('domains'));
- const {neighborhoodLayout,neighborhoodSides}=await import(url(read('neighborhood').replace("'./domains'",JSON.stringify(domainsUrl))));
+ const routingUrl=url(read('routing'));
+ const {neighborhoodLayout,neighborhoodSides,balanceSides,neighborhoodRoutes}=await import(url(read('neighborhood').replace("'./domains'",JSON.stringify(domainsUrl)).replace("'./routing'",JSON.stringify(routingUrl))));
  const {domains,domainFor}=await import(domainsUrl);
- const {routeEdges,segmentClear}=await import(url(read('routing')));
+ const {routeEdges,segmentClear}=await import(routingUrl);
  const {researchLabels}=await import(url(read('research-map')));
  const {groupRelationships,sharedRelationships}=await import(url(read('relationship-view')));
  const model=JSON.parse(fs.readFileSync(process.argv[2]||'/tmp/schema-explorer-hierarchy.json','utf8')).model;
@@ -60,6 +61,35 @@ const url=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('b
    }
   }
   if(selected!=='File')assert.equal(Object.keys(labels).length,groups.length,`${selected}: every arrow is labelled`);
+ }
+ // A lopsided neighborhood moves whole groups to its quiet side, so both columns are about even; schemas that link to
+ // the selection never move right.
+ {
+  const groups=neighborhood('OutputFile',['linkTo','calculated','reverse']);
+  const {incoming,outgoing}=neighborhoodSides('OutputFile',groups);
+  const {positions}=neighborhoodLayout('OutputFile',groups,236,66);
+  const left=[...incoming,...outgoing].filter(n=>positions[n].x<0).length,right=[...incoming,...outgoing].filter(n=>positions[n].x>0).length;
+  assert.ok(outgoing.length>8 && Math.abs(left-right)<=Math.ceil((left+right)/3),`OutputFile spreads over both sides (${left} left, ${right} right)`);
+  for(const name of incoming)assert.ok(positions[name].x<0,`${name} links to OutputFile and stays on the left`);
+  const even=balanceSides(['A'],['B','C']);
+  assert.deepEqual([even.left.length,even.right.length],[1,1],'A balanced neighborhood is left as it is');
+ }
+ // Arrows into the selection from one side join one bus and end at one point, so their heads make one head;
+ // every route runs only horizontally and vertically and stays clear of the cards.
+ {
+  const groups=neighborhood('Sample',['linkTo','calculated','reverse']);
+  const {positions}=neighborhoodLayout('Sample',groups,236,66);
+  const routes=neighborhoodRoutes('Sample',groups,positions,236,66);
+  const into=groups.filter(g=>g.to==='Sample'&&g.from!=='Sample'&&positions[g.from].x<0);
+  assert.ok(into.length>3,'Sample has many incoming links on its left');
+  assert.equal(new Set(into.map(g=>JSON.stringify(routes[g.key].end))).size,1,'Incoming arrows from one side share one end point');
+  const cards=Object.entries(positions).map(([name,p])=>({name,left:p.x-118,right:p.x+118,top:p.y-33,bottom:p.y+33}));
+  for(const g of groups){
+   const r=routes[g.key];if(!r)continue;
+   r.points.slice(1).forEach((q,i)=>{const p=r.points[i];
+    assert.ok(p.x===q.x||p.y===q.y,`${g.key} runs straight`);
+    assert.ok(segmentClear(p,q,cards.filter(c=>c.name!==g.from&&c.name!==g.to)),`${g.key} avoids the other cards`);});
+  }
  }
  console.log('Neighborhood: direction columns, shared inherited links, group panels, routed arrows and unambiguous labels passed.');
 })();

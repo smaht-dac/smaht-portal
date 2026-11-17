@@ -33,7 +33,7 @@ export default function CrossGroupConnections({ selected, groups, sectionRef, on
         <section ref={sectionRef} id="cross-group-connections" className="se-cross-group" aria-label={`${selected}: connections outside this group`}>
             <div className="se-cross-group-heading">
                 <strong>{selected} · External connections</strong>
-                <button type="button" data-close-connections="" onClick={onClose} aria-label="Close external connections">×</button>
+                <button type="button" data-close-connections="" onClick={onClose} aria-label="Close external connections"><i className="icon icon-fw icon-times fas" aria-hidden="true" /></button>
             </div>
             <div className="se-cross-group-list">
                 {groups.map((group) => (
@@ -45,7 +45,7 @@ export default function CrossGroupConnections({ selected, groups, sectionRef, on
                             return (
                                 <li key={connection.key}>
                                     <div className="se-cross-group-row-heading">
-                                        <button type="button" className="se-cross-group-peer" onClick={() => onChoose(peer)}>{peer} →</button>
+                                        <button type="button" className="se-cross-group-peer" onClick={() => onChoose(peer)}>{peer} <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button>
                                         <span className="se-cross-group-direction">{outgoing ? 'Outgoing' : 'Incoming'} · {edgeLabel(connection)}</span>
                                     </div>
                                     <div className="se-cross-group-row-detail">

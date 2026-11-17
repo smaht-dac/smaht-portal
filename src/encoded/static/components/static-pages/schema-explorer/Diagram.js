@@ -7,54 +7,60 @@ import React, {
 } from 'react';
 import { layout, width, height } from './layout';
 import { domains, domainFor, hierarchicalLayout, abstractTypes } from './domains';
-import { routeEdges } from './routing';
-import { groupRelationships, sharedRelationships } from './relationship-view';
+import { routeEdges, panelRoutes } from './routing';
+import { groupRelationships, sharedRelationships, panelRelationships } from './relationship-view';
 import { nodePresentation, stageAccent } from './node-presentation';
-import ResearchOverview from './ResearchOverview';
+import ResearchOverview, { ConceptSummary } from './ResearchOverview';
 import { explorerIndex } from './explorer-scope';
 import { externalContextGroups } from './external-context';
-import { mapSentence, researchLabels } from './research-map';
-import { neighborhoodLayout } from './neighborhood';
+import { mapSentence, researchLabels, buildResearchMap, concepts } from './research-map';
+import { conceptConnections } from './concept-connections';
+import { overviewRoute } from './explorer-route';
+import { CatalogPanel, catalogGroup } from './SchemaCatalog';
+import { neighborhoodLayout, neighborhoodRoutes } from './neighborhood';
 import CrossGroupConnections, { outsideConnections } from './CrossGroupConnections';
-import { Badge, Filters, visibleEdge, edgeLabel, exportPNG } from './shared';
+import { Badge, Filters, visibleEdge, edgeLabel, exportPNG, InfoPopover } from './shared';
 
 const defaults = [];
 const colors = { linkTo: '#2368aa', calculated: '#7952a3', reverse: '#986019' };
 export default function Diagram({
     index: sourceIndex,
-    focus = '',
-    compact = false,
-    onExplore,
     onDetail,
     onPlanner,
     onBrowseAll,
-    groupRequest,
+    route = overviewRoute,
+    onNavigate,
+    renderSchema,
+    catalogSchema = '',
 }) {
     const index = useMemo(() => explorerIndex(sourceIndex), [sourceIndex]);
-    const [selected, setSelected] = useState(focus);
+    const [selected, setSelected] = useState('');
     const [outsideOpen, setOutsideOpen] = useState(false);
     const [expandedExternal, setExpandedExternal] = useState([]);
-    const [domain, setDomain] = useState('');
-    const [conceptContext, setConceptContext] = useState(null);
-    const [showExternal, setShowExternal] = useState(false);
-    useEffect(() => { setShowExternal(!!conceptContext); }, [conceptContext?.id]);
-    useEffect(() => { setExpandedExternal([]); }, [conceptContext?.id, domain]);
-    const [returnConcept, setReturnConcept] = useState('');
-    const [focusReturnedMap, setFocusReturnedMap] = useState(false);
+    const [showExternal, setShowExternal] = useState(true);
     const [arrangement, setArrangement] = useState('hierarchical');
     const [crossLinks, setCrossLinks] = useState(true);
-    const [connectionMode, setConnectionMode] = useState('shared');
-    const [hidden, setHidden] = useState(compact ? [] : defaults);
-    const [kinds, setKinds] = useState(compact ? ['linkTo', 'calculated', 'reverse'] : ['linkTo']);
+    // Group maps open with arrows between panels; schema-level arrows come with a selection or on request.
+    const [connectionMode, setConnectionMode] = useState('panels');
+    // A group's page shows its map (the default) or its schemas as the catalog's list.
+    const [groupTab, setGroupTab] = useState('map');
+    const [hidden, setHidden] = useState(defaults);
+    // Links and their reverse links are drawn by default; calculated relationships are opt-in.
+    const [kinds, setKinds] = useState(['linkTo', 'reverse']);
     // A neighborhood answers "what is this schema connected to", so it opens with every relationship kind;
     // leaving it restores the filter the group map had, which stays deliberately sparse.
     const kindsBeforeNeighborhood = useRef(null);
     // The arrow under the pointer or keyboard focus; its covered schemas are outlined.
-    const [hoverEdge, setHoverEdge] = useState(null);
+    const [hoverState, setHoverEdge] = useState(null);
+    // A panel arrow the reader opened: drawn as the schema-to-schema arrows it carries.
+    const [openedArrow, setOpened] = useState(null);
+    // A schema arrow of a neighborhood that carries several fields, split into one arrow per field.
+    const [splitArrow, setSplitArrow] = useState(null);
+    // The arrow or label just clicked disappears as the map redraws, so it never reports the pointer leaving it.
+    const setOpenedArrow = (key) => { setHoverEdge(null); setOpened(key); };
     const [neighbors, setNeighbors] = useState(false),
         [full, setFull] = useState(false);
-    const [query, setQuery] = useState(''),
-        [typeQuery, setTypeQuery] = useState('');
+    const [typeQuery, setTypeQuery] = useState('');
     const [moves, setMoves] = useState({}),
         [camera, setCamera] = useState({ x: 0, y: 0, scale: 1 });
     const [size, setSize] = useState({ width: 1000, height: 600 });
@@ -67,7 +73,7 @@ export default function Diagram({
     }, []);
     const [exporting, setExporting] = useState(false),
         [error, setError] = useState('');
-    const markerPrefix = compact ? 'graph-arrow' : 'entity-arrow';
+    const markerPrefix = 'entity-arrow';
     const svg = useRef(),
         drag = useRef(),
         relationshipMenu = useRef(),
@@ -89,26 +95,51 @@ export default function Diagram({
         for (const edge of index.edges)
             for (const name of [edge.from, edge.to])
                 if (!models.has(name)) models.set(name, null);
-        let names = [...models.keys()].sort();
-        if (compact) {
-            const related = new Set([
-                focus,
-                ...index.edges.filter((e) => e.from === focus).map((e) => e.to),
-            ]);
-            names = names.filter((n) => related.has(n));
-        }
-        return names.map((name) => {return { name, model: models.get(name) };});
-    }, [index, compact, focus]);
+        return [...models.keys()].sort().map((name) => {return { name, model: models.get(name) };});
+    }, [index]);
+    // The metadata map always draws the whole model, also above a concept's Map tab where `visible` is one group.
+    const overviewNodes = useMemo(() => nodes.filter((n) => !hidden.includes(n.name)), [nodes, hidden]);
+    // The explorer's route says which group, concept or schema is shown.
+    const conceptGraph = useMemo(() => buildResearchMap(index, overviewNodes), [index, overviewNodes]);
+    const conceptContext = useMemo(() => {
+        if (route.view !== 'concept') return null;
+        const node = conceptGraph.nodes.find((n) => n.id === route.concept);
+        return node ? { id: node.id, label: node.label, hint: node.hint, domain: node.domain, members: node.members,
+            connections: conceptConnections(index, node, conceptGraph, overviewNodes), origin: 'concept' } : null;
+    }, [route.view, route.concept, conceptGraph, index, overviewNodes]);
+    const domain = route.view === 'group' ? route.group : route.view === 'schema' ? domainFor(route.schema)
+        : conceptContext?.domain || '';
+    // Group and concept maps open with their links to other groups drawn; each new map starts that way again.
+    useEffect(() => { setShowExternal(true); }, [conceptContext?.id, domain]);
+    useEffect(() => { setExpandedExternal([]); }, [conceptContext?.id, domain]);
+    // Moving to another group or concept starts from its whole map. A schema's address is its group map with the
+    // schema selected, so moving between schemas of one group keeps the map as it is and only changes the selection.
+    const routeKey = route.view === 'concept' ? `concept:${route.concept}` : `${domain ? 'group' : route.view}:${domain}`;
+    useEffect(() => {
+        if (route.view !== 'schema') setSelected('');
+    }, [route.view, route.concept, route.group]);
+    useEffect(() => {
+        if (route.view === 'schema') setSelected(route.schema);
+    }, [route.view, route.schema]);
+    useEffect(() => {
+        setNeighbors(false);
+        setMoves({});
+        setConnectionMode('panels');
+        setGroupTab('map');
+        // The card or arrow being pointed at belongs to the previous map.
+        setHoverEdge(null);
+        setOpenedArrow(null);
+        if (route.view === 'concept') setArrangement('hierarchical');
+    }, [routeKey]);
     const edges = useMemo(
         () =>
             index.edges.filter(
-                (e) => visibleEdge(e, kinds) && (!compact || e.from === focus)
+                (e) => visibleEdge(e, kinds)
             ),
-        [index, kinds, compact, focus]
+        [index, kinds]
     );
     useEffect(() => { setOutsideOpen(false); }, [selected, domain, neighbors, showExternal]);
     useEffect(() => {
-        if (compact) return;
         if (neighbors && !kindsBeforeNeighborhood.current) {
             kindsBeforeNeighborhood.current = kinds;
             setKinds(['linkTo', 'calculated', 'reverse']);
@@ -135,14 +166,14 @@ export default function Diagram({
     // The neighborhood draws only the selected schema's own links. With shared definitions, a reference
     // inherited by several subtypes is drawn once from the base that defines it, as in the group map.
     const neighborhood = useMemo(() => {
-        if (!neighborhoodSelection || compact) return null;
+        if (!neighborhoodSelection) return null;
         const candidates = new Set([...connected].filter((name) => !hidden.includes(name)));
         const incident = groupRelationships(edges.filter((e) => (e.from === neighborhoodSelection || e.to === neighborhoodSelection) &&
             candidates.has(e.from) && candidates.has(e.to)));
-        const collapsed = connectionMode === 'shared' ? sharedRelationships(index, incident, candidates) : { groups: incident, inherited: {} };
+        const collapsed = connectionMode !== 'all' ? sharedRelationships(index, incident, candidates) : { groups: incident, inherited: {} };
         return { candidates, groups: collapsed.groups, inherited: collapsed.inherited,
             names: new Set([neighborhoodSelection, ...collapsed.groups.flatMap((g) => [g.from, g.to])]) };
-    }, [neighborhoodSelection, compact, connected, hidden, edges, connectionMode, index]);
+    }, [neighborhoodSelection, connected, hidden, edges, connectionMode, index]);
     const visibleConnected = neighbors ? neighborhood?.names || connected : null;
     const conceptMembers = useMemo(() => new Set(conceptContext?.members || []), [conceptContext]);
     const contextReferences = useMemo(() => conceptContext?.connections?.flatMap((connection) => connection.edges) || [], [conceptContext]);
@@ -164,8 +195,6 @@ export default function Diagram({
         (n) => !hidden.includes(n.name) && (visibleConnected ? visibleConnected.has(n.name) : (!domain || domainFor(n.name) === domain || externalContextNames.has(n.name)))
     ), [nodes, hidden, visibleConnected, domain, externalContextNames]);
     const names = useMemo(() => new Set(visible.map((n) => n.name)), [visible]);
-    // The metadata map always draws the whole model, also above a concept's Map tab where `visible` is one group.
-    const overviewNodes = useMemo(() => nodes.filter((n) => !hidden.includes(n.name)), [nodes, hidden]);
     const groups = useMemo(() => groupRelationships(edges), [edges]);
     const edgeLanes = useMemo(() => {
         const pairs = new Map();
@@ -184,22 +213,28 @@ export default function Diagram({
         });
         return lanes;
     }, [groups]);
-    const showDomains = !compact && !neighbors && arrangement === 'hierarchical';
+    const showDomains = !neighbors && arrangement === 'hierarchical';
     // Without a group the hierarchical view is the curated research map; every other view is a group map.
     const researchOverview = showDomains && !domain;
+    // The metadata map overview draws its own canvas, so canvas listeners attach again when a group or concept opens.
+    const canvasShown = !researchOverview;
     const cardWidth = width, cardHeight = height;
-    // Group maps and the item page's relationship map shrink the canvas to their content, so layout and
+    // Group maps shrink the canvas to their content, so layout and
     // fitting use the full canvas budget (65vh, min 400px as in the stylesheet) rather than the measured height.
     const groupMap = showDomains && !researchOverview;
-    const fitToContent = groupMap || compact;
-    const budgetHeight = Math.max(400, windowHeight * 0.65);
+    // Group maps and schema neighborhoods size the canvas to their content, so a small neighborhood is neither blown up
+    // nor framed by empty bands above and below.
+    const fitToContent = groupMap || (neighbors && !!selected);
+    // A schema neighborhood keeps one column per side (busy sides are balanced across both), so it may be tall: its
+    // canvas may grow a little past the window (a short scroll) so a busy neighborhood keeps a readable scale.
+    const budgetHeight = neighbors && !!selected ? Math.max(400, windowHeight * 1.15) : Math.max(400, windowHeight * 0.65);
     const layoutSize = useMemo(() => fitToContent ? { width: size.width, height: budgetHeight } : size,
         [fitToContent, size.width, fitToContent ? budgetHeight : size.height]);
     const allPositions = useMemo(() => showDomains ? {} : layout(visible, groups, layoutSize), [showDomains, visible, groups, layoutSize]);
     const clustered = useMemo(() => {
         if (!showDomains) return { positions: {}, frames: [], layers: [] };
         if (researchOverview) return { positions: {}, frames: [], layers: [] };
-        const result = hierarchicalLayout(visible.filter((node) => !externalContextNames.has(node.name)), width, height, index.edges, layoutSize);
+        const result = hierarchicalLayout(visible.filter((node) => !externalContextNames.has(node.name)), width, height, index.edges, layoutSize, concepts, { gap: 96, columnGap: 140 });
         if (externalContextNames.size || externalBundles.length) {
             const right = Math.max(...result.frames.map((frame) => frame.left + frame.width));
             let row = 0;
@@ -233,7 +268,55 @@ export default function Diagram({
         : showDomains ? sharedRelationships(index, visibleGroups, names)
             : { groups: visibleGroups, inherited: {} }, [neighborhood, showDomains, index, visibleGroups, names]);
     const summarize = showDomains && !selected && connectionMode === 'shared';
-    const shownGroups = useMemo(() => {
+    // The default group map: one arrow per pair of panels (or panel and group card), carrying all its references.
+    const panelMode = showDomains && !selected && connectionMode === 'panels';
+    const panelView = useMemo(() => {
+        if (!panelMode) return null;
+        const owners = new Map(clustered.layers.flatMap((layer) => layer.names.map((name) => [name, layer.id])));
+        const cards = {};
+        for (const name of names) if (!owners.has(name) && positions[name]) { owners.set(name, name); cards[name] = { ...positions[name], width: cardWidth, height: cardHeight }; }
+        for (const bundle of externalBundles) {
+            if (expandedExternal.includes(bundle.id) || !positions[bundle.name]) continue;
+            // Sized, so arrows routed around the map keep clear of the cards.
+            cards[bundle.name] = { ...positions[bundle.name], width, height };
+            bundle.members.forEach((name) => owners.set(name, bundle.name));
+        }
+        const referenced = edges.filter((e) => showExternal || (domainFor(e.from) === domain && domainFor(e.to) === domain));
+        const { groups: all, inside } = panelRelationships(referenced, owners);
+        // Arrows join panels only. A group card's links are counted on the card and traced from it on hover,
+        // so the cards on the right do not gather a sheaf of long arrows.
+        const panelIds = new Set(clustered.layers.map((layer) => layer.id));
+        const arrows = all.filter((g) => panelIds.has(g.from) && panelIds.has(g.to));
+        const cardLinks = new Map(), joins = new Map();
+        for (const g of all.filter((group) => !arrows.includes(group) && (panelIds.has(group.from) || panelIds.has(group.to)))) {
+            const card = panelIds.has(g.from) ? g.to : g.from, panel = card === g.from ? g.to : g.from;
+            if (!cardLinks.has(card)) cardLinks.set(card, { count: 0, panels: new Set(), edges: [] });
+            const entry = cardLinks.get(card);
+            entry.count += g.edges.length; entry.panels.add(panel); entry.edges.push(...g.edges);
+            const key = `card:${panel}~${card}`;
+            if (!joins.has(key)) joins.set(key, { key, panel, card, edges: [], out: false, in: false });
+            const join = joins.get(key);
+            join.edges.push(...g.edges);
+            if (g.from === panel) join.out = true; else join.in = true;
+        }
+        // Each group card is tied to every panel it links with by one thin, neutral, unlabelled arrow (the card
+        // carries the count); it points the way the references go, at both ends when they go both ways.
+        // One arrow per card, to the panel it shares the most references with; pointing at the card traces the rest.
+        const strongest = new Map();
+        for (const join of joins.values()) if (!strongest.has(join.card) || join.edges.length > strongest.get(join.card).edges.length) strongest.set(join.card, join);
+        const cardArrows = [...strongest.values()].map((join) => {
+            return { key: join.key, from: join.out ? join.panel : join.card, to: join.out ? join.card : join.panel,
+                both: join.out && join.in, edges: join.edges, kind: 'linkTo', panel: true, cardArrow: true };
+        });
+        const boxes = Object.fromEntries(clustered.layers.map((layer) => [layer.id,
+            { x: layer.panel.left + layer.panel.width / 2, y: layer.panel.top + layer.panel.height / 2, width: layer.panel.width, height: layer.panel.height }]));
+        const labels = new Map([...clustered.layers.map((layer) => [layer.id, layer.label]),
+            ...externalBundles.map((bundle) => [bundle.name, bundle.label])]);
+        const members = new Map(clustered.layers.map((layer) => [layer.id, layer.names]));
+        externalBundles.forEach((bundle) => members.set(bundle.name, bundle.members));
+        return { groups: [...arrows, ...cardArrows], inside, cardLinks, anchors: { ...cards, ...boxes }, labels, members };
+    }, [panelMode, clustered, names, positions, externalBundles, expandedExternal, edges, showExternal, domain]);
+    const schemaGroups = useMemo(() => {
         const result = neighborhood ? neighborhood.groups : summarize ? shared.groups.filter((group) => group.from !== group.to) : scopedGroups;
         const bundled = externalBundles.filter((bundle) => !expandedExternal.includes(bundle.id)).flatMap((bundle) => {
             const matches = edges.filter((edge) => (focusMembers.has(edge.from) && bundle.members.includes(edge.to)) ||
@@ -255,6 +338,42 @@ export default function Diagram({
         });
         return [...result, ...bundled];
     }, [neighborhood, summarize, shared, scopedGroups, externalBundles, expandedExternal, edges, focusMembers, index, names]);
+    // An opened panel arrow is drawn as the schema-to-schema arrows it carries, each labelled with its field; the
+    // other panel arrows step aside until it is closed.
+    const openedPanel = panelView && openedArrow ? panelView.groups.find((g) => g.key === openedArrow) || null : null;
+    // Inherited references are drawn once at their base type, as with shared definitions.
+    const schemaArrowsOf = useCallback((panelGroup) => sharedRelationships(index, groupRelationships(panelGroup.edges), names).groups
+        .filter((g) => g.from !== g.to), [index, names]);
+    const fieldsOf = (g) => [...new Set(g.edges.map((e) => e.field))];
+    // In a neighborhood an arrow standing for several fields opens into one arrow per field, each with its own label.
+    const splitGroups = useCallback((groups) => groups.flatMap((g) => (g.key !== splitArrow ? [g]
+        : fieldsOf(g).map((field) => { return { ...g, key: `${g.key}|${field}`, edges: g.edges.filter((e) => e.field === field), split: true }; }))), [splitArrow]);
+    const shownGroups = useMemo(() => (openedPanel
+        ? schemaArrowsOf(openedPanel).map((g) => { return { ...g, key: `open:${g.key}`, opened: true }; })
+        : panelView ? panelView.groups : neighborhoodView && splitArrow ? splitGroups(schemaGroups) : schemaGroups),
+    [openedPanel, panelView, schemaGroups, schemaArrowsOf, neighborhoodView, splitArrow, splitGroups]);
+    // Only a panel arrow that stands for several schema arrows opens; one that stands for a single arrow already
+    // shows all there is, so a click goes straight to its details.
+    const opensInto = useMemo(() => new Map((panelView?.groups || []).map((g) => [g.key, schemaArrowsOf(g).length])), [panelView, schemaArrowsOf]);
+    const activate = (g) => {
+        if (g.panel && !g.cardArrow && (opensInto.get(g.key) || 0) > 1) setOpenedArrow(g.key);
+        else if (neighborhoodView && !g.split && fieldsOf(g).length > 1) { setHoverEdge(null); setSplitArrow(g.key); }
+        else inspect(g);
+    };
+    // While an arrow is open its schemas stay marked and the rest of the map steps back, as when pointing at it.
+    const openedTrace = useMemo(() => openedPanel && { key: 'opened', keys: new Set(shownGroups.map((g) => g.key)), edges: openedPanel.edges,
+        ends: new Set([openedPanel.from, openedPanel.to, ...openedPanel.edges.flatMap((e) => [e.from, e.to])]) }, [openedPanel, shownGroups]);
+    // A split arrow keeps the map's attention on its fields' arrows, as an opened panel arrow does.
+    const splitTrace = useMemo(() => {
+        if (!splitArrow) return null;
+        const parts = shownGroups.filter((g) => g.split);
+        return parts.length ? { key: 'split', keys: new Set(parts.map((g) => g.key)), edges: parts.flatMap((g) => g.edges),
+            ends: new Set(parts.flatMap((g) => [g.from, g.to])) } : null;
+    }, [splitArrow, shownGroups]);
+    const hoverEdge = hoverState || openedTrace || splitTrace;
+    // Leaving the panel view, or changing what it draws, closes the opened arrow.
+    useEffect(() => { setOpened(null); }, [connectionMode, selected, kinds, showExternal]);
+    useEffect(() => { setSplitArrow(null); }, [connectionMode, selected, kinds, showExternal, neighbors]);
     // A single group is named in the toolbar, so its title stays readable at every zoom level.
     const singleFrame = showDomains && clustered.frames.length === 1 ? clustered.frames[0] : null;
     // Explains only the node styles currently drawn; external schemas appear individually or bundled by group depending on how many there are.
@@ -265,11 +384,20 @@ export default function Diagram({
         externalContextNames.size > 0 && ['external', 'Schema from another group (labelled above the card)'],
         externalBundles.some((bundle) => !expandedExternal.includes(bundle.id)) && ['bundle', 'Another group, collapsed: Expand to list its schemas'],
         summarize && ['covered', 'Hover an arrow to trace it; an arrow from a base type also marks the subtypes that inherit it'],
-        ['arrow', 'Arrow points to the referenced schema'],
+        panelMode ? ['arrow', 'Arrow joins two panels and carries every reference between them; click it to draw those references (one that stands for a single reference opens its details)']
+            : ['arrow', 'Arrow points to the referenced schema'],
     ].filter(Boolean) : [];
-    const title = compact ? 'Relationships' : neighbors ? selected
+    // The reading note for the current view; it moved with the legend into the canvas info popover.
+    const guideNote = selected ? ''
+        : conceptContext ? `Highlighted schemas belong to ${conceptContext.label}.${panelMode ? ' Arrows join panels; select a schema for its own links.' : ''} Drag to pan; scroll to zoom.`
+            : !showDomains ? 'Drag the background to pan, scroll to zoom, or drag a type to move it. Select a type to highlight its neighbors; select an edge to inspect its fields.'
+                : panelMode ? 'Arrows join panels. Select a schema for its own links, or choose Shared definitions under Connections for every schema arrow.'
+                    : summarize ? 'Inherited references are drawn once at their visible base type. Select a type for its exact links, including self-references, or choose All references.'
+                        : 'All references are expanded. Select a type to focus its connections, or choose Shared definitions to combine inherited links.';
+    const title = neighbors ? selected
         : singleFrame?.label || domains.find((d) => d.id === domain)?.label || 'All schemas';
-    const eyebrow = compact ? '' : neighbors ? 'Schema neighborhood' : domain ? 'Schema group' : '';
+    const eyebrow = neighbors ? 'Schema neighborhood' : domain ? 'Schema group' : '';
+    const headingCount = neighbors ? visible.length : singleFrame?.count ?? visible.length;
     // Routed views draw orthogonal arrows around cards and headings: group maps and neighborhoods.
     const routed = showDomains || !!neighborhoodView;
     const headings = useMemo(() => neighborhoodView ? neighborhoodView.panels : showDomains ? [
@@ -277,9 +405,51 @@ export default function Diagram({
         ...clustered.layers,
         ...[...externalContextNames].filter((name) => positions[name]).map((name) => {return { left: positions[name].x - width / 2, top: positions[name].y - height / 2 - 20, width, height: 18 };}),
     ] : [], [neighborhoodView, showDomains, clustered, externalContextNames, positions]);
-    const routes = useMemo(() => routed
-        ? routeEdges(positions, shownGroups, width, height, headings, { spreadPorts: true }) : {},
-    [routed, positions, shownGroups, headings]);
+    // Panel arrows run between panel boxes and group cards, so the schema cards inside panels are not obstacles.
+    // Facing panels get one straight arrow through their gap; only the rest are routed around the panels.
+    // The routes one router drew, as segments the other must not run along.
+    const segmentsOf = (drawn) => Object.values(drawn).flatMap((route) => route.points.slice(1).map((p, i) => [route.points[i], p]));
+    const routes = useMemo(() => {
+        // Schema-to-schema arrows between cards (an opened panel arrow, a schema's neighborhood) follow the panel
+        // router's rules: facing cards get a straight line, every arrow meets a card at its own point and keeps a lane
+        // of its own; the few it cannot shape are routed around the cards without running along the others.
+        const cardRoutes = (panels, { straightOnly = false } = {}) => {
+            const cards = Object.fromEntries(visible.filter((n) => positions[n.name]).map((n) => [n.name, { ...positions[n.name], width: cardWidth, height: cardHeight }]));
+            // Panel titles are obstacles too, so no arrow runs through one.
+            panels.forEach(({ id, label, panel }) => {
+                const titleWidth = Math.min(panel.width, (label || '').length * 10 + 140);
+                cards[`title:${id}`] = { x: panel.left + titleWidth / 2, y: panel.top + 20, width: titleWidth, height: 40 };
+            });
+            // Panel frames are lines too: an arrow whose lane sits on one reads as part of the frame, so lanes keep off them.
+            const frames = panels.flatMap(({ panel }) => {
+                const { left, top } = panel, right = left + panel.width, bottom = top + panel.height;
+                return [[{ x: left, y: top }, { x: left, y: bottom }], [{ x: right, y: top }, { x: right, y: bottom }],
+                    [{ x: left, y: top }, { x: right, y: top }], [{ x: left, y: bottom }, { x: right, y: bottom }]];
+            });
+            // Card sides are short, so ends sit closer than on panels; an arrow with a card in its way runs as a U along
+            // the nearest clear lane past its two cards.
+            const own = panelRoutes(cards, shownGroups, { spacing: 14, lane: 18, around: 'ends', frames, straightOnly });
+            return { ...routeEdges(positions, shownGroups.filter((g) => !own[g.key]), width, height, headings, { spreadPorts: true, avoid: segmentsOf(own) }), ...own };
+        };
+        if (openedPanel) return cardRoutes(clustered.layers.filter((layer) => layer.panel));
+        // In a neighborhood every arrow meets the one selected card: they run along a bus on each side of it.
+        if (neighborhoodView) {
+            const bus = neighborhoodRoutes(neighborhoodSelection, shownGroups, positions, cardWidth, cardHeight);
+            return { ...routeEdges(positions, shownGroups.filter((g) => !bus[g.key]), width, height, headings, { spreadPorts: true, avoid: segmentsOf(bus) }), ...bus };
+        }
+        if (panelView) {
+            // An arrow to a group card never loops around the whole map; if it has no straight or Z shape it threads
+            // through the gaps between panels instead.
+            const own = panelRoutes(panelView.anchors, shownGroups, { aroundIf: (g) => !g.cardArrow });
+            return { ...routeEdges(panelView.anchors, shownGroups.filter((g) => !own[g.key]), width, height, [], { spreadPorts: true, avoid: segmentsOf(own) }), ...own };
+        }
+        return routed ? routeEdges(positions, shownGroups, width, height, headings, { spreadPorts: true }) : {};
+    }, [panelView, openedPanel, neighborhoodView, neighborhoodSelection, routed, positions, shownGroups, headings, visible, cardWidth, cardHeight, clustered]);
+    // A panel arrow's ends are panels; the label names the panel, and its schemas are traced with it.
+    const endLabel = (name) => panelView?.labels.get(name) || externalBundles.find((bundle) => bundle.name === name)?.label || name;
+    // Pointing at a panel arrow marks its two panels and only the schemas its references join, so the reader sees which
+    // schemas it stands for rather than every card in both panels.
+    const panelTrace = (g) => { return { ...g, ends: new Set([g.from, g.to, ...g.edges.flatMap((e) => [e.from, e.to])]) }; };
     const bounds = useMemo(() => {
         // The research map lays out its own nodes, so this view has no positions of its own.
         const points = visible.filter((n) => positions[n.name]).flatMap((n) => [
@@ -293,12 +463,31 @@ export default function Diagram({
         if (neighborhoodView) {
             neighborhoodView.panels.forEach(({ panel }) => points.push({ x: panel.left, y: panel.top }, { x: panel.left + panel.width, y: panel.top + panel.height }));
             Object.values(routes).forEach((route) => points.push(...route.points));
+            // An arrow looping around the outside of a side column carries its label there, so that label is content too.
+            const left = Math.min(...neighborhoodView.panels.map(({ panel }) => panel.left));
+            const right = Math.max(...neighborhoodView.panels.map(({ panel }) => panel.left + panel.width));
+            // A branch's label sits just above or below its own run (up to 24px off the line, 22px tall), so that band
+            // is content too: a label below the lowest card must not fall off the canvas.
+            Object.values(routes).forEach((route) => {
+                const run = route.labelRun !== undefined && route.points[route.labelRun + 1] ? [route.points[route.labelRun], route.points[route.labelRun + 1]] : null;
+                if (run && run[0].y === run[1].y) points.push({ x: Math.min(run[0].x, run[1].x), y: run[0].y - 44 }, { x: Math.max(run[0].x, run[1].x), y: run[0].y + 44 });
+            });
+            // A label sits beside its run and may slide sideways by up to its own width, so the room is a whole label.
+            Object.values(routes).flatMap((route) => route.points).filter((p) => p.x <= left + 1 || p.x >= right - 1)
+                .forEach((p) => points.push({ x: p.x + (p.x <= left + 1 ? -240 : 240), y: p.y }));
         }
         if (showDomains) {
             // A single group's title lives in the toolbar, so its reserved heading band is not content.
             const contentTop = (f) => singleFrame ? Math.min(...clustered.layers.map((layer) => layer.panel?.top ?? layer.top)) : f.top;
             clustered.frames.forEach((f) => points.push({ x: f.left, y: contentTop(f) }, { x: f.left + f.width, y: f.top + f.height }));
             Object.values(routes).forEach((route) => points.push(...route.points));
+            // An arrow run around the outside of the panels carries its label there, so its chip's width is content too.
+            if (panelView) {
+                const left = Math.min(...clustered.frames.map((f) => f.left)), right = Math.max(...clustered.frames.map((f) => f.left + f.width));
+                // An opened arrow's schema arrows run anywhere around the cards, so any of their points may carry a label.
+                Object.values(routes).flatMap((route) => route.points).filter((p) => openedPanel || p.x < left || p.x > right)
+                    .forEach((p) => points.push({ x: p.x - 70, y: p.y }, { x: p.x + 70, y: p.y }));
+            }
         }
         return points.length ? {
             left: Math.min(...points.map((p) => p.x)) - (routed ? 20 : 65),
@@ -306,16 +495,23 @@ export default function Diagram({
             top: Math.min(...points.map((p) => p.y)) - (routed ? 20 : 90),
             bottom: Math.max(...points.map((p) => p.y)) + (routed ? 20 : 65),
         } : { left: -300, right: 300, top: -200, bottom: 200 };
-    }, [visible, positions, showDomains, neighborhoodView, routed, clustered, routes, cardWidth, cardHeight, externalBundles, singleFrame]);
+    }, [visible, positions, showDomains, neighborhoodView, routed, clustered, routes, cardWidth, cardHeight, externalBundles, singleFrame, panelView, openedPanel]);
     const fitScale = useCallback((readable = true) => {
         const fitted = Math.min(
-            showDomains ? 1.25 : 1.5,
+            // A neighborhood is never drawn larger than life: a few cards stay card-sized.
+            showDomains ? 1.25 : neighbors ? 1 : 1.5,
             layoutSize.width / (bounds.right - bounds.left),
             layoutSize.height / (bounds.bottom - bounds.top)
         );
+        // A tall neighborhood keeps a readable scale and lets its canvas grow (the page scrolls), but it always fits
+        // the canvas's width: a reader can scroll down a page, not sideways inside a map.
+        if (neighbors && !showDomains && readable) return Math.min(layoutSize.width / (bounds.right - bounds.left), Math.max(0.9, fitted));
         return Math.max(showDomains && readable ? externalBundles.length ? 0.65 : 0.85 : 0.05, fitted);
-    }, [bounds.left, bounds.right, bounds.top, bounds.bottom, layoutSize, showDomains, externalBundles.length]);
+    }, [bounds.left, bounds.right, bounds.top, bounds.bottom, layoutSize, showDomains, externalBundles.length, neighbors]);
+    // Set once the reader zooms, pans or drags, so automatic refits stop overriding their view.
+    const cameraTouched = useRef(false);
     const fit = useCallback((readable = true) => {
+        cameraTouched.current = false;
         const scale = fitScale(readable);
         const fitsX = (bounds.right - bounds.left) * scale <= layoutSize.width;
         const fitsY = (bounds.bottom - bounds.top) * scale <= layoutSize.height;
@@ -328,13 +524,21 @@ export default function Diagram({
     }, [bounds.left, bounds.right, bounds.top, bounds.bottom, layoutSize, fitToContent, fitScale]);
     // The canvas ends just below the fitted map; zooming in later pans within this height.
     const canvasHeight = fitToContent && !full
-        ? Math.min(budgetHeight, Math.max(280, Math.ceil((bounds.bottom - bounds.top) * fitScale() + 32))) : undefined;
+        ? Math.min(budgetHeight, Math.max(neighbors ? 180 : 280, Math.ceil((bounds.bottom - bounds.top) * fitScale() + 32))) : undefined;
     // Selecting a node only highlights it in the full map. Refit selection
     // changes only when they replace the displayed neighborhood.
-    const layoutFocus = neighbors ? selected : focus;
+    const layoutFocus = neighbors ? selected : '';
+    // A map that fits its content sizes its canvas from a fixed height budget, so its own canvas growing or
+    // shrinking (as the drawn arrows change) must not refit and move the reader's view; only width changes do.
+    const fitHeight = fitToContent ? 0 : size.height;
     useEffect(() => {
         fit();
-    }, [index, hidden, kinds, neighbors, layoutFocus, size, full, domain, arrangement, connectionMode, conceptContext, expandedExternal]);
+    }, [index, hidden, kinds, neighbors, layoutFocus, size.width, fitHeight, full, domain, arrangement, connectionMode, conceptContext, expandedExternal, showExternal, openedArrow, splitArrow]);
+    // A neighborhood settles over a few renders (relationship kinds, routes, the canvas growing to its own height);
+    // until the reader moves the view, it is refitted to whatever it finally measures.
+    useEffect(() => {
+        if (neighborhoodView && !cameraTouched.current) fit();
+    }, [neighborhoodView, fit]);
     useEffect(() => {
         if (!svg.current) return undefined;
         const observer = new ResizeObserver((entries) => {
@@ -345,7 +549,7 @@ export default function Diagram({
         });
         observer.observe(svg.current);
         return () => observer.disconnect();
-    }, [researchOverview]);
+    }, [canvasShown]);
     useEffect(() => {
         if (!full) return undefined;
         const escape = (e) => {
@@ -359,7 +563,8 @@ export default function Diagram({
             document.body.style.overflow = previous;
         };
     }, [full]);
-    const zoom = (factor, x = size.width / 2, y = size.height / 2) =>
+    const zoom = (factor, x = size.width / 2, y = size.height / 2) => {
+        cameraTouched.current = true;
         setCamera((c) => {
             const scale = Math.max(0.05, Math.min(3, c.scale * factor));
             return {
@@ -368,6 +573,7 @@ export default function Diagram({
                 y: y - ((y - c.y) * scale) / c.scale,
             };
         });
+    };
     useEffect(() => {
         const element = svg.current;
         if (!element) return undefined;
@@ -382,19 +588,23 @@ export default function Diagram({
         };
         element.addEventListener('wheel', wheel, { passive: false });
         return () => element.removeEventListener('wheel', wheel);
-    }, [researchOverview]);
+    }, [canvasShown]);
+    // Choosing a schema on a group map opens its address (its group map with it selected). On a concept page a
+    // schema of the concept's group is selected in place, so the concept stays open.
     const choose = useCallback((name) => {
-        if (!neighbors && !externalContextNames.has(name) && (domain || showDomains) && domainFor(name) !== domain) {
-            setConceptContext(null);
-            setDomain(domainFor(name));
-            setMoves({});
-        }
         if (hidden.includes(name)) setHidden(hidden.filter((n) => n !== name));
-        setQuery('');
+        if (!neighbors && !externalContextNames.has(name) && (domain || showDomains)
+            && (route.view !== 'concept' || domainFor(name) !== domain)) {
+            // Selected at once, so the map answers the click without waiting for the address to change.
+            if (domainFor(name) === domain) setSelected(name);
+            onNavigate({ view: 'schema', schema: name });
+            return;
+        }
         setSelected(name);
         if (neighbors) setMoves({});
-        if (compact) onExplore(name);
-    }, [neighbors, domain, showDomains, hidden, compact, onExplore, externalContextNames]);
+        // Moving within a schema's neighborhood moves its address to the newly chosen schema's neighborhood.
+        if (neighbors && route.view === 'schema' && name !== route.schema) onNavigate({ view: 'schema', schema: name, connections: true });
+    }, [neighbors, domain, showDomains, hidden, externalContextNames, onNavigate, route.view, route.schema]);
     const setVisibility = (next) => {
         setHidden(next);
         setMoves({});
@@ -405,12 +615,14 @@ export default function Diagram({
     };
     const inspect = (group) =>
         onDetail({
-            title: group.bundled ? `${conceptContext?.label || domains.find((d) => d.id === domain)?.label}: external relationships` : `${group.from} → ${group.to}`,
+            title: group.panel ? `${endLabel(group.from)} → ${endLabel(group.to)}`
+                : group.bundled ? `${conceptContext?.label || domains.find((d) => d.id === domain)?.label}: external relationships` : `${group.from} → ${group.to}`,
             value: group.edges,
             relationship: group.edges,
-            intro: group.shared
-                ? `Shared definition drawn once at ${group.from}. The exact references from all represented schemas are listed below. [] denotes an array.`
-                : '[] denotes an array. Arrows point to the referenced type.',
+            intro: group.panel ? `Every reference from a schema in ${endLabel(group.from)} to one in ${endLabel(group.to)}. [] denotes an array.`
+                : group.shared
+                    ? `Shared definition drawn once at ${group.from}. The exact references from all represented schemas are listed below. [] denotes an array.`
+                    : '[] denotes an array. Arrows point to the referenced type.',
             sources: group.edges.flatMap(
                 (e) =>
                     index.models
@@ -422,38 +634,10 @@ export default function Diagram({
                         )?.sources || []
             ),
         });
-    const chooseDomain = useCallback((id) => {
-        setConceptContext(null);
-        setReturnConcept('');
-        setDomain(id);
-        setConnectionMode('shared');
-        setSelected('');
-        setNeighbors(false);
-        setMoves({});
-    }, []);
-    const exploreConcept = (concept) => {
-        setConceptContext({ id: concept.id, label: concept.label, hint: concept.hint, domain: concept.domain, members: concept.members, connections: concept.connections, origin: concept.origin || 'concept' });
-        setFocusReturnedMap(false);
-        setDomain(concept.domain);
-        setSelected('');
-        setNeighbors(false);
-        setMoves({});
-        setArrangement('hierarchical');
-    };
-    // Leaves the concept's Map tab: `summary` names the concept whose Summary tab opens, otherwise the metadata map is shown.
-    const backToConcept = (summary = '') => {
-        setReturnConcept(summary);
-        setFocusReturnedMap(!summary);
-        setConceptContext(null);
-        setDomain('');
-        setSelected('');
-        setNeighbors(false);
-        setMoves({});
-    };
-    // The catalog's "Open group map" asks the map to show that group.
-    useEffect(() => { if (groupRequest) chooseDomain(groupRequest.id); }, [groupRequest, chooseDomain]);
+    const chooseDomain = useCallback((id) => onNavigate(id ? { view: 'group', group: id } : overviewRoute), [onNavigate]);
     const clearSelection = () => {
         setSelected('');
+        if (route.view === 'schema') onNavigate({ view: 'group', group: domain });
         setNeighbors(false);
         setMoves({});
     };
@@ -470,11 +654,26 @@ export default function Diagram({
         ? nodeRight + 12 : Math.max(12, Math.min(size.width - outsideWidth - 12, nodeLeft - outsideWidth - 12));
     const outsideTop = selectedPosition
         ? Math.max(12, Math.min(size.height - outsideHeight - 12, camera.y + selectedPosition.y * camera.scale - 36)) : 12;
+    // On a schema's page the neighborhood is part of the address (#schemas/X/connections), so a refresh, a shared link
+    // or the back button opens the same view; elsewhere (a schema picked on a concept map) it stays a local view.
     const showConnected = () => {
         setHidden(hidden.filter((name) => !connected.has(name)));
         setMoves({});
         setNeighbors(true);
+        if (route.view === 'schema') onNavigate({ view: 'schema', schema: route.schema, connections: true });
     };
+    const showGroupMap = () => {
+        setMoves({});
+        setNeighbors(false);
+        if (route.view === 'schema') onNavigate({ view: 'schema', schema: route.schema });
+    };
+    useEffect(() => {
+        if (route.view !== 'schema' || !!route.connections === neighbors) return;
+        // Only switching between the group map and the neighborhood resets dragged cards.
+        setMoves({});
+        setNeighbors(!!route.connections);
+    }, [route.view, route.schema, route.connections, neighbors]);
+    const openedFromCatalog = !!onBrowseAll && route.view === 'schema' && !!route.connections && catalogSchema === route.schema;
     // Schemas inside a collapsed external group are drawn through that group's card, so their links count as visible.
     const drawnNames = useMemo(() => new Set([...names, ...(neighborhood?.candidates || []), ...externalBundles
         .filter((bundle) => !expandedExternal.includes(bundle.id)).flatMap((bundle) => bundle.members)]),
@@ -485,37 +684,139 @@ export default function Diagram({
             drawnNames.has(e.from) &&
             drawnNames.has(e.to)
     );
-    // Schema descriptions that only restate the name ("Death Circumstances") add nothing under the title.
-    const selectedDescription = useMemo(() => {
-        if (!selected) return '';
-        const { description } = nodePresentation(selected, index.models.find((m) => m.name === selected));
-        return description.replace(/[\s_.-]/g, '').toLowerCase() === selected.toLowerCase() ? '' : description;
-    }, [selected, index]);
     // The first tooltip line names the arrow as drawn (a shared base or a collapsed group can stand in
     // for the exact endpoints); the exact schema references follow.
+    // A short summary, not every reference: the fields, where they are defined and who else carries them. The full
+    // list is one click away, in the details the arrow opens.
+    // Base types whose arrows here also stand for their subtypes, with those subtypes.
+    const sharedBases = useMemo(() => {
+        const bases = new Map();
+        for (const g of shownGroups) {
+            if (!g.shared) continue;
+            const heirs = g.edges.map((e) => e.from).filter((name) => name !== g.from);
+            if (heirs.length) bases.set(g.from, new Set([...(bases.get(g.from) || []), ...heirs]));
+        }
+        return new Map([...bases].map(([base, heirs]) => [base, [...heirs].sort()]));
+    }, [shownGroups]);
     const edgeTooltip = (g) => {
-        const end = (name) => externalBundles.find((bundle) => bundle.name === name)?.label || name;
-        const heirs = new Set(g.edges.map((e) => e.from).filter((name) => name !== g.from)).size;
-        const note = g.shared && heirs ? ` · defined on ${g.from}, inherited by ${heirs} ${heirs === 1 ? 'schema' : 'schemas'}` : '';
-        const header = `${end(g.from)} → ${end(g.to)}${note}`;
+        const fields = [...new Set(g.edges.map((e) => e.field))];
+        const sources = [...new Set(g.edges.map((e) => e.from))], targets = [...new Set(g.edges.map((e) => e.to))];
+        const heirs = sources.filter((name) => name !== g.from);
+        const lines = [`${endLabel(g.from)} → ${endLabel(g.to)}`, `${fields.length === 1 ? 'Field' : 'Fields'}: ${fields.join(', ')}`];
+        if (g.shared && heirs.length) lines.push(`Defined on ${g.from}; also on its ${heirs.length} ${heirs.length === 1 ? 'subtype' : 'subtypes'}: ${heirs.join(', ')}`);
+        else if (sources.length > 1 || sources[0] !== g.from) lines.push(`From ${sources.join(', ')}`);
+        if (targets.length > 1 || targets[0] !== g.to) lines.push(`To ${targets.join(', ')}`);
         const sentence = g.edges.map(mapSentence).find(Boolean);
-        const map = sentence ? `\n\nOn the Donor to data map: ${sentence.text}` : '';
-        return `${header}\n\n${g.edges.map((e) => `${e.from}.${e.field} → ${e.to}`).join('\n')}${map}`;
+        if (sentence) lines.push(`On the Donor to data map: ${sentence.text}`);
+        lines.push(`${g.edges.length} ${g.edges.length === 1 ? 'reference' : 'references'} · click for details`);
+        return lines.join('\n');
     };
     // The map verb next to the exact field ties a schema arrow to its Donor to data sentence.
-    const edgeCaption = (g) => {
-        const fields = [...new Set(g.edges.map((e) => e.field))].join(', ');
+    // `room` (characters) drops the map verb when the caption would not fit its branch; the tooltip keeps it.
+    const edgeCaption = (g, room = Infinity) => {
+        if (g.panel) {
+            const unique = [...new Set(g.edges.map((e) => e.field))];
+            return unique.length === 1 ? unique[0] : `${unique.length} fields`;
+        }
+        // Several fields are counted, as on panel arrows; their names are in the tooltip and the details.
+        const unique = [...new Set(g.edges.map((e) => e.field))];
+        const fields = unique.length === 1 ? unique[0] : `${unique.length} fields`;
         const sentence = g.edges.map(mapSentence).find(Boolean);
         const heirs = g.shared ? new Set(g.edges.map((e) => e.from).filter((name) => name !== g.from)).size : 0;
-        return [fields, sentence?.verb, heirs && `+${heirs} ${heirs === 1 ? 'subtype' : 'subtypes'}`].filter(Boolean).join(' · ');
+        // An arrow drawn once at a base type stands for the base and its subtypes; the base's card shows that (a stack
+        // with "+N subtypes"), so the label keeps to the fields. Without a card of its own the label still says it.
+        const onCard = sharedBases.has(g.from) && positions[g.from];
+        const parts = [fields, sentence?.verb, heirs && !onCard && `${g.from} + ${heirs} ${heirs === 1 ? 'subtype' : 'subtypes'}`].filter(Boolean);
+        const full = parts.join(' · ');
+        if (full.length <= room) return full;
+        const shorter = parts.filter((part) => part !== sentence?.verb);
+        // Still too long: a nested field path keeps its first step, which tells sibling paths apart (the full path is
+        // in the tooltip).
+        if (shorter.join(' · ').length > room && unique.length === 1 && unique[0].includes('.')) shorter[0] = `${unique[0].split('.')[0]}…`;
+        return shorter.join(' · ');
     };
     // Neighborhood labels reuse the metadata map's placement: each sits on its arrow's longest run,
     // clear of every card and of the labels placed before it.
+    // A panel arrow's label sits on the arrow itself as a small chip: in the middle of a straight arrow, or on the
+    // first run of a routed one that holds it, so it is never read as belonging to a neighbouring line.
+    const panelLabels = (() => {
+        if (!panelView) return {};
+        // Chips already placed; a chip that would cover one slides along its own arrow until it is clear.
+        const placed = [];
+        // Schema cards and panel titles are kept readable: a chip never sits on one when another place is free.
+        const cards = visible.filter((n) => positions[n.name] && !externalContextNames.has(n.name)).map((n) => {
+            return { x: positions[n.name].x, y: positions[n.name].y, width: cardWidth, height: cardHeight };
+        });
+        const titles = clustered.layers.filter((layer) => layer.panel).map((layer) => {
+            return { x: layer.panel.left + 18 + (layer.label || '').length * 5, y: layer.panel.top + 21, width: (layer.label || '').length * 10 + 120, height: 24 };
+        });
+        const onCard = (c) => [...cards, ...titles].some((r) => Math.abs(r.x - c.x) < (r.width + c.width) / 2 + 2 && Math.abs(r.y - c.y) < r.height / 2 + 11);
+        const onChip = (c) => placed.some((p) => Math.abs(p.x - c.x) < (p.width + c.width) / 2 + 4 && Math.abs(p.y - c.y) < 20);
+        const overlaps = (c) => onCard(c) || onChip(c);
+        // A chip on another arrow's line (worst of all, on a crossing) would read as that arrow's label.
+        const runsOf = (key) => routes[key].points.slice(1).map((q, i) => [routes[key].points[i], q]);
+        const onOtherLine = (c, key) => shownGroups.some((g) => g.key !== key && routes[g.key] && runsOf(g.key).some(([p, q]) =>
+            Math.max(p.x, q.x) >= c.x - c.width / 2 - 3 && Math.min(p.x, q.x) <= c.x + c.width / 2 + 3 &&
+            Math.max(p.y, q.y) >= c.y - 12 && Math.min(p.y, q.y) <= c.y + 12));
+        return Object.fromEntries(shownGroups.filter((g) => routes[g.key] && !g.cardArrow).map((g) => {
+            const { points, straight } = routes[g.key];
+            // The chip names one field by its last step, at most 16 characters of it, and several by their count; the
+            // full paths are in the arrow's tooltip and in the details it opens.
+            const fieldNames = [...new Set(g.edges.map((e) => e.field))];
+            const field = fieldNames.length === 1 ? fieldNames[0].split('.').pop() : `${fieldNames.length} fields`;
+            // An opened arrow has the map to itself, so its labels may be longer.
+            const room = g.opened ? 26 : 16;
+            const text = field.length > room ? `${field.slice(0, room - 1)}…` : field, chipWidth = text.length * 6.6 + 14;
+            // Runs long enough to hold the chip come first, in order along the arrow; then the rest, longest first.
+            const runs = points.slice(1).map((end, i) => [points[i], end]);
+            const length = ([p, q]) => Math.hypot(q.x - p.x, q.y - p.y);
+            const fits = ([p, q]) => (p.y === q.y ? Math.abs(q.x - p.x) >= chipWidth + 16 : Math.abs(q.y - p.y) >= 40);
+            const ordered = straight ? runs.slice(0, 1) : [...runs.filter(fits), ...runs.filter((r) => !fits(r)).sort((x, y) => length(y) - length(x))];
+            // Places on one run: along it from its middle outwards, then (for a vertical run) just beside it.
+            const placesOn = ([a, b]) => {
+                const run = length([a, b]) || 1;
+                // A short straight arrow across a gap would vanish under its chip, so a horizontal one carries it just above.
+                const lift = straight && a.y === b.y ? 12 : 0;
+                const at = (d) => { return { x: a.x + (b.x - a.x) * d / run, y: a.y + (b.y - a.y) * d / run - lift, width: chipWidth, text, lineX: a.x === b.x ? a.x : undefined }; };
+                const margin = Math.min(run / 2, a.y === b.y ? chipWidth / 2 + 4 : 12);
+                const middle = straight ? run / 2 : Math.min(run / 2, Math.max(44, margin));
+                const offsets = [];
+                for (let d = margin; d <= run - margin; d += 12) offsets.push(d);
+                offsets.sort((x, y) => Math.abs(x - middle) - Math.abs(y - middle));
+                const centred = at(Math.min(run - margin, Math.max(margin, middle)));
+                const beside = a.x === b.x ? [1, -1].map((side) => { return { ...centred, x: a.x + side * (chipWidth / 2 + 5) }; }) : [];
+                return { places: [...offsets.map(at), ...beside], centred };
+            };
+            const options = ordered.map(placesOn);
+            const places = options.flatMap((o) => o.places);
+            // Best: clear of cards, chips and other lines; then clear of cards and chips; at worst on a card, but never on
+            // another chip, where neither would be readable.
+            let chip = places.find((c) => !overlaps(c) && !onOtherLine(c, g.key)) || places.find((c) => !overlaps(c)) || places.find((c) => !onChip(c));
+            const { centred } = options[0];
+            if (!chip && centred.lineX !== undefined) {
+                // Two vertical arrows close together across a short gap (often a pair running both ways) have no
+                // room to slide, so their chips step out to the outer side of their own lines.
+                const other = placed.find((p) => p.lineX !== undefined && Math.abs(p.x - centred.x) < (p.width + centred.width) / 2 + 4 && Math.abs(p.y - centred.y) < 20);
+                if (other) {
+                    const away = other.lineX < centred.lineX ? 1 : -1;
+                    other.x = other.lineX - away * (other.width / 2 + 5);
+                    chip = { ...centred, x: centred.lineX + away * (chipWidth / 2 + 5) };
+                }
+            }
+            chip = chip || centred;
+            placed.push(chip);
+            return [g.key, chip];
+        }));
+    })();
     const neighborhoodLabels = neighborhoodView ? researchLabels({
         nodes: visible.map((n) => {return { id: n.name };}),
         positions, nodeWidth: width, nodeHeight: height,
-        edges: shownGroups.map((g) => {return { key: g.key, label: edgeCaption(g) };}),
-    }, routes, { avoidRoutes: true }) : {};
+        // A branch between the bus and a card holds about 26 characters.
+        edges: shownGroups.map((g) => {return { key: g.key, label: edgeCaption(g, 26) };}),
+    }, routes, { avoidRoutes: true, extra: neighborhoodView.panels.map((panel) => {
+        // Each group's title, as drawn above its cards.
+        return { left: panel.left - 4, top: panel.top - 2, width: panel.label.length * 10 + 12, height: 28 };
+    }) }) : {};
     // Hovering any arrow traces it: both ends are marked and the rest of the map steps back. An arrow drawn
     // once from a base type also marks the subtypes that inherit it, so the shared definition stays visible.
     // With shared definitions a subtype's inherited references are drawn at its base, so its own card
@@ -549,96 +850,178 @@ export default function Diagram({
         if (!hoverEdge?.shared) return new Set();
         return new Set(hoverEdge.edges.map((e) => e.from).filter((name) => name !== hoverEdge.from));
     }, [hoverEdge]);
+    // A row of the concept's relationship tables traces the map arrows that carry its references (a collapsed
+    // group card's arrow when the other end is folded into it).
+    const traceReferences = useCallback((references) => {
+        const wanted = new Set((references || []).map((e) => `${e.from}.${e.field}>${e.to}`));
+        const traced = shownGroups.filter((g) => g.edges.some((e) => wanted.has(`${e.from}.${e.field}>${e.to}`)));
+        // In the panel view, links to other groups have no arrow; their group cards are marked instead.
+        const cards = [...(panelView?.cardLinks || [])].filter(([, link]) => link.edges.some((e) => wanted.has(`${e.from}.${e.field}>${e.to}`)))
+            .flatMap(([card, link]) => [card, ...link.panels]);
+        setHoverEdge(traced.length || cards.length ? { key: 'concept-trace', keys: new Set(traced.map((g) => g.key)),
+            ends: new Set([...cards, ...traced.flatMap((g) => [g.from, g.to, ...g.edges.flatMap((e) => [e.from, e.to])])]), edges: traced.flatMap((g) => g.edges) } : null);
+    }, [shownGroups, panelView]);
+    // A grey card arrow is drawn dark while it is traced (pointed at, or part of a traced card's links).
+    // Pointing at a group card also traces its own grey arrow.
+    const cardArrowKeys = (card) => new Set(shownGroups.filter((g) => g.cardArrow && (g.from === card || g.to === card)).map((g) => g.key));
+    const tracedCard = (g) => hoverEdge?.key === g.key || hoverEdge?.keys?.has(g.key);
     const tracedEnds = useMemo(() => new Set(hoverEdge ? hoverEdge.ends || [hoverEdge.from, hoverEdge.to] : []), [hoverEdge]);
     const drawnGroups = shownGroups;
     const showAllTypes = useCallback(() => onBrowseAll?.(), [onBrowseAll]);
-    const overviewProps = { index, nodes: overviewNodes, onType: choose, onAllTypes: showAllTypes, onDetail, onConnections: exploreConcept };
-    if (researchOverview) return <ResearchOverview {...overviewProps} initialConcept={returnConcept} focusMap={focusReturnedMap} />;
+    const overviewProps = { index, nodes: overviewNodes, onAllTypes: showAllTypes, onDetail, onNavigate };
+    if (researchOverview) return <ResearchOverview {...overviewProps} />;
+    // The selected schema's links on this map: an inheritance note, then its links by direction.
+    const schemaLinks = selected && (
+        <>
+            {shared.inherited[selected] && <p className="se-inheritance-detail">{shared.inherited[selected].fields.size} reference fields inherited from { [...shared.inherited[selected].owners].join(', ') }. Their shared definitions are drawn at the base types in the group overview.</p>}
+            {[
+                { key: 'out', title: 'Links from this schema', rows: incident.filter((e) => e.from === selected), column: 'Links to' },
+                { key: 'in', title: 'Links to this schema', rows: incident.filter((e) => e.from !== selected), column: 'Linked from' },
+            ].filter((part) => part.rows.length).map((part) => (
+                <div className="se-relationship-section" key={part.key}>
+                    <h5 className="se-relationship-section-title">{part.title} <span>{part.rows.length}</span></h5>
+                    <table className="se-selected-table">
+                        <colgroup><col className="se-col-schema" /><col /><col className="se-col-kind" /><col className="se-col-action" /></colgroup>
+                        <thead><tr><th scope="col">{part.column}</th><th scope="col">Field</th><th scope="col">Kind</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
+                        <tbody>
+                            {part.rows.map((e) => (
+                                <tr key={`${e.from}-${e.field}-${e.to}-${e.kind}`}>
+                                    <th scope="row">
+                                        <button type="button" className="se-selected-schema" onClick={() => choose(part.key === 'out' ? e.to : e.from)}>{part.key === 'out' ? e.to : e.from}</button>
+                                    </th>
+                                    <td><code>{e.field}</code></td>
+                                    <td><Badge kind={e.kind}>{edgeLabel(e)}</Badge></td>
+                                    <td className="se-selected-action"><button type="button" onClick={() => inspect({ ...e, edges: [e] })}>Details <i className="icon icon-fw icon-angle-right fas" aria-hidden="true" /></button></td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ))}
+            {!incident.length && (
+                <p className="se-flow-note">{domain && !neighbors && !showExternal && externalGroups.length
+                    ? 'No links inside this group. Its links go to other groups: turn on Links to other groups, or open External connections on the schema.'
+                    : 'No visible links. Turn on more relationship kinds under Relationships, or show more types.'}
+                </p>
+            )}
+        </>
+    );
+    const groupPage = route.view === 'group' && !!domain && !conceptContext;
+    const groupList = groupPage && groupTab === 'list';
     const diagram = (
         <section
-            className={`se-diagram${compact ? ' se-compact' : ''}${conceptContext ? ' se-concept-diagram' : ''}${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}`}
+            className={`se-diagram${conceptContext ? ' se-concept-diagram' : ''}${full ? ' se-fullscreen' : ''}${showDomains ? ' se-hierarchical' : ''}${groupList ? ' se-group-listing' : ''}`}
             aria-label={
-                compact ? 'Item relationships' : 'All schema relationships'
+                'All schema relationships'
             }>
             {/* A concept's heading and tabs are drawn by the metadata map above this diagram. */}
             {!conceptContext && (
+                // Set like the concept and schema headings: a plain title over one ruled label | value row.
                 <header className="se-diagram-header">
-                    {domain && !compact && <button type="button" className="se-diagram-back" onClick={() => chooseDomain('')}>← Metadata map</button>}
                     <div className="se-diagram-heading">
-                        {eyebrow && <span className="se-diagram-eyebrow">{eyebrow}</span>}
                         <h2>{title}</h2>
+                        {eyebrow && (
+                            <p className="se-diagram-meta">
+                                <span>{eyebrow}</span>
+                                <span>{headingCount} {headingCount === 1 ? 'schema' : 'schemas'}</span>
+                            </p>
+                        )}
                     </div>
+                    {groupPage && (
+                        <div className="se-inspector-tabs se-catalog-tabs" role="tablist" aria-label="Show the group as">
+                            {[['map', 'Map'], ['list', 'List']].map(([id, label]) => (
+                                <button type="button" role="tab" key={id} id={`group-tab-${id}`} aria-selected={groupTab === id} onClick={() => setGroupTab(id)}>{label}</button>
+                            ))}
+                        </div>
+                    )}
                 </header>
             )}
+            {/* The list keeps the map mounted underneath (hidden), so switching back finds it as it was left. */}
+            {groupList && (
+                <div className="se-group-list">
+                    <CatalogPanel titled={false} group={catalogGroup(index, domains.find((d) => d.id === domain))} onOpen={(name) => onNavigate({ view: 'schema', schema: name })} />
+                </div>
+            )}
             <div className="se-diagram-controls">
-                {!compact && (
-                    <input
-                        type="search"
-                        aria-label="Search schemas"
-                        placeholder="Search schemas…"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                    />
-                )}
                 <div className="se-map-tool-section" role="group" aria-label="Diagram filters">
-                    <span className="se-control-label">Show</span>
                     {(showDomains || neighborhoodView) && (
-                        <label>Connections
-                            <select aria-label="Connection detail" value={selected && !neighborhoodView ? 'selected' : connectionMode} onChange={(event) => { setConnectionMode(event.target.value); setMoves({}); }} disabled={!!selected && !neighborhoodView}>
-                                {selected && !neighborhoodView && <option value="selected">Selected type: exact links</option>}
-                                <option value="shared">Shared definitions</option>
-                                <option value="all">All references</option>
-                            </select>
-                        </label>
+                        <span className="se-control-info">
+                            <label>Connections
+                                <select aria-label="Connection detail" value={selected && !neighborhoodView ? 'selected' : neighborhoodView && connectionMode === 'panels' ? 'shared' : connectionMode} onChange={(event) => { setConnectionMode(event.target.value); setMoves({}); }} disabled={!!selected && !neighborhoodView}>
+                                    {selected && !neighborhoodView && <option value="selected">Selected type: exact links</option>}
+                                    {!neighborhoodView && <option value="panels">Between panels</option>}
+                                    <option value="shared">Shared definitions</option>
+                                    <option value="all">All references</option>
+                                </select>
+                            </label>
+                            <InfoPopover id="se-connections-info" label="About Connections" title="Connections">
+                                {/* The option in use is explained first, under the same name the menu shows. */}
+                                {selected && !neighborhoodView && (
+                                    <p><strong>Selected type: exact links</strong>: shown while a schema is selected. Only that schema&apos;s own arrows are drawn, field by field, so this choice is fixed. Deselect the schema to choose one of the views below.</p>
+                                )}
+                                {!neighborhoodView && <p><strong>Between panels</strong>: one arrow for each pair of panels, carrying all the links between them. Click an arrow to see its schema arrows.</p>}
+                                <p><strong>Shared definitions</strong>: arrows between schemas. A link that subtypes inherit is drawn once, from their base type.</p>
+                                <p><strong>All references</strong>: every schema&apos;s own arrows, including each subtype&apos;s copy of an inherited link.</p>
+                            </InfoPopover>
+                        </span>
                     )}
                     {showDomains && domain && !neighbors && (
-                        <label className="se-external-toggle"><input type="checkbox" checked={showExternal} onChange={(e) => { setShowExternal(e.target.checked); setMoves({}); }} />Links to other groups</label>
+                        <span className="se-control-info">
+                            <label className="se-external-toggle"><input type="checkbox" checked={showExternal} onChange={(e) => { setShowExternal(e.target.checked); setMoves({}); }} />Links to other groups</label>
+                            <InfoPopover id="se-external-info" label="About Links to other groups" title="Links to other groups">
+                                <p>Cards on the right stand for the other groups this group links to or from, each with its number of links. Expand a card to show its schemas.</p>
+                                <p>Turn this off to see this group on its own.</p>
+                            </InfoPopover>
+                        </span>
                     )}
-                    <details ref={relationshipMenu}>
-                        <summary>Relationships {kinds.length}/3</summary>
-                        <div className="se-link-filter-popover"><Filters kinds={kinds} onChange={setKinds} /></div>
+                    <span className="se-control-info">
+                        <details ref={relationshipMenu}>
+                            <summary>Relationships {kinds.length}/3 <i className="icon icon-angle-down fas" aria-hidden="true" /></summary>
+                            <div className="se-link-filter-popover"><Filters kinds={kinds} onChange={setKinds} /></div>
+                        </details>
+                        <InfoPopover id="se-relationships-info" label="About Relationships" title="Relationships">
+                            <p><strong>Link</strong>: a field stored on the item that points to another item (solid arrow).</p>
+                            <p><strong>Calculated</strong>: a field the portal computes when the item is read (dashed arrow).</p>
+                            <p><strong>Reverse</strong>: a calculated field that lists the items linking back to this one.</p>
+                        </InfoPopover>
+                    </span>
+                    <details className="se-type-picker" ref={typePicker}>
+                        <summary>Types {nodes.filter((n) => !hidden.includes(n.name)).length}/{nodes.length} <i className="icon icon-angle-down fas" aria-hidden="true" /></summary>
+                        <div className="se-type-popover">
+                            <input aria-label="Filter types" placeholder="Filter types…" value={typeQuery} onChange={(e) => setTypeQuery(e.target.value)} />
+                            <div className="se-toolbar">
+                                <button type="button" onClick={() => setVisibility([])}>Show all</button>
+                                <button type="button" onClick={() => setVisibility(nodes.map((n) => n.name))}>Hide all</button>
+                                <button type="button" onClick={() => setVisibility(defaults)}>Defaults</button>
+                            </div>
+                            <div>
+                                {nodes.filter((n) => n.name.toLowerCase().includes(typeQuery.toLowerCase())).map((n) => (
+                                    <label key={n.name}>
+                                        <input type="checkbox" checked={!hidden.includes(n.name)} onChange={(e) => setVisibility(e.target.checked ? hidden.filter((v) => v !== n.name) : [...hidden, n.name])} />
+                                        {n.name}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
                     </details>
-                    {!compact && (
-                        <details className="se-type-picker" ref={typePicker}>
-                            <summary>Types {nodes.filter((n) => !hidden.includes(n.name)).length}/{nodes.length}</summary>
-                            <div className="se-type-popover">
-                                <input aria-label="Filter types" placeholder="Filter types…" value={typeQuery} onChange={(e) => setTypeQuery(e.target.value)} />
-                                <div className="se-toolbar">
-                                    <button type="button" onClick={() => setVisibility([])}>Show all</button>
-                                    <button type="button" onClick={() => setVisibility(nodes.map((n) => n.name))}>Hide all</button>
-                                    <button type="button" onClick={() => setVisibility(defaults)}>Defaults</button>
-                                </div>
-                                <div>
-                                    {nodes.filter((n) => n.name.toLowerCase().includes(typeQuery.toLowerCase())).map((n) => (
-                                        <label key={n.name}>
-                                            <input type="checkbox" checked={!hidden.includes(n.name)} onChange={(e) => setVisibility(e.target.checked ? hidden.filter((v) => v !== n.name) : [...hidden, n.name])} />
-                                            {n.name}
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        </details>
-                    )}
-                    {!compact && (
-                        <details className="se-map-settings" ref={mapSettings}>
-                            <summary>Map settings</summary>
-                            <div className="se-map-settings-popover">
-                                <label>Group
-                                    <select aria-label="Schema group" value={domain} onChange={(e) => chooseDomain(e.target.value)}>
-                                        <option value="">All groups</option>
-                                        {domains.filter((d) => nodes.some((n) => domainFor(n.name) === d.id)).map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
-                                    </select>
-                                </label>
-                                <label>Layout
-                                    <select aria-label="Diagram layout" value={arrangement} onChange={(e) => { setArrangement(e.target.value); setMoves({}); }}>
-                                        <option value="hierarchical">Hierarchical</option>
-                                        <option value="network">Network</option>
-                                    </select>
-                                </label>
-                                {showDomains && <label className="se-map-cross-links"><input type="checkbox" checked={crossLinks} onChange={(e) => setCrossLinks(e.target.checked)} />Include cross-group links for the selected schema</label>}
-                            </div>
-                        </details>
-                    )}
+                    <details className="se-map-settings" ref={mapSettings}>
+                        <summary>Map settings <i className="icon icon-angle-down fas" aria-hidden="true" /></summary>
+                        <div className="se-map-settings-popover">
+                            <label>Group
+                                <select aria-label="Schema group" value={domain} onChange={(e) => chooseDomain(e.target.value)}>
+                                    <option value="">All groups</option>
+                                    {domains.filter((d) => nodes.some((n) => domainFor(n.name) === d.id)).map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
+                                </select>
+                            </label>
+                            <label>Layout
+                                <select aria-label="Diagram layout" value={arrangement} onChange={(e) => { setArrangement(e.target.value); setMoves({}); }}>
+                                    <option value="hierarchical">Hierarchical</option>
+                                    <option value="network">Network</option>
+                                </select>
+                            </label>
+                            {showDomains && <label className="se-map-cross-links"><input type="checkbox" checked={crossLinks} onChange={(e) => setCrossLinks(e.target.checked)} />Include cross-group links for the selected schema</label>}
+                        </div>
+                    </details>
                 </div>
                 <div className="se-map-tool-section se-canvas-actions" role="group" aria-label="Canvas controls">
                     <div className="se-zoom-controls" role="group" aria-label="Zoom controls">
@@ -648,74 +1031,93 @@ export default function Diagram({
                         <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
                     </div>
                     <button type="button" onClick={() => { setMoves({}); fit(); }}>Reset layout</button>
-                    <button type="button" id={compact ? 'graph-export' : 'entity-export'} disabled={exporting} onClick={async () => {
+                    <button type="button" id="entity-export" disabled={exporting} onClick={async () => {
                         setExporting(true);
-                        try { await exportPNG(svg.current, compact ? `${focus}-relationships` : 'schema-map'); }
+                        try { await exportPNG(svg.current, 'schema-map'); }
                         catch (err) { setError(err.message || 'PNG export failed.'); }
                         finally { setExporting(false); }
                     }}>{exporting ? 'Exporting…' : 'Export PNG'}
                     </button>
                 </div>
             </div>
-            {query && (
-                <div className="se-toolbar">
-                    {nodes
-                        .filter(
-                            (n) =>
-                                n.name
-                                    .toLowerCase()
-                                    .includes(query.toLowerCase())
-                        )
-                        .slice(0, 12)
-                        .map((n) => (
-                            <button type="button" key={n.name} onClick={() => choose(n.name)}>
-                                {n.name}
-                            </button>
-                        ))}
-                </div>
-            )}
             {error && <p role="alert">{error}</p>}
-            {!compact && selected && (
-                <div className="se-selection-bar" role="status" aria-label="Selected schema">
-                    <span className="se-selection-label">Selected</span>
-                    <strong>{selected}</strong>
-                    <span className="se-selection-meta">{incident.length} {incident.length === 1 ? 'link' : 'links'} highlighted · details below the map</span>
+            {openedPanel && (
+                <div className="se-selection-bar" role="status" aria-label="Opened arrow">
+                    <strong>{endLabel(openedPanel.from)} → {endLabel(openedPanel.to)}</strong>
+                    <span className="se-selection-meta">{openedPanel.edges.length} {openedPanel.edges.length === 1 ? 'link' : 'links'} · select one for its details</span>
                     <span className="se-selection-actions">
-                        <button type="button" id="entity-show-neighborhood" aria-pressed={neighbors} onClick={() => {
-                            if (!neighbors) showConnected();
-                            else { setMoves({}); setNeighbors(false); }
-                        }}>{neighbors ? 'Back to the whole group' : 'Show only its connections'}
-                        </button>
-                        <button type="button" onClick={() => onExplore(selected)}>Open schema details →</button>
-                        <button type="button" className="se-selection-clear" onClick={clearSelection} aria-label={`Clear selection of ${selected}`}>Clear ×</button>
+                        <button type="button" onClick={() => inspect(openedPanel)}>All fields</button>
+                        <button type="button" className="se-selection-clear" onClick={() => setOpenedArrow(null)}><i className="icon icon-fw icon-times fas" aria-hidden="true" /> Show all arrows</button>
                     </span>
                 </div>
             )}
-            {!selected && conceptContext && (
-                <p className="se-flow-note">Highlighted schemas belong to {conceptContext.label}. Select a schema or arrow to explore its relationships. Drag to pan; scroll to zoom.</p>
-            )}
-            {!selected && !showDomains && !conceptContext && <p className="se-flow-note">Drag the background to pan, scroll to zoom, or drag a type to move it. Select a type to highlight its neighbors; select an edge to inspect its fields.</p>}
-            {!selected && showDomains && !conceptContext && (
-                <p className="se-flow-note">{selected
-                    ? `Showing ${selected} references between visible schemas, including inherited and self-references. Clear selection to return to the group overview.`
-                    : summarize ? 'Inherited references are drawn once at their visible base type. Select a type for its exact links, including self-references, or choose All references.'
-                        : 'All references are expanded. Select a type to focus its connections, or choose Shared definitions to combine inherited links.'}
-                </p>
-            )}
-            {legend.length > 0 && (
-                <ul className="se-diagram-legend" aria-label="Diagram legend">
-                    {legend.map(([kind, label]) => <li key={kind}><span className={`se-legend-swatch se-legend-${kind}`} aria-hidden="true" />{label}</li>)}
-                </ul>
+            {selected && (
+                <div className="se-selection-bar" role="status" aria-label="Selected schema">
+                    <strong>{selected}</strong>
+                    <span className="se-selection-meta">{incident.length} {incident.length === 1 ? 'link' : 'links'} highlighted</span>
+                    <span className="se-selection-actions">
+                        {/* Each action names where it goes. A schema opened from the catalog can go straight back to it. */}
+                        {openedFromCatalog && (
+                            <span className="se-control-info">
+                                <button type="button" className="se-selection-back" onClick={onBrowseAll}>
+                                    <i className="icon icon-fw icon-angle-left fas" aria-hidden="true" /> All schemas
+                                </button>
+                                <InfoPopover id="se-back-info" label="About All schemas" title="All schemas" placement="bottom-end">
+                                    <p>Goes back to the All schemas catalog this schema was opened from.</p>
+                                </InfoPopover>
+                            </span>
+                        )}
+                        <span className="se-control-info">
+                            <button type="button" id="entity-show-neighborhood" aria-pressed={neighbors} onClick={() => {
+                                if (!neighbors) showConnected();
+                                else showGroupMap();
+                            }}>{neighbors ? 'Show in group map' : 'Show only its connections'}
+                            </button>
+                            <InfoPopover id="se-neighborhood-info" label={neighbors ? 'About Show in group map' : 'About Show only its connections'}
+                                title={neighbors ? 'Show in group map' : 'Show only its connections'} placement="bottom-end">
+                                {neighbors
+                                    ? <p>Goes back to the whole group map, with {selected} still selected and its arrows highlighted.</p>
+                                    : <p>Shows {selected} on its own, with only the schemas it links to and from, each arrow named by its field. Other groups&apos; schemas are included.</p>}
+                            </InfoPopover>
+                        </span>
+                        <span className="se-control-info">
+                            <button type="button" onClick={() => svg.current?.closest('.se-diagram')?.querySelector('#entity-details')?.scrollIntoView({ block: 'start', behavior: 'smooth' })}>
+                                Go to details <i className="icon icon-fw icon-angle-down fas" aria-hidden="true" />
+                            </button>
+                            <InfoPopover id="se-details-info" label="About Go to details" title="Go to details" placement="bottom-end">
+                                <p>Scrolls down to {selected}&apos;s details under the map: its links, fields, embeds and diagnostics, and its Python and JSON schema sources.</p>
+                            </InfoPopover>
+                        </span>
+                        {/* On the group map, deselecting leaves the schema; in a neighborhood it would only repeat the group map. */}
+                        {!neighbors && (
+                            <span className="se-control-info">
+                                <button type="button" className="se-selection-clear" onClick={clearSelection} aria-label={`Clear selection of ${selected}`}><i className="icon icon-fw icon-times fas" aria-hidden="true" /> Deselect</button>
+                                <InfoPopover id="se-deselect-info" label="About Deselect" title="Deselect" placement="bottom-end">
+                                    <p>Clears the selection and shows the group map with all its arrows again.</p>
+                                </InfoPopover>
+                            </span>
+                        )}
+                    </span>
+                </div>
             )}
             <div className="se-canvas-wrap">
-                {!compact && (
-                    <button type="button" className="se-canvas-fullscreen" id="entity-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} title={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onPointerDown={(e) => e.stopPropagation()} onClick={() => setFull(!full)}>
-                        <svg aria-hidden="true" viewBox="0 0 16 16"><path d={full ? 'M6 1v5H1M10 1v5h5M15 10h-5v5M6 15v-5H1' : 'M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5'} /></svg>
-                    </button>
-                )}
+                {/* The reading note and legend sit behind an info icon, as on the portal's charts. */}
+                <span className="se-canvas-info">
+                    <InfoPopover id="se-diagram-guide-popover" className="se-diagram-guide-popover" label="How to read this diagram" title="Reading the diagram" placement="bottom-end">
+                        {guideNote && <p>{guideNote}</p>}
+                        {legend.length > 0 && (
+                            <ul className="se-diagram-legend" aria-label="Diagram legend">
+                                {legend.map(([kind, label]) => <li key={kind}><span className={`se-legend-swatch se-legend-${kind}`} aria-hidden="true" />{label}</li>)}
+                            </ul>
+                        )}
+                    </InfoPopover>
+                </span>
+                <button type="button" className="se-canvas-fullscreen" id="entity-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'} title={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onPointerDown={(e) => e.stopPropagation()} onClick={() => setFull(!full)}>
+                    <i className={`icon icon-fw fas ${full ? 'icon-compress-alt' : 'icon-expand-alt'}`} aria-hidden="true" />
+                </button>
                 <svg
                     ref={svg}
-                    id={compact ? 'graph' : 'entity-svg'}
+                    id="entity-svg"
                     className="se-canvas"
                     style={canvasHeight ? { height: canvasHeight, minHeight: 0 } : undefined}
                     tabIndex={0}
@@ -725,7 +1127,7 @@ export default function Diagram({
                         if (e.button !== 0) return;
                         // Capturing on the SVG retargets clicks away from edges.
                         // Leave relationship controls to their own click handlers.
-                        if (e.target.closest('.se-edge, .se-edge-label, [data-external-group]')) return;
+                        if (e.target.closest('.se-edge, .se-edge-label, .se-panel-edge-chip, [data-external-group]')) return;
                         const name =
                         e.target.closest('[data-entity]')?.dataset.entity;
                         drag.current = {
@@ -744,6 +1146,7 @@ export default function Diagram({
                             dy = e.clientY - d.y;
                         if (!dx && !dy) return;
                         d.moved = true;
+                        cameraTouched.current = true;
                         d.x = e.clientX;
                         d.y = e.clientY;
                         if (d.name)
@@ -764,6 +1167,8 @@ export default function Diagram({
                         const d = drag.current;
                         drag.current = null;
                         if (d && !d.moved && d.name) choose(d.name);
+                        // A click on the empty canvas closes an opened arrow.
+                        if (d && !d.moved && !d.name) { setOpenedArrow(null); setSplitArrow(null); }
                         if (e.currentTarget.hasPointerCapture(e.pointerId))
                             e.currentTarget.releasePointerCapture(e.pointerId);
                     }}
@@ -771,6 +1176,7 @@ export default function Diagram({
                         drag.current = null;
                     }}
                     onKeyDown={(e) => {
+                        if (e.key === 'Escape' && (openedArrow || splitArrow)) { setOpenedArrow(null); setSplitArrow(null); return; }
                         if (e.target !== e.currentTarget) return;
                         const delta = {
                             ArrowLeft: [50, 0],
@@ -780,6 +1186,7 @@ export default function Diagram({
                         }[e.key];
                         if (delta) {
                             e.preventDefault();
+                            cameraTouched.current = true;
                             setCamera((c) => {return {
                                 ...c,
                                 x: c.x + delta[0],
@@ -795,14 +1202,26 @@ export default function Diagram({
                                 <path d="M0,0 L10,4 L0,8 Z" fill={color} />
                             </marker>
                         ))}
+                        {/* Arrows to group cards are neutral grey; a two-way one carries a head at its start too. Traced, the
+                            line darkens, so its heads switch to the same dark grey at the line's traced weight. */}
+                        {[['', '#9aa1ab', 8, 7], ['-active', '#343741', 10, 8]].map(([suffix, fill, w, h]) => (
+                            <React.Fragment key={suffix || 'idle'}>
+                                <marker id={`${markerPrefix}-card${suffix}`} viewBox="0 0 10 8" refX="10" refY="4" markerWidth={w} markerHeight={h} markerUnits="userSpaceOnUse" orient="auto">
+                                    <path d="M0,0 L10,4 L0,8 Z" fill={fill} />
+                                </marker>
+                                <marker id={`${markerPrefix}-card-start${suffix}`} viewBox="0 0 10 8" refX="0" refY="4" markerWidth={w} markerHeight={h} markerUnits="userSpaceOnUse" orient="auto">
+                                    <path d="M10,0 L0,4 L10,8 Z" fill={fill} />
+                                </marker>
+                            </React.Fragment>
+                        ))}
                     </defs>
                     <g
                         data-world=""
-                        className={hoverEdge ? 'se-tracing-inheritance' : undefined}
+                        className={`${hoverEdge ? 'se-tracing-inheritance' : ''}${(openedPanel || splitTrace) && !hoverState ? ' se-opened-arrow' : ''}` || undefined}
                         transform={`translate(${camera.x} ${camera.y}) scale(${camera.scale})`}>
                         {showDomains && clustered.frames.map((frame) => (
                             <g key={frame.id} className="se-domain-frame">
-                                <rect x={frame.left} y={frame.top} width={frame.width} height={frame.height} rx="12" />
+                                <rect x={frame.left} y={frame.top} width={frame.width} height={frame.height} rx="4" />
                                 {!singleFrame && (
                                     <text x={frame.left + 24} y={frame.top + 38} role="button" tabIndex={0}
                                         aria-label={`Focus group: ${frame.label}`}
@@ -816,16 +1235,20 @@ export default function Diagram({
                             </g>
                         ))}
                         {showDomains && clustered.layers.map((layer) => (
-                            <rect key={`panel-${layer.id}`} className="se-stage-panel" x={layer.panel.left} y={layer.panel.top} width={layer.panel.width} height={layer.panel.height} rx="8" />
+                            <rect key={`panel-${layer.id}`} className={`se-stage-panel${conceptContext && layer.concept === conceptContext.id ? ' se-stage-current' : ''}${tracedEnds.has(layer.id) ? ' se-stage-traced' : ''}`} x={layer.panel.left} y={layer.panel.top} width={layer.panel.width} height={layer.panel.height} rx="4" />
                         ))}
                         {showDomains && clustered.layers.map((layer) => (
                             <g key={layer.id}>
                                 <circle cx={layer.left + 3} cy={layer.top + 12} r="3" fill={stageAccent(layer.id.slice(layer.domain.length + 1))} aria-hidden="true" />
-                                <text className="se-stage-label" x={layer.left + 12} y={layer.top + 18}>{layer.label}</text>
+                                <text className="se-stage-label" x={layer.left + 12} y={layer.top + 18}>
+                                    {layer.label}
+                                    {/* Links between schemas of one panel draw no arrow in the panel view; they are counted here. */}
+                                    {panelView?.inside.get(layer.id) > 0 && <tspan className="se-stage-inside" dx="10">{panelView.inside.get(layer.id)} {panelView.inside.get(layer.id) === 1 ? 'link' : 'links'} inside</tspan>}
+                                </text>
                             </g>
                         ))}
                         {neighborhoodView?.panels.map((panel) => (
-                            <rect key={`panel-${panel.id}`} className="se-stage-panel" x={panel.panel.left} y={panel.panel.top} width={panel.panel.width} height={panel.panel.height} rx="8" />
+                            <rect key={`panel-${panel.id}`} className="se-stage-panel" x={panel.panel.left} y={panel.panel.top} width={panel.panel.width} height={panel.panel.height} rx="4" />
                         ))}
                         {neighborhoodView?.panels.map((panel) => (
                             <text key={panel.id} className="se-stage-label se-neighborhood-group" x={panel.left} y={panel.top + 18}>{panel.label}</text>
@@ -834,8 +1257,8 @@ export default function Diagram({
                             if (routed && !routes[g.key]) return null;
                             const displayKind = g.reverse && kinds.includes('reverse') &&
                                 !kinds.includes(g.kind) ? 'reverse' : g.kind;
-                            const a = positions[g.from],
-                                b = positions[g.to],
+                            const a = (g.panel ? panelView.anchors : positions)[g.from],
+                                b = (g.panel ? panelView.anchors : positions)[g.to],
                                 dx = b.x - a.x,
                                 dy = b.y - a.y;
                             const factor = Math.min(
@@ -871,33 +1294,33 @@ export default function Diagram({
                                             : 'se-dim'
                                         : ''}>
                                     <path
-                                        className={`se-edge ${displayKind}${hoverEdge?.key === g.key || hoverEdge?.keys?.has(g.key) ? ' se-traced-edge' : ''}`}
+                                        className={`se-edge ${g.cardArrow ? 'se-card-edge' : displayKind}${g.panel && !g.cardArrow ? ' se-panel-edge' : ''}${g.opened ? ' se-opened-edge' : ''}${hoverEdge?.key === g.key || hoverEdge?.keys?.has(g.key) ? ' se-traced-edge' : ''}`}
                                         d={routed ? routes[g.key].d : d}
-                                        markerEnd={`url(#${markerPrefix}-${displayKind})`}
+                                        markerEnd={`url(#${markerPrefix}-${g.cardArrow ? `card${tracedCard(g) ? '-active' : ''}` : displayKind})`}
+                                        markerStart={g.both ? `url(#${markerPrefix}-card-start${tracedCard(g) ? '-active' : ''})` : undefined}
                                         tabIndex={0}
                                         role="button"
-                                        aria-label={`${g.from} to ${g.to}`}
-                                        onClick={() => inspect(g)}
-                                        onMouseEnter={() => setHoverEdge(g)} onMouseLeave={() => setHoverEdge(null)}
-                                        onFocus={() => setHoverEdge(g)} onBlur={() => setHoverEdge(null)}
+                                        aria-label={g.panel ? `${endLabel(g.from)} to ${endLabel(g.to)}: ${edgeCaption(g)}` : `${g.from} to ${g.to}`}
+                                        onClick={() => activate(g)}
+                                        onMouseEnter={() => setHoverEdge(g.panel ? panelTrace(g) : g)} onMouseLeave={() => setHoverEdge(null)}
+                                        onFocus={() => setHoverEdge(g.panel ? panelTrace(g) : g)} onBlur={() => setHoverEdge(null)}
                                         onKeyDown={(e) => {
                                             if (
                                                 e.key === 'Enter' ||
                                             e.key === ' '
                                             ) {
                                                 e.preventDefault();
-                                                inspect(g);
+                                                activate(g);
                                             }
                                         }}>
                                         <title>{edgeTooltip(g)}</title>
                                     </path>
-                                    {neighborhoodView ? neighborhoodLabels[g.key] && (
+                                    {g.panel || g.opened ? null : neighborhoodView ? neighborhoodLabels[g.key] && (
                                         <text className="se-edge-label" x={neighborhoodLabels[g.key].left + neighborhoodLabels[g.key].width / 2}
-                                            y={neighborhoodLabels[g.key].top + 15} onClick={() => inspect(g)}>
-                                            {edgeCaption(g)}
+                                            y={neighborhoodLabels[g.key].top + 15} onClick={() => activate(g)}>
+                                            {edgeCaption(g, 26)}
                                         </text>
                                     ) : (neighbors ||
-                                    compact ||
                                     (!showDomains && visible.length <= 12)) && (
                                         <text
                                             className="se-edge-label"
@@ -914,33 +1337,53 @@ export default function Diagram({
                             const p = positions[bundle.name];
                             if (!p) return null;
                             const expanded = expandedExternal.includes(bundle.id);
-                            const toggle = () => { setSelected(''); setMoves({}); setExpandedExternal(expanded ? expandedExternal.filter((id) => id !== bundle.id) : [...expandedExternal, bundle.id]); };
+                            // The card is redrawn under the pointer without a pointer-leave, so its trace is cleared here
+                            // or it would stay on and keep every other arrow faded.
+                            const toggle = () => { setHoverEdge(null); setSelected(''); setMoves({}); setExpandedExternal(expanded ? expandedExternal.filter((id) => id !== bundle.id) : [...expandedExternal, bundle.id]); };
                             const label = bundle.label.length > 32 ? `${bundle.label.slice(0, 29)}…` : bundle.label;
                             const extra = bundle.unmapped && bundle.mapLabels.length ? ` +${bundle.unmapped} other` : '';
                             const mapLine = bundle.mapLabels.length ? `Map: ${bundle.mapLabels.join(', ')}${extra}` : 'Not on the Donor to data map';
                             // About 36 characters of 11px text fit in the card; the full line stays in the tooltip.
                             const mapText = mapLine.length > 36 ? `${mapLine.slice(0, 35)}…` : mapLine;
+                            const cardLink = panelView?.cardLinks.get(bundle.name);
+                            const traceCard = cardLink ? { onMouseEnter: () => setHoverEdge({ key: `card:${bundle.name}`, keys: cardArrowKeys(bundle.name), edges: cardLink.edges,
+                                ends: new Set([bundle.name, ...cardLink.panels, ...cardLink.edges.flatMap((e) => [e.from, e.to])]) }), onMouseLeave: () => setHoverEdge(null) } : {};
                             return (
-                                <g key={bundle.name} data-external-group={bundle.id} className={`se-external-group-card${tracedEnds.has(bundle.name) ? ' se-traced-group' : ''}`}
+                                <g key={bundle.name} data-external-group={bundle.id} {...traceCard} className={`se-external-group-card${tracedEnds.has(bundle.name) ? ' se-traced-group' : ''}`}
                                     transform={`translate(${p.x - width / 2},${p.y - height / 2})`} role="button" tabIndex={0}
                                     aria-label={`${expanded ? 'Collapse' : 'Expand'} ${bundle.label}: ${bundle.members.length} connected schemas`} aria-expanded={expanded}
                                     onClick={toggle} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(); } }}>
-                                    <title>{`${bundle.label}\n${mapLine}`}</title><rect width={width} height={height} rx="8" />
+                                    <title>{`${bundle.label}\n${mapLine}`}</title><rect width={width} height={height} rx="4" />
                                     <text x="12" y="20" className="se-external-group-title">{label}</text>
                                     <text x="12" y="37" className="se-external-group-map">{mapText}</text>
-                                    <text x="12" y="54">{bundle.members.length} connected {bundle.members.length === 1 ? 'schema' : 'schemas'} · {expanded ? 'Collapse ↑' : 'Expand →'}</text>
+                                    <text x="12" y="54">
+                                        {/* In the panel view this card stands for its arrows, so it counts the links it carries. */}
+                                        {cardLink ? `${cardLink.count} ${cardLink.count === 1 ? 'link' : 'links'} · ${bundle.members.length} ${bundle.members.length === 1 ? 'schema' : 'schemas'}`
+                                            : `${bundle.members.length} connected ${bundle.members.length === 1 ? 'schema' : 'schemas'}`} · {expanded ? 'Collapse ↑' : 'Expand →'}
+                                    </text>
                                 </g>
                             );
                         })}
                         {visible.map((n) => {
                             const presentation = nodePresentation(n.name, n.model, { isAbstract: abstractTypes.has(n.name) });
                             const inherited = shared.inherited[n.name];
+                            const heirsHere = sharedBases.get(n.name);
                             const tooltip = [n.name, presentation.description,
                                 n.model ? `${n.model.fields.length} fields · ${n.model.fields.filter((field) => field.calculated).length} calculated` : '',
                                 inherited ? `${inherited.fields.size} inherited references from ${[...inherited.owners].join(', ')}` : '',
+                                heirsHere ? `Its arrows here also stand for ${heirsHere.length} ${heirsHere.length === 1 ? 'subtype' : 'subtypes'}: ${heirsHere.join(', ')}` : '',
                             ].filter(Boolean).join('\n');
+                            // A note at the caption's right end; the caption gives way to it when both do not fit.
+                            const heirsNote = heirsHere ? `+${heirsHere.length} ${heirsHere.length === 1 ? 'subtype' : 'subtypes'}` : '';
+                            const captionRoom = heirsNote ? Math.floor((cardWidth - 32 - heirsNote.length * 5.8) / 5.8) : Infinity;
+                            const caption = presentation.caption.length > captionRoom ? `${presentation.caption.slice(0, captionRoom - 1).trimEnd()}…` : presentation.caption;
+                            // A schema of another group drawn on its own card stands for its panel arrows, like a group card.
+                            const cardLink = panelView?.cardLinks.get(n.name);
+                            const traceCard = cardLink ? { onMouseEnter: () => setHoverEdge({ key: `card:${n.name}`, keys: cardArrowKeys(n.name), edges: cardLink.edges,
+                                ends: new Set([n.name, ...cardLink.panels, ...cardLink.edges.flatMap((e) => [e.from, e.to])]) }), onMouseLeave: () => setHoverEdge(null) } : {};
                             return (
                                 <g
+                                    {...traceCard}
                                     key={n.name}
                                     data-entity={n.name}
                                     className={`entity-node${coveredByHover.has(n.name) ? ' se-covered' : ''}${tracedEnds.has(n.name) ? ' se-covered-owner' : ''}${conceptContext && conceptMembers.has(n.name) ? ' se-concept-center' : ''}${presentation.isAbstract ? ' se-node-abstract' : ''} ${
@@ -963,14 +1406,28 @@ export default function Diagram({
                                         }
                                     }}>
                                     <title>{tooltip}</title>
-                                    {externalContextNames.has(n.name) && <text className="se-context-domain" x="0" y="-8">Other group · {domains.find((group) => group.id === domainFor(n.name))?.label}</text>}
-                                    <rect className="se-node-body" width={cardWidth} height={cardHeight} rx={8} />
+                                    {externalContextNames.has(n.name) && (() => {
+                                        // One line over the card, no wider than it: a long group name is shortened, never the count.
+                                        const group = domains.find((d) => d.id === domainFor(n.name))?.label || '';
+                                        const count = cardLink ? ` · ${cardLink.count} ${cardLink.count === 1 ? 'link' : 'links'}` : '';
+                                        const room = 40 - 'Other group · '.length - count.length;
+                                        return (
+                                            <text className="se-context-domain" x="0" y="-8">
+                                                Other group · {group.length > room ? `${group.slice(0, room - 1).trimEnd()}…` : group}{count}
+                                            </text>
+                                        );
+                                    })()}
+                                    {/* A base type standing in for its subtypes is drawn as a small stack of cards. */}
+                                    {heirsHere && <rect className="se-node-stack" x="10" y="10" width={cardWidth} height={cardHeight} rx={4} aria-hidden="true" />}
+                                    {heirsHere && <rect className="se-node-stack" x="5" y="5" width={cardWidth} height={cardHeight} rx={4} aria-hidden="true" />}
+                                    <rect className="se-node-body" width={cardWidth} height={cardHeight} rx={4} />
                                     <text className="se-node-title" x="12" y={26}>
                                         {n.name}
                                     </text>
                                     <text x="12" y="49" className="se-subtitle">
-                                        {presentation.caption}
+                                        {caption}
                                     </text>
+                                    {heirsNote && <text className="se-node-heirs" x={cardWidth - 12} y="49">{heirsNote}</text>}
                                     {coveredByHover.has(n.name) && (
                                         <g aria-hidden="true">
                                             <rect className="se-covered-badge" x={cardWidth - 66} y="9" width="56" height="16" rx="4" />
@@ -999,7 +1456,7 @@ export default function Diagram({
                                                     if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); inspectInherited(n.name); }
                                                 }}>
                                                 <title>{`Inherited from ${[...tag.owners].join(', ')}. Its shared definition is drawn once at the base; hover to trace it.`}</title>
-                                                <rect x={(cardWidth - tagWidth) / 2} y={cardHeight - 8} width={tagWidth} height="16" rx="8" />
+                                                <rect x={(cardWidth - tagWidth) / 2} y={cardHeight - 8} width={tagWidth} height="16" rx="3" />
                                                 <text x={cardWidth / 2} y={cardHeight + 3.5}>{text}</text>
                                             </g>
                                         );
@@ -1007,8 +1464,22 @@ export default function Diagram({
                                 </g>
                             );
                         })}
+                        {/* Panel arrow labels sit above the cards, so a label wider than its gap is never hidden under one. */}
+                        {panelView && shownGroups.filter((g) => (g.panel || g.opened) && panelLabels[g.key]).map((g) => {
+                            const chip = panelLabels[g.key];
+                            const traced = hoverEdge?.key === g.key || hoverEdge?.keys?.has(g.key);
+                            return (
+                                <g key={`chip:${g.key}`} className={`se-panel-edge-chip${traced ? ' se-traced-chip' : ''}`}
+                                    onClick={() => activate(g)}
+                                    onMouseEnter={() => setHoverEdge(g.panel ? panelTrace(g) : g)} onMouseLeave={() => setHoverEdge(null)}>
+                                    <title>{edgeTooltip(g)}</title>
+                                    <rect x={chip.x - chip.width / 2} y={chip.y - 9} width={chip.width} height="18" rx="3" />
+                                    <text x={chip.x} y={chip.y + 4}>{chip.text}</text>
+                                </g>
+                            );
+                        })}
                         {/* With links to other groups drawn, the external cards already show this; the cue would only repeat it. */}
-                        {!compact && domain && !neighbors && !showExternal && selected && positions[selected] && externalGroups.length > 0 && (
+                        {domain && !neighbors && !showExternal && selected && positions[selected] && externalGroups.length > 0 && (
                             <g className="se-cross-group-cue" transform={`translate(${positions[selected].x},${positions[selected].y + cardHeight / 2})`}>
                                 <path className="se-cross-group-stem" d="M0,0 V7" />
                                 <g role="button" tabIndex={0} aria-controls="cross-group-connections"
@@ -1022,7 +1493,7 @@ export default function Diagram({
                                         }
                                     }}>
                                     <title>{externalGroups.map((group) => `${group.label}: ${group.count} connected ${group.count === 1 ? 'schema' : 'schemas'}`).join('\n')}</title>
-                                    <rect x="-105" y="7" width="210" height="19" rx="7" />
+                                    <rect x="-105" y="7" width="210" height="19" rx="3" />
                                     <text x="0" y="20">External connections · {externalGroups.length} {externalGroups.length === 1 ? 'group' : 'groups'}</text>
                                 </g>
                             </g>
@@ -1034,7 +1505,7 @@ export default function Diagram({
                         </text>
                     )}
                 </svg>
-                {!compact && domain && !neighbors && !showExternal && outsideOpen && externalGroups.length > 0 && (
+                {domain && !neighbors && !showExternal && outsideOpen && externalGroups.length > 0 && (
                     <div className="se-cross-group-popover" style={{ left: outsideLeft, top: outsideTop, width: outsideWidth, maxHeight: outsideHeight }}
                         onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeOutside(); } }}>
                         <CrossGroupConnections key={selected} selected={selected} groups={externalGroups} sectionRef={outsidePanel}
@@ -1042,62 +1513,19 @@ export default function Diagram({
                     </div>
                 )}
             </div>
-            {selected && (
-                <section id={compact ? 'relations' : 'entity-details'} className="se-selected-panel" aria-label={`${selected} relationships`}>
-                    {/* On the item page the focused schema is already the page heading, so only its links are listed. */}
-                    {!(compact && selected === focus) && (
-                        <header>
-                            <div>
-                                <span className="se-diagram-eyebrow">Selected schema</span>
-                                <h3>{selected}</h3>
-                                {selectedDescription && <p>{selectedDescription}</p>}
-                            </div>
-                            {!compact
-                                ? <button type="button" className="se-selected-open" onClick={() => onExplore(selected)}>Open schema details →</button>
-                                : <button type="button" onClick={clearSelection}>Clear selection</button>}
-                        </header>
-                    )}
-                    {shared.inherited[selected] && <p className="se-inheritance-detail">{shared.inherited[selected].fields.size} reference fields inherited from { [...shared.inherited[selected].owners].join(', ') }. Their shared definitions are drawn at the base types in the group overview.</p>}
-                    {[
-                        { key: 'out', title: 'Links from this schema', rows: incident.filter((e) => e.from === selected), column: 'Links to' },
-                        { key: 'in', title: 'Links to this schema', rows: incident.filter((e) => e.from !== selected), column: 'Linked from' },
-                    ].filter((part) => part.rows.length).map((part) => (
-                        <div className="se-relationship-section" key={part.key}>
-                            <h5 className="se-relationship-section-title">{part.title} <span>{part.rows.length}</span></h5>
-                            <table className="se-selected-table">
-                                <colgroup><col className="se-col-schema" /><col /><col className="se-col-kind" /><col className="se-col-action" /></colgroup>
-                                <thead><tr><th scope="col">{part.column}</th><th scope="col">Field</th><th scope="col">Kind</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
-                                <tbody>
-                                    {part.rows.map((e) => (
-                                        <tr key={`${e.from}-${e.field}-${e.to}-${e.kind}`}>
-                                            <th scope="row">
-                                                <button type="button" className="se-selected-schema" onClick={() => choose(part.key === 'out' ? e.to : e.from)}>{part.key === 'out' ? e.to : e.from}</button>
-                                            </th>
-                                            <td><code>{e.field}</code></td>
-                                            <td><Badge kind={e.kind}>{edgeLabel(e)}</Badge></td>
-                                            <td className="se-selected-action"><button type="button" onClick={() => inspect({ ...e, edges: [e] })}>Details →</button></td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ))}
-                    {!incident.length && (
-                        <p className="se-flow-note">{!compact && domain && !neighbors && !showExternal && externalGroups.length
-                            ? 'No links inside this group. Its links go to other groups: turn on Links to other groups, or open External connections on the schema.'
-                            : 'No visible links. Turn on more relationship kinds under Relationships, or show more types.'}
-                        </p>
-                    )}
+            {selected ? (
+                <section id="entity-details" className="se-selected-panel" aria-label={`${selected} details`}>
+                    {renderSchema ? renderSchema(selected, schemaLinks) : schemaLinks}
                 </section>
+            ) : conceptContext && (
+                <ConceptSummary concept={conceptContext} connections={conceptContext.connections} graph={conceptGraph} index={index}
+                    onDetail={onDetail} onTrace={traceReferences} />
             )}
         </section>
     );
-    // A concept's Map tab sits under the same metadata map and concept heading as its Summary tab.
-    if (conceptContext && !compact) {
-        return (
-            <ResearchOverview {...overviewProps} mapTab={diagram}
-                onSummary={backToConcept} onLeaveMap={() => backToConcept()} />
-        );
+    // A concept's Summary and Map tabs share its heading; the Map tab's content is this diagram.
+    if (conceptContext) {
+        return <ResearchOverview {...overviewProps} conceptId={conceptContext.id} mapTab={diagram} />;
     }
     return diagram;
 }

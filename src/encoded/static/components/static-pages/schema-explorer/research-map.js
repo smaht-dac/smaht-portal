@@ -2,18 +2,28 @@
 // groups schemas without inventing references. The reference graph retains schema
 // direction; overviewFlow separately projects the numbered biological path.
 export const concepts = [
-    { id: 'donor', label: 'Donor', step: 1, hint: 'Who donated the material?', example: 'Donor', domain: 'donors', types: 'Donor ProtectedDonor AbstractDonor', description: 'Donor metadata identifies the individual who supplied the biological material. Clinical history and protected details provide additional context.' },
-    { id: 'material', label: 'Source material', step: 2, hint: 'Which tissue or culture?', example: 'Tissue · CellCulture', domain: 'samples', types: 'SampleSource Tissue CellCulture CellLine CellCultureMixture', description: 'Source material is the tissue or cultured material from which specimens originate. Tissue and CellLine records can reference a donor directly; CellCulture and CellLine records can also reference the tissue samples they were derived from (tissue_samples), so a culture can appear both before and after a sample in the workflow.' },
-    { id: 'sample', label: 'Sample', step: 3, hint: 'Which specimen was used?', example: 'Sample and subtypes', domain: 'samples', types: 'Sample TissueSample CellSample CellCultureSample', description: 'A sample is the specimen used for an experiment. Its sample_sources field references source material. TissueSample, CellSample and CellCultureSample share the Sample model.' },
-    { id: 'analyte', label: 'Analyte', step: 4, hint: 'What material was extracted?', example: 'Analyte · preparation', domain: 'sequencing', types: 'Analyte AnalytePreparation', description: 'An analyte is biological material prepared from one or more samples. The samples field preserves those source specimens; analyte_preparation records how the material was prepared.' },
-    { id: 'library', label: 'Library', step: 5, hint: 'What was prepared for sequencing?', example: 'Library · preparation', domain: 'sequencing', types: 'Library LibraryPreparation', description: 'A library references its source analytes and its library preparation. Following analytes links the sequencing material back to the original specimens.' },
-    { id: 'fileSet', label: 'Experiment / FileSet', step: 6, hint: 'Which library and sequencing run?', example: 'FileSet', domain: 'sequencing', types: 'FileSet', description: 'A FileSet connects libraries with sequencing metadata. Files reference their file sets, which provide the bridge from data to the experimental material. Some FileSets also reference CellSample directly.' },
-    { id: 'files', label: 'Data files', step: 7, hint: 'Where are the reads and results?', example: 'File and subtypes', domain: 'files', types: 'File SubmittedFile OutputFile UnalignedReads AlignedReads VariantCalls HistologyImage SupplementaryFile ExternalOutputFile DonorSpecificAssembly', description: 'Files represent reads, variants, images and other data. File subtypes connect to file sets, analysis context and quality metrics. The exact fields and available links depend on the subtype.' },
-    { id: 'analysis', label: 'Analysis context', hint: 'Which donor and tissue were analyzed?', example: 'AnalysisRun', domain: 'workflows', types: 'AnalysisRun', description: 'AnalysisRun collects analysis-level donor and tissue context. File subtypes can reference analysis runs through analysis_runs. Workflow execution is represented separately by WorkflowRun and MetaWorkflowRun.' },
-    { id: 'workflow', label: 'Workflow execution', hint: 'Which files went in and came out?', example: 'WorkflowRun · Workflow', domain: 'workflows', types: 'WorkflowRun Workflow MetaWorkflowRun MetaWorkflow', description: 'Workflow runs record execution and input/output file references. Workflow definitions describe the processing method. Input and output roles are retained in the exact field names shown below.' },
-    { id: 'quality', label: 'Quality assessment', hint: 'How was data quality measured?', example: 'QualityMetric', domain: 'files', types: 'QualityMetric ExternalQualityMetric', description: 'Files reference quality measurements through quality_metrics and external_quality_metrics. These records describe quality rather than biological provenance.' },
-    { id: 'sequencing', label: 'Sequencing', hint: 'How was the library sequenced?', example: 'Sequencing', domain: 'sequencing', types: 'Sequencing', description: 'Sequencing metadata records the run configuration, sequencer and preparation kits. FileSet.sequencing links an experiment to this information.' },
+    { id: 'donor', label: 'Donor', step: 1, hint: 'Who donated the material?', domain: 'donors', types: 'Donor ProtectedDonor AbstractDonor', description: 'Donor metadata identifies the individual who supplied the biological material. Clinical history and protected details provide additional context.' },
+    { id: 'material', label: 'Source material', step: 2, hint: 'Which tissue or culture?', domain: 'samples', types: 'SampleSource Tissue CellCulture CellLine CellCultureMixture', description: 'Source material is the tissue or cultured material from which specimens originate. Tissue and CellLine records can reference a donor directly; CellCulture and CellLine records can also reference the tissue samples they were derived from (tissue_samples), so a culture can appear both before and after a sample in the workflow.' },
+    { id: 'sample', label: 'Sample', step: 3, hint: 'Which specimen was used?', domain: 'samples', types: 'Sample TissueSample CellSample CellCultureSample', description: 'A sample is the specimen used for an experiment. Its sample_sources field references source material. TissueSample, CellSample and CellCultureSample share the Sample model.' },
+    { id: 'analyte', label: 'Analyte', step: 4, hint: 'What material was extracted?', domain: 'sequencing', types: 'Analyte AnalytePreparation', description: 'An analyte is biological material prepared from one or more samples. The samples field preserves those source specimens; analyte_preparation records how the material was prepared.' },
+    { id: 'library', label: 'Library', step: 5, hint: 'What was prepared for sequencing?', domain: 'sequencing', types: 'Library LibraryPreparation', description: 'A library references its source analytes and its library preparation. Following analytes links the sequencing material back to the original specimens.' },
+    { id: 'fileSet', label: 'Experiment / FileSet', step: 6, hint: 'Which library and sequencing run?', domain: 'sequencing', types: 'FileSet', description: 'A FileSet connects libraries with sequencing metadata. Files reference their file sets, which provide the bridge from data to the experimental material. Some FileSets also reference CellSample directly.' },
+    { id: 'files', label: 'Data files', step: 7, hint: 'Where are the reads and results?', domain: 'files', types: 'File SubmittedFile OutputFile UnalignedReads AlignedReads VariantCalls HistologyImage SupplementaryFile ExternalOutputFile DonorSpecificAssembly', description: 'Files represent reads, variants, images and other data. File subtypes connect to file sets, analysis context and quality metrics. The exact fields and available links depend on the subtype.' },
+    { id: 'analysis', label: 'Analysis context', hint: 'Which donor and tissue were analyzed?', domain: 'workflows', types: 'AnalysisRun', description: 'AnalysisRun collects analysis-level donor and tissue context. File subtypes can reference analysis runs through analysis_runs. Workflow execution is represented separately by WorkflowRun and MetaWorkflowRun.' },
+    { id: 'workflow', label: 'Workflow execution', hint: 'Which files went in and came out?', domain: 'workflows', types: 'WorkflowRun Workflow MetaWorkflowRun MetaWorkflow', description: 'Workflow runs record execution and input/output file references. Workflow definitions describe the processing method. Input and output roles are retained in the exact field names shown below.' },
+    { id: 'quality', label: 'Quality assessment', hint: 'How was data quality measured?', domain: 'files', types: 'QualityMetric ExternalQualityMetric', description: 'Files reference quality measurements through quality_metrics and external_quality_metrics. These records describe quality rather than biological provenance.' },
+    { id: 'sequencing', label: 'Sequencing', hint: 'How was the library sequenced?', domain: 'sequencing', types: 'Sequencing', description: 'Sequencing metadata records the run configuration, sequencer and preparation kits. FileSet.sequencing links an experiment to this information.' },
 ];
+// Concepts outside the numbered path hang off one of its steps, and sit beside it on the map:
+// [step, column offset, row offset].
+export const branchOf = { analysis: 'files', workflow: 'files', quality: 'files', sequencing: 'fileSet' };
+const branchPlace = { analysis: [0, 1], quality: [1, 0], workflow: [1, 1], sequencing: [1, 0] };
+
+// Portal Font Awesome icons for each concept, shown in its heading like an item page's entity icon.
+export const conceptIcons = {
+    donor: 'user', material: 'lungs', sample: 'vial', analyte: 'flask', library: 'dna', fileSet: 'layer-group',
+    files: 'file', analysis: 'magnifying-glass-chart', workflow: 'gears', quality: 'clipboard-check', sequencing: 'microscope',
+};
 export const connections = [
     { from: 'material', to: 'donor', fields: ['donor'], question: "Which donor supplied this material?", explanation: "The donor field connects source material to its donor. The exact reference is defined on the source-material schema, such as Tissue or CellLine.", label: 'donated by', primary: true },
     { from: 'sample', to: 'material', fields: ['sample_sources[]'], question: "Where did the sample come from?", explanation: "The sample_sources field connects a specimen to its source tissue or culture. A sample can reference more than one source record.", label: 'taken from', primary: true },
@@ -39,13 +49,23 @@ export function buildResearchMap(index, available, viewport = { width: 1200, hei
             owners.get(edge.to) === connection.to && connection.fields.includes(edge.field));
         if (actual.length) edges.push({ ...connection, key: `${connection.from}-${connection.to}`, kind: 'linkTo', edges: actual });
     }
-    const nodeWidth = 216, nodeHeight = 104;
+    const nodeWidth = 216, nodeHeight = 84;
     const columns = viewport.width >= 1080 ? 4 : viewport.width >= 810 ? 3 : 2;
-    const positions = {};
-    nodes.forEach((node, i) => {
-        const row = Math.floor(i / columns), col = i % columns;
-        positions[node.id] = { x: nodeWidth / 2 + (row % 2 ? columns - col - 1 : col) * 316, y: nodeHeight / 2 + row * 190 };
-    });
+    // The numbered steps read like newspaper columns: down each column, then on from the top of the next one.
+    // Each branch takes the cell beside its step, or the nearest free cell when that one is taken or off the grid.
+    const rows = Math.ceil(nodes.length / columns);
+    const cells = {}, taken = new Set();
+    const place = (id, col, row) => { cells[id] = [col, row]; taken.add(`${col},${row}`); };
+    nodes.filter((node) => !branchOf[node.id]).forEach((node, i) => place(node.id, Math.floor(i / rows), i % rows));
+    for (const node of nodes.filter((n) => branchOf[n.id])) {
+        const [col, row] = cells[branchOf[node.id]] || [0, 0];
+        const [dc, dr] = branchPlace[node.id];
+        const free = [];
+        for (let c = 0; c < columns; c++) for (let r = 0; r < rows; r++) if (!taken.has(`${c},${r}`)) free.push([c, r]);
+        free.sort((a, b) => (Math.abs(a[0] - col - dc) + Math.abs(a[1] - row - dr)) - (Math.abs(b[0] - col - dc) + Math.abs(b[1] - row - dr)));
+        place(node.id, ...free[0]);
+    }
+    const positions = Object.fromEntries(Object.entries(cells).map(([id, [col, row]]) => [id, { x: nodeWidth / 2 + col * 316, y: nodeHeight / 2 + row * 190 }]));
     return { nodes, edges, positions, nodeWidth, nodeHeight };
 }
 
@@ -71,11 +91,13 @@ function intersects(a, b, padding = 0) {
 // clickable, and their exact references remain available in the inspector.
 // With `avoidRoutes`, a label also never crosses another arrow, so tightly packed parallel
 // arrows cannot each appear to carry the other's label.
-export function researchLabels(graph, routes, { avoidRoutes = false } = {}) {
-    const obstacles = graph.nodes.map((node) => {
-        const p = graph.positions[node.id];
-        return { left: p.x - graph.nodeWidth / 2, top: p.y - graph.nodeHeight / 2, width: graph.nodeWidth, height: graph.nodeHeight };
-    });
+// `extra` adds boxes labels must also keep clear of, such as group titles.
+export function researchLabels(graph, routes, { avoidRoutes = false, extra = [] } = {}) {
+    const obstacles = [...graph.nodes.map((node) => {
+        // A position may carry its own size (a panel); others use the node size.
+        const p = graph.positions[node.id], w = p.width || graph.nodeWidth, h = p.height || graph.nodeHeight;
+        return { left: p.x - w / 2, top: p.y - h / 2, width: w, height: h };
+    }), ...extra];
     const labels = {};
     const crosses = (box, key) => avoidRoutes && Object.entries(routes).some(([other, route]) => other !== key &&
         route.points.slice(1).some((b, i) => {
@@ -88,28 +110,46 @@ export function researchLabels(graph, routes, { avoidRoutes = false } = {}) {
         const route = routes[edge.key];
         if (!route) continue;
         const width = Math.max(56, edge.label.length * 5.8 + 12), height = 22;
+        // A route may name the run its label belongs on (`labelRun`); that run is tried first.
         const segments = route.points.slice(1).map((b, i) => {
             const a = route.points[i];
-            return { a, b, length: Math.hypot(b.x - a.x, b.y - a.y) };
-        }).sort((a, b) => b.length - a.length);
+            return { a, b, length: Math.hypot(b.x - a.x, b.y - a.y), preferred: i === route.labelRun };
+        }).sort((a, b) => b.preferred - a.preferred || b.length - a.length);
         let chosen;
-        for (const { a, b } of segments) {
-            for (const fraction of [0.5, 0.35, 0.65]) {
+        // A label that belongs on its own branch stays there: placing it on a shared run would leave it ownerless.
+        const own = route.labelRun !== undefined;
+        for (const { a, b } of own ? segments.filter((segment) => segment.preferred) : segments) {
+            // The .61/.39 positions also cover tight horizontal gaps where a
+            // centered label misses the few pixels available beside a card.
+            for (const fraction of own ? [0.5, 0.61, 0.39, 0.7, 0.3, 0.25, 0.75] : [0.5, 0.61, 0.39, 0.35, 0.65]) {
                 const x = a.x + (b.x - a.x) * fraction, y = a.y + (b.y - a.y) * fraction;
                 // A vertical run through a narrow column gap only fits a label slid sideways
                 // while it still covers the line, so those shifts are tried last.
                 const shifts = Array.from({ length: Math.floor(width / 8) }, (_, i) => (i + 1) * 4).flatMap((dx) => [[-dx, 0], [dx, 0]]);
-                const offsets = a.y === b.y ? [[0, -17], [0, 17], [0, 0]] : [[width / 2 + 8, 0], [-width / 2 - 8, 0], [0, 0], ...shifts];
+                // Keep labels clear of horizontal connectors so the complete
+                // line and its direction remain visible at a glance.
+                // Branches close together leave room only just above or below their own line.
+                // A crowded branch's label goes just above its own line, then onto it.
+                const offsets = a.y === b.y ? [[0, -24], [0, 24], ...(own ? [[0, -12], [0, 12], [0, -8], [0, 0]] : [])] : [[width / 2 + 8, 0], [-width / 2 - 8, 0], [0, 0], ...shifts];
                 for (const [dx, dy] of offsets) {
                     const box = { left: x + dx - width / 2, top: y + dy - height / 2, width, height };
-                    if (obstacles.some((obstacle) => intersects(box, obstacle, 3)) || crosses(box, edge.key)) continue;
-                    chosen = box; break;
+                    // Last resort on a crowded branch: the label sits on its own line (its white halo keeps it legible),
+                    // so only its text height must stay clear of the neighbouring lines and labels.
+                    const onLine = own && a.y === b.y && (dy === 0 || dy === -8);
+                    const check = onLine ? { ...box, top: y + dy - 5, height: 10 } : box;
+                    if (obstacles.some((obstacle) => intersects(check, obstacle, onLine ? 1 : 3)) || crosses(check, edge.key)) continue;
+                    chosen = box; if (onLine) chosen.check = check; break;
                 }
                 if (chosen) break;
             }
             if (chosen) break;
         }
-        if (chosen) { labels[edge.key] = chosen; obstacles.push(chosen); }
+        // Nowhere clear on its own branch: it still goes there, just above the line, rather than somewhere misleading.
+        if (!chosen && own) {
+            const { a, b } = segments.find((segment) => segment.preferred) || segments[0];
+            chosen = { left: (a.x + b.x) / 2 - width / 2, top: (a.y + b.y) / 2 - 12 - height / 2, width, height };
+        }
+        if (chosen) { labels[edge.key] = chosen; obstacles.push(chosen.check || chosen); }
     }
     return labels;
 }

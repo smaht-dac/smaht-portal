@@ -136,8 +136,12 @@ function describe(bundle, index) {
             typeof value === 'string' &&
             linkTargets &&
             value.startsWith('/')
-        )
+        ) {
             result.linkedItem = value;
+            // A link given only as a path is typed by the schema it points to, like an embedded one.
+            const targets = Array.isArray(linkTargets) ? linkTargets : [linkTargets];
+            result.sourceType = modelFor(index, targets)?.name || targets.join(' | ');
+        }
         if (value !== null && typeof value === 'object') {
             const entries = Object.entries(value);
             for (const [key, child] of entries) {

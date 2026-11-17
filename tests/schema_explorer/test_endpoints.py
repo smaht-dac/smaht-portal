@@ -140,6 +140,10 @@ class ExplorerTests(unittest.TestCase):
                  if e['from'] == 'ProtectedDonor' and e['field'].rstrip('[]') == 'medical_history']
         self.assertEqual(len(edges), 1)
         self.assertTrue(edges[0]['reverse'])
+        # A reverse link not exposed by a calculated property is still a list, so it is named as an array.
+        reverse = [e for e in snapshot['model']['edges']
+                   if e['from'] == 'DonorSpecificAssembly' and e['kind'] == 'reverse' and e['to'] == 'SupplementaryFile']
+        self.assertEqual([e['field'] for e in reverse], ['files[]'])
 
 
 if __name__ == '__main__':
