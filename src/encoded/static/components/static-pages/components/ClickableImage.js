@@ -5,14 +5,15 @@ import PropTypes from 'prop-types';
 import Modal from 'react-bootstrap/esm/Modal';
 
 /**
- * Image that opens a full-size view in a modal on click.
+ * Image that opens a full-size view in a modal on click. Pass enlargedSrc to
+ * show a larger image in the modal than the one displayed inline.
  *
  * Note: The click handling is self-contained rather than accepting an onClick
  * prop because react-jsx-parser, which renders jsx static section content,
  * strips any attribute starting with "on" by default.
  */
 export const ClickableImage = React.memo(function ClickableImage(props) {
-    const { src, alt, className } = props;
+    const { src, enlargedSrc, alt, className } = props;
     const [enlarged, setEnlarged] = useState(false);
 
     const openEnlarged = useCallback(() => setEnlarged(true), []);
@@ -55,7 +56,7 @@ export const ClickableImage = React.memo(function ClickableImage(props) {
                     className="clickable-image-modal">
                     <Modal.Header closeButton />
                     <Modal.Body>
-                        <img src={src} alt={alt} />
+                        <img src={enlargedSrc || src} alt={alt} />
                     </Modal.Body>
                 </Modal>
             )}
@@ -65,6 +66,8 @@ export const ClickableImage = React.memo(function ClickableImage(props) {
 
 ClickableImage.propTypes = {
     src: PropTypes.string.isRequired,
+    // Larger image shown in the modal, defaults to src
+    enlargedSrc: PropTypes.string,
     alt: PropTypes.string,
     className: PropTypes.string,
 };
