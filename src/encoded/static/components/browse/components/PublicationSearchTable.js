@@ -20,6 +20,7 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
         journal_url = '',
         doi = '',
         key_image_link = '',
+        key_image_thumbnail_link = '',
         tags = [],
     } = result || {};
 
@@ -39,9 +40,10 @@ export const PublicationSearchResultRow = ({ result, rowNumber, rowProps }) => {
                             src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
                             alt={display_title}
                         />
-                    ) : key_image_link ? (
+                    ) : key_image_thumbnail_link || key_image_link ? (
                         <ClickableImage
-                            src={key_image_link}
+                            src={key_image_thumbnail_link || key_image_link}
+                            enlargedSrc={key_image_link}
                             alt={display_title}
                         />
                     ) : (

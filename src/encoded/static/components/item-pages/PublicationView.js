@@ -421,15 +421,20 @@ const PublicationView = React.memo(function PublicationView(props) {
 
     const fullAuthorsList = formatAuthorsList(authorsList);
 
+    // Prefer the smaller thumbnail inline, the modal shows key_image_link
+    const thumbnailSrc =
+        context?.key_image_thumbnail_link || context?.key_image_link;
+
     return (
         <div className="publication-view">
             <PublicationViewTitle />
             <div className="view-content">
                 <div className="publication-header">
-                    {context?.key_image_thumbnail_link ? (
+                    {thumbnailSrc ? (
                         <ClickableImage
                             className="thumbnail"
-                            src={context.key_image_thumbnail_link}
+                            src={thumbnailSrc}
+                            enlargedSrc={context.key_image_link}
                             alt={context.title || 'Publication key figure'}
                         />
                     ) : (
