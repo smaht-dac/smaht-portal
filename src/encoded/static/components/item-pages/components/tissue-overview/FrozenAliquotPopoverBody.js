@@ -245,6 +245,9 @@ export default function FrozenAliquotPopoverBody({
     // Optional -- see AliquotVisualization.js's props of the same names.
     tissueCodeLabels = null,
     histologyImageIdsByReportId = null,
+    // Optional read-only AliquotVisualization showing where this slice sits
+    // in the block (AliquotVisualization.js passes it in).
+    positionViz = null,
 }) {
     // One table row per core position per submitting center, in position
     // order (A1, A2, ... F6) regardless of which center each came from.
@@ -297,6 +300,7 @@ export default function FrozenAliquotPopoverBody({
                     aliquotLabel={sequenceLabel}
                     tissueCodeLabels={tissueCodeLabels}
                 />
+                {positionViz}
             </div>
             <div className="aliquot-detail-right">
                 <section className="aliquot-detail-section">

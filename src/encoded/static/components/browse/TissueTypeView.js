@@ -384,18 +384,17 @@ export default function TissueTypeView({
         return Array.from(subtypes).sort();
     }, [allTissuesForType, tissueName]);
     // Tissue.anatomical_location is recorded per Tissue, so donors can differ
-    // -- each distinct value is listed. One that just repeats the tissue's
-    // own name (e.g. "Liver") says nothing more and is left out.
+    // -- each distinct value is listed, as submitted.
     const collectionDetails = useMemo(() => {
         const locations = new Set();
         allTissuesForType.forEach((t) => {
             const location = t?.anatomical_location?.trim();
-            if (location && location.toLowerCase() !== tissueName.toLowerCase()) {
+            if (location) {
                 locations.add(location);
             }
         });
         return Array.from(locations).sort();
-    }, [allTissuesForType, tissueName]);
+    }, [allTissuesForType]);
 
     const [isLoading, setIsLoading] = useState(true);
     const [fileCount, setFileCount] = useState(0);

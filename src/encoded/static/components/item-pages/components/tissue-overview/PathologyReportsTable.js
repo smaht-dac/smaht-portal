@@ -1,7 +1,7 @@
 'use strict';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
+import { OverlayTrigger, Popover, PopoverBody, PopoverHeader } from 'react-bootstrap';
 import {
     SortableHeaderLabel,
     compareSortValues,
@@ -69,16 +69,18 @@ const formatPercentageBand = (band) => (band ? `${String(band).replace(/^\[|\]$/
 const getAliquotIds = (report) =>
     (report?.tissue_samples || []).map((sample) => sample?.display_title).filter(Boolean);
 
+// A report's present target tissue subtypes, in submitted order.
+const getPresentTargetTissues = (report) =>
+    (report?.target_tissues || []).filter(
+        (entry) =>
+            entry?.target_tissue_present === 'Yes' && (entry.target_tissue_subtype || entry.target_tissue_percentage)
+    );
+
 // e.g. "50-100% Lung", one per present target tissue subtype.
 const getTargetTissueLines = (report) =>
-    (report?.target_tissues || [])
-        .filter((entry) => entry?.target_tissue_present === 'Yes')
-        .map((entry) =>
-            [formatPercentageBand(entry.target_tissue_percentage), entry.target_tissue_subtype]
-                .filter(Boolean)
-                .join(' ')
-        )
-        .filter(Boolean);
+    getPresentTargetTissues(report).map((entry) =>
+        [formatPercentageBand(entry.target_tissue_percentage), entry.target_tissue_subtype].filter(Boolean).join(' ')
+    );
 
 const formatNonTargetLine = (subtype, band, description = null) => {
     const label = subtype === 'Other' && description ? `Other (${description})` : subtype;
@@ -111,6 +113,21 @@ const getPresentFindings = (report) =>
 
 const getAliquotSortKey = (report) => getAliquotIds(report)[0] || '';
 
+// Each present target tissue subtype's own autolysis score, stacked in the
+// aliquot row's Autolysis cell in the same order as the Target Tissue %
+// lines beside it (getTargetTissueLines), so each score sits level with its
+// subtype -- "-" for a subtype with no score. Only when they add something
+// to the report-level score: more than one subtype, or a different score.
+const getSubtypeAutolysisLines = (report) => {
+    const entries = getPresentTargetTissues(report);
+    const scores = entries.map((entry) =>
+        typeof entry.target_tissue_autolysis_score === 'number' ? entry.target_tissue_autolysis_score : null
+    );
+    if (!scores.some((score) => score !== null)) return [];
+    const differs = scores.some((score) => score !== null && score !== report?.tissue_autolysis_score);
+    return entries.length > 1 || differs ? scores.map((score) => getDisplayText(score)) : [];
+};
+
 // Lines stacked one per row, or a muted placeholder when there are none.
 export const StackedLines = ({ lines, emptyText = 'None' }) =>
     lines.length > 0 ? (
@@ -119,25 +136,89 @@ export const StackedLines = ({ lines, emptyText = 'None' }) =>
         <span className="text-muted-placeholder">{emptyText}</span>
     );
 
-export const AutolysisHeaderInfo = () => (
+// Column-header info icon -- hover/focus opens the portal's standard
+// definitions popover (header band + padded body).
+const HeaderInfo = ({ id, title, className = '', children }) => (
     <OverlayTrigger
         trigger={['hover', 'focus']}
         placement="top"
         overlay={
-            <Popover id="tissue-autolysis-legend-popover" className="tissue-autolysis-legend-popover">
-                <PopoverBody>
-                    <div className="tissue-autolysis-legend-title">Tissue autolysis score</div>
-                    {AUTOLYSIS_SCORE_LABELS.map((label, score) => (
-                        <div className="tissue-autolysis-legend-row" key={score}>
-                            <span className={`tissue-autolysis-legend-swatch score-${score}`}>{score}</span>
-                            {label}
-                        </div>
-                    ))}
-                </PopoverBody>
+            <Popover
+                id={id}
+                className={'description-definitions-popover pathology-header-info-popover ' + className}>
+                <PopoverHeader>{title}</PopoverHeader>
+                <PopoverBody className="p-3">{children}</PopoverBody>
             </Popover>
         }>
-        <i className="icon icon-info-circle fas tissue-autolysis-info-icon" tabIndex={0} />
+        <i className="icon icon-info-circle fas pathology-header-info-icon" tabIndex={0} />
     </OverlayTrigger>
+);
+
+// `forDonorRow`: the donor table rolls several reports into one row, so its
+// popovers also say how; the per-aliquot table shows one report per row.
+export const AutolysisHeaderInfo = ({ forDonorRow = true }) => (
+    <HeaderInfo
+        id="tissue-autolysis-legend-popover"
+        title="Tissue Autolysis Score"
+        className="tissue-autolysis-legend-popover">
+        <p>
+            How far the tissue has broken down after death, as graded by the pathologist.
+            {forDonorRow
+                ? " The donor row shows the highest score across that donor's reports."
+                : ' When target tissues are scored separately, each score is listed level with its target tissue; the color follows the overall score.'}{' '}
+            An overall score of 3 makes a sample unacceptable.
+        </p>
+        {AUTOLYSIS_SCORE_LABELS.map((label, score) => (
+            <div className="tissue-autolysis-legend-row" key={score}>
+                <span className={`tissue-autolysis-legend-swatch score-${score}`}>{score}</span>
+                {label}
+            </div>
+        ))}
+    </HeaderInfo>
+);
+
+const NonTargetHeaderInfo = ({ forDonorRow = true }) => (
+    <HeaderInfo id="non-target-tissue-info-popover" title="Non-Target Tissue %">
+        <p className="mb-0">
+            Tissue in the sample other than the target tissue (e.g. fibroadipose or lymphoid), with the percentage
+            range of the sample it makes up.
+            {forDonorRow
+                ? " The donor row shows the highest range reported for each non-target tissue across that donor's reports."
+                : ''}
+        </p>
+    </HeaderInfo>
+);
+
+const TargetTissueHeaderInfo = () => (
+    <HeaderInfo id="target-tissue-info-popover" title="Target Tissue %">
+        <p className="mb-0">
+            The tissue the sample was meant to contain, with the percentage range of the sample it makes up. A sample
+            is unacceptable if target tissues make up less than 10% of the tissue on the slide.
+        </p>
+    </HeaderInfo>
+);
+
+const OutcomeHeaderInfo = () => (
+    <HeaderInfo id="pathology-outcome-info-popover" title="Outcome">
+        A sample is unacceptable if any of the following apply:
+        <ol className="mt-2 mb-0 ps-3">
+            <li>target tissues comprise &lt;10% of the tissue on the slide;</li>
+            <li>the overall autolysis score is 3;</li>
+            <li>a significant unexpected pathological finding is present.</li>
+        </ol>
+    </HeaderInfo>
+);
+
+export const FindingsHeaderInfo = ({ isBrain = false }) => (
+    <HeaderInfo id="pathologic-finding-info-popover" title="Unexpected/Pathologic Finding">
+        <p className="mb-0">
+            {isBrain
+                ? 'Whether the pathologist reported a neuropathologic finding (developmental, infectious, inflammatory, neoplastic, TBI, vascular, neurodegenerative, metabolic or other). Artifacts are a specimen quality issue and are not counted. '
+                : 'Whether the pathologist reported an unexpected or pathologic finding in the sample (inflammation, metaplasia, neoplasia/tumor/carcinoma, necrosis or other). '}
+            The count covers all of the donor&apos;s reports; click it to see each finding. A significant finding makes
+            a sample unacceptable.
+        </p>
+    </HeaderInfo>
 );
 
 // "N Findings" chip -- opens a list of every present finding (per aliquot,
@@ -263,10 +344,22 @@ const AliquotReportsTable = ({ reports, highlightedReportId, enableConditionalCo
         <thead>
             <tr>
                 <th>Aliquot ID</th>
-                <th>Outcome</th>
-                <th>Autolysis</th>
-                <th>Target Tissue %</th>
-                <th>Non-Target Tissue %</th>
+                <th>
+                    Outcome
+                    <OutcomeHeaderInfo />
+                </th>
+                <th>
+                    Autolysis
+                    <AutolysisHeaderInfo forDonorRow={false} />
+                </th>
+                <th>
+                    Target Tissue %
+                    <TargetTissueHeaderInfo />
+                </th>
+                <th>
+                    Non-Target Tissue %
+                    <NonTargetHeaderInfo forDonorRow={false} />
+                </th>
                 {FINDING_TYPES.map((type) => (
                     // A line-break opportunity after each "/" -- "Neoplasia/Tumor/Carcinoma"
                     // is otherwise one unbreakable word in its narrow column.
@@ -292,6 +385,7 @@ const AliquotReportsTable = ({ reports, highlightedReportId, enableConditionalCo
                 const findings = getPresentFindings(report);
                 const imageIds = (report.histology_images || []).map(getLinkId).filter(Boolean);
                 const reportUuid = getUuidFromAtId(reportId);
+                const subtypeAutolysisLines = getSubtypeAutolysisLines(report);
                 return (
                     <tr
                         key={reportId}
@@ -308,13 +402,16 @@ const AliquotReportsTable = ({ reports, highlightedReportId, enableConditionalCo
                                 unacceptableDescription={report.unacceptable_description}
                             />
                         </td>
+                        {/* Colored by the report-level score either way. */}
                         <td
                             className={
-                                enableConditionalColor
-                                    ? getAutolysisScoreCellClass(report.tissue_autolysis_score)
-                                    : ''
+                                enableConditionalColor ? getAutolysisScoreCellClass(report.tissue_autolysis_score) : ''
                             }>
-                            {getDisplayText(report.tissue_autolysis_score)}
+                            {subtypeAutolysisLines.length > 0 ? (
+                                <StackedLines lines={subtypeAutolysisLines} />
+                            ) : (
+                                getDisplayText(report.tissue_autolysis_score)
+                            )}
                         </td>
                         <td>
                             <StackedLines lines={getTargetTissueLines(report)} />
@@ -440,8 +537,14 @@ export default function PathologyReportsTable({
                         {renderSortableHeader('autolysisScore', 'Autolysis')}
                         <AutolysisHeaderInfo />
                     </th>
-                    <th>{renderSortableHeader('nonTarget', 'Non-Target Tissue %')}</th>
-                    <th>{renderSortableHeader('findings', 'Unexpected/Pathologic Finding')}</th>
+                    <th>
+                        {renderSortableHeader('nonTarget', 'Non-Target Tissue %')}
+                        <NonTargetHeaderInfo />
+                    </th>
+                    <th>
+                        {renderSortableHeader('findings', 'Unexpected/Pathologic Finding')}
+                        <FindingsHeaderInfo />
+                    </th>
                     <th>Histology Images</th>
                 </tr>
             </thead>
