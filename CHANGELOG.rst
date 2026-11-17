@@ -7,13 +7,31 @@ smaht-portal
 Change Log
 ----------
 
-2.15.18
+2.15.20
 =======
 
 `PR 794: feat: separate renamed and retracted files in tabs <https://github.com/smaht-dac/smaht-portal/pull/794>`_
 
 * Separate Retracted Files and Renamed Files tables in tabs
 * Consolidate static sections and render just one
+
+
+2.15.19
+=======
+
+`PR 792: feat: publication page update <https://github.com/smaht-dac/smaht-portal/pull/792>`_
+
+* Make publication thumbnails clickable/expandable
+* Pull files using previous_dois in addition to the current doi value
+
+
+2.15.18
+=======
+
+`PR 793: Protected status mixin <https://github.com/smaht-dac/smaht-portal/pull/793>`_
+
+* Add a protected_status mixin and use for ProtectedDonor and other ProtectedDonor linked metadata as a guard against public release.
+* Add a script to allow generation of submitr compatible workbooks for non-submittable items as a convenience
 
 
 2.15.17
