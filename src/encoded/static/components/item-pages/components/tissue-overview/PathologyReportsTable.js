@@ -69,16 +69,18 @@ const formatPercentageBand = (band) => (band ? `${String(band).replace(/^\[|\]$/
 const getAliquotIds = (report) =>
     (report?.tissue_samples || []).map((sample) => sample?.display_title).filter(Boolean);
 
+// A report's present target tissue subtypes, in submitted order.
+const getPresentTargetTissues = (report) =>
+    (report?.target_tissues || []).filter(
+        (entry) =>
+            entry?.target_tissue_present === 'Yes' && (entry.target_tissue_subtype || entry.target_tissue_percentage)
+    );
+
 // e.g. "50-100% Lung", one per present target tissue subtype.
 const getTargetTissueLines = (report) =>
-    (report?.target_tissues || [])
-        .filter((entry) => entry?.target_tissue_present === 'Yes')
-        .map((entry) =>
-            [formatPercentageBand(entry.target_tissue_percentage), entry.target_tissue_subtype]
-                .filter(Boolean)
-                .join(' ')
-        )
-        .filter(Boolean);
+    getPresentTargetTissues(report).map((entry) =>
+        [formatPercentageBand(entry.target_tissue_percentage), entry.target_tissue_subtype].filter(Boolean).join(' ')
+    );
 
 const formatNonTargetLine = (subtype, band, description = null) => {
     const label = subtype === 'Other' && description ? `Other (${description})` : subtype;
@@ -110,6 +112,21 @@ const getPresentFindings = (report) =>
         });
 
 const getAliquotSortKey = (report) => getAliquotIds(report)[0] || '';
+
+// Each present target tissue subtype's own autolysis score, stacked in the
+// aliquot row's Autolysis cell in the same order as the Target Tissue %
+// lines beside it (getTargetTissueLines), so each score sits level with its
+// subtype -- "-" for a subtype with no score. Only when they add something
+// to the report-level score: more than one subtype, or a different score.
+const getSubtypeAutolysisLines = (report) => {
+    const entries = getPresentTargetTissues(report);
+    const scores = entries.map((entry) =>
+        typeof entry.target_tissue_autolysis_score === 'number' ? entry.target_tissue_autolysis_score : null
+    );
+    if (!scores.some((score) => score !== null)) return [];
+    const differs = scores.some((score) => score !== null && score !== report?.tissue_autolysis_score);
+    return entries.length > 1 || differs ? scores.map((score) => getDisplayText(score)) : [];
+};
 
 // Lines stacked one per row, or a muted placeholder when there are none.
 export const StackedLines = ({ lines, emptyText = 'None' }) =>
@@ -146,8 +163,10 @@ export const AutolysisHeaderInfo = ({ forDonorRow = true }) => (
         className="tissue-autolysis-legend-popover">
         <p>
             How far the tissue has broken down after death, as graded by the pathologist.
-            {forDonorRow ? " The donor row shows the highest score across that donor's reports." : ''} An overall
-            score of 3 makes a sample unacceptable.
+            {forDonorRow
+                ? " The donor row shows the highest score across that donor's reports."
+                : ' When target tissues are scored separately, each score is listed level with its target tissue; the color follows the overall score.'}{' '}
+            An overall score of 3 makes a sample unacceptable.
         </p>
         {AUTOLYSIS_SCORE_LABELS.map((label, score) => (
             <div className="tissue-autolysis-legend-row" key={score}>
@@ -366,6 +385,7 @@ const AliquotReportsTable = ({ reports, highlightedReportId, enableConditionalCo
                 const findings = getPresentFindings(report);
                 const imageIds = (report.histology_images || []).map(getLinkId).filter(Boolean);
                 const reportUuid = getUuidFromAtId(reportId);
+                const subtypeAutolysisLines = getSubtypeAutolysisLines(report);
                 return (
                     <tr
                         key={reportId}
@@ -382,13 +402,16 @@ const AliquotReportsTable = ({ reports, highlightedReportId, enableConditionalCo
                                 unacceptableDescription={report.unacceptable_description}
                             />
                         </td>
+                        {/* Colored by the report-level score either way. */}
                         <td
                             className={
-                                enableConditionalColor
-                                    ? getAutolysisScoreCellClass(report.tissue_autolysis_score)
-                                    : ''
+                                enableConditionalColor ? getAutolysisScoreCellClass(report.tissue_autolysis_score) : ''
                             }>
-                            {getDisplayText(report.tissue_autolysis_score)}
+                            {subtypeAutolysisLines.length > 0 ? (
+                                <StackedLines lines={subtypeAutolysisLines} />
+                            ) : (
+                                getDisplayText(report.tissue_autolysis_score)
+                            )}
                         </td>
                         <td>
                             <StackedLines lines={getTargetTissueLines(report)} />
