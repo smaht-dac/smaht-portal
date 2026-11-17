@@ -41,6 +41,23 @@ describe('buildTissueHistologyBarplotData', () => {
         expect(data.terms['3I - Liver']).toMatchObject({ samples: 1, donors: 1 });
     });
 
+    test('counts one sample per physical aliquot -- its Cores and a GCC copy count once', () => {
+        const samples = [
+            sample('SMHT001-3AL-001A1', '3AL - Brain, Temporal Lobe', 'SMHT001', 'Snap Frozen', 'NDRI TPC'),
+            sample('SMHT001-3AL-001B2', '3AL - Brain, Temporal Lobe', 'SMHT001', 'Snap Frozen', 'NDRI TPC'),
+            sample('SMHT001-3AL-001B2', '3AL - Brain, Temporal Lobe', 'SMHT001', 'Snap Frozen', 'UWSC GCC'),
+            sample('SMHT001-3AL-002A1', '3AL - Brain, Temporal Lobe', 'SMHT001', 'Snap Frozen', 'NDRI TPC'),
+            sample('SMHT001-3AQ-001', '3AL - Brain, Temporal Lobe', 'SMHT001', 'Fixed', 'NDRI TPC'),
+        ];
+        const data = mergeTermsInBarplotData(
+            buildTissueHistologyBarplotData(samples, [TISSUE_FIELD, TISSUE_SAMPLE_TYPE_FIELD])
+        );
+        const brain = data.terms['3AL - Brain, Temporal Lobe'];
+        expect(brain.terms.Frozen).toMatchObject({ samples: 2, donors: 1 });
+        expect(brain.terms.Fixed).toMatchObject({ samples: 1 });
+        expect(brain.total.samples).toBe(3);
+    });
+
     test('groups by the sample\'s own preservation type, merging Snap Frozen into Frozen', () => {
         const data = mergeTermsInBarplotData(
             buildTissueHistologyBarplotData(SAMPLES, [TISSUE_FIELD, TISSUE_SAMPLE_TYPE_FIELD])

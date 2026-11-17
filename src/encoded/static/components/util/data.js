@@ -245,7 +245,23 @@ const getTissueCategoryFromFacetTerm = (termKey) => {
     return tissueCategoryByTissueName[tissue] || null;
 };
 
+/**
+ * The physical aliquot a TissueSample belongs to, from its external_id: kit
+ * id + 3-digit aliquot number, e.g. "SMHT001-3AL-001" for both the aliquot
+ * itself and its Core "SMHT001-3AL-001B2". A Frozen aliquot is split into
+ * many Core records, and a GCC files its own copy of each core it receives
+ * (same external_id), so sample counts use this key -- one per aliquot, the
+ * same unit as a Fixed aliquot's single record. Falls back to the
+ * external_id itself when it doesn't follow that pattern.
+ */
+const getAliquotKeyFromExternalId = (externalId) => {
+    if (!externalId) return null;
+    const match = externalId.match(/^([^-]+-[^-]+)-([0-9]{3})(?:[A-F][1-6])?$/);
+    return match ? `${match[1]}-${match[2]}` : externalId;
+};
+
 export {
+    getAliquotKeyFromExternalId,
     germLayerTissueMapping,
     tissueCategoryOrder,
     tissueToCategory,

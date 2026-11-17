@@ -4,6 +4,7 @@ import _ from 'underscore';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { TISSUE_SAMPLE_TYPE_FIELD } from './tissue-sample-types';
 import { getDisplayedTerm, getRecordedTerms } from './merge-terms';
+import { getAliquotKeyFromExternalId } from '../../util/data';
 
 /**
  * Browse by Tissue's Cohort View chart counts tissue samples with histology
@@ -216,7 +217,9 @@ export function buildTissueHistologyBarplotData(samples = [], fields = [], linke
     const countersByTerm = {};
 
     samples.forEach((sample) => {
-        const sampleKey = sample.external_id || sample['@id'];
+        // One per physical aliquot -- a Frozen aliquot's Cores count once,
+        // the same unit as a Fixed aliquot (see getAliquotKeyFromExternalId).
+        const sampleKey = getAliquotKeyFromExternalId(sample.external_id) || sample['@id'];
         const donorIds = getDonorIds(sample);
         const reportIds = getReportIds(sample);
         const imageIds = _.flatten(reportIds.map((reportId) => imageIdsByReportId[reportId] || []));
