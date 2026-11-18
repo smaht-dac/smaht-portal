@@ -921,6 +921,24 @@ TISSUE_SAMPLE_TYPE_SCRIPT = """
     return own.size() == 0 ? null : own.value;
 """
 
+# `only_with_pathology_reports`: Browse by Tissue's Cohort View chart counts
+# only samples with histology images and/or pathology reports (a
+# HistologyImage always links a report) -- a Fixed sample's own reports, or a
+# Frozen sample's reports of the Fixed sample cut from the same tissue block
+# -- plus, per request, every sample of a Fresh tissue, whose protocols have
+# no Fixed counterpart to link. Snovault filters can't OR fields, so this is
+# a filter aggregation around the rest.
+TISSUE_SAMPLE_WITH_PATHOLOGY_FILTER = {
+    "bool": {
+        "should": [
+            {"exists": {"field": "embedded.pathology_reports.accession.raw"}},
+            {"exists": {"field": "embedded.associated_pathology_reports.pathology_reports.accession.raw"}},
+            {"term": {"embedded.sample_sources.preservation_type.raw": "Fresh"}},
+        ],
+        "minimum_should_match": 1,
+    }
+}
+
 # Pseudo field name callers pass to group by TISSUE_SAMPLE_TYPE_SCRIPT.
 TISSUE_SAMPLE_TYPE_AGG_FIELD = 'sample_type'
 TISSUE_SAMPLE_AGG_MAX_BUCKETS = 200
@@ -978,8 +996,10 @@ def tissue_sample_aggregations(context, request):
 
     Body: `search_query_params` (a TissueSample search's filters -- the type is
     always TissueSample) and `fields_to_aggregate_for` ([field] or [field,
-    group field]; "sample_type" groups by TISSUE_SAMPLE_TYPE_SCRIPT). Runs as a
-    normal search, so each viewer only counts what they are allowed to see.
+    group field]; "sample_type" groups by TISSUE_SAMPLE_TYPE_SCRIPT), plus an
+    optional `only_with_pathology_reports` (see TISSUE_SAMPLE_WITH_PATHOLOGY_FILTER).
+    Runs as a normal search, so each viewer only counts what they are allowed
+    to see.
 
     Returns {field, group_field, total, terms}: each count has `samples`
     (distinct aliquots), `donors`/`all_donors_ids` and the samples' own
@@ -1005,6 +1025,11 @@ def tissue_sample_aggregations(context, request):
         field_agg["aggs"]["group"] = group_agg
     aggregations = {"field_0": field_agg}
     aggregations.update(deepcopy(bucket_aggs))
+    only_with_pathology_reports = bool(json_body.get('only_with_pathology_reports', False))
+    if only_with_pathology_reports:
+        aggregations = {
+            "scope": {"filter": deepcopy(TISSUE_SAMPLE_WITH_PATHOLOGY_FILTER), "aggs": aggregations}
+        }
 
     search_param_lists['type'] = ['TissueSample']
     search_param_lists['limit'] = search_param_lists['from'] = [0]
@@ -1012,6 +1037,10 @@ def tissue_sample_aggregations(context, request):
     subreq = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)))
     search_result = perform_search_request(None, subreq, custom_aggregations=aggregations)
     result_aggs = search_result.get('aggregations') or {}
+    total_doc_count = search_result.get('total', 0)
+    if only_with_pathology_reports:
+        result_aggs = result_aggs.get('scope') or {}
+        total_doc_count = result_aggs.get('doc_count', 0)
 
     terms = {}
     for bucket in result_aggs.get('field_0', {}).get('buckets', []):
@@ -1029,7 +1058,7 @@ def tissue_sample_aggregations(context, request):
             terms[bucket['key']] = _format_tissue_sample_bucket(bucket)
 
     total = (
-        _format_tissue_sample_bucket(dict(result_aggs, doc_count=search_result.get('total', 0)))
+        _format_tissue_sample_bucket(dict(result_aggs, doc_count=total_doc_count))
         if 'samples' in result_aggs
         else {"doc_count": 0, "samples": 0, "donors": 0, "all_donors_ids": [], "pathology_report_uuids": []}
     )

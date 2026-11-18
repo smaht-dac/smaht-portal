@@ -6,18 +6,20 @@ import { TISSUE_SAMPLE_TYPE_FIELD } from './tissue-sample-types';
 import { getDisplayedTerm, getRecordedTerms } from './merge-terms';
 
 /**
- * Browse by Tissue's Cohort View chart: every visible tissue sample of the
- * released-donor Production population, by tissue and sample type (or
- * submission center) -- the same samples, counted the same way, as the
- * Tissue Overview page's Sequencing/Histology & Pathology cards. Counted
- * server side by /tissue_sample_aggregations/ (visualization.py) as one
- * sample per physical aliquot: a Frozen aliquot's Cores, and a GCC's own
- * copy of each core it receives, count once -- the same unit as a Fixed
- * aliquot. Built into /bar_plot_aggregations/'s response shape here.
+ * Browse by Tissue's Cohort View chart counts tissue samples with histology
+ * images and/or pathology reports -- not samples with released files, which
+ * is what the File-based /bar_plot_aggregations/ the other browse pages use
+ * would count. A HistologyImage always links a PathologyReport, so that comes
+ * down to a Fixed sample's own reports or a Frozen sample's reports of the
+ * Fixed sample cut from the same tissue block; per request, a Fresh tissue's
+ * samples (no Fixed counterpart, so never a report) are charted anyway.
  *
- * Fresh tissues (Buccal Swab, Fibroblast, ...) are charted as "Fresh"
- * whatever their samples' own type (mostly Frozen) -- see visualization.py's
- * TISSUE_SAMPLE_TYPE_SCRIPT.
+ * Counted server side by /tissue_sample_aggregations/ (visualization.py,
+ * `only_with_pathology_reports`) as one sample per physical aliquot (slice):
+ * a Frozen slice's Cores, and a GCC's own copy of each core it receives,
+ * count once -- the same unit as a Fixed slice, and as the Tissue Overview
+ * page's cards (which count every sample, report or not). Built into
+ * /bar_plot_aggregations/'s response shape here.
  *
  * Plain searches, so every viewer only counts what they are allowed to see --
  * per explicit request, rather than a permission-free count.
@@ -107,8 +109,8 @@ let cachedLinkedCounts = null;
 /**
  * The chart's sample counts for `fields` ([x axis field, optional group by
  * field], the chart's own keys), counted server side by
- * /tissue_sample_aggregations/ -- one sample per physical aliquot, the same
- * count as the Tissue Overview page's cards. Resolves to that endpoint's
+ * /tissue_sample_aggregations/ -- samples with pathology reports (see the
+ * top of this file), one per physical aliquot. Resolves to that endpoint's
  * response, or null when it fails.
  */
 export function loadTissueSampleAggregations(fields = []) {
@@ -121,6 +123,7 @@ export function loadTissueSampleAggregations(fields = []) {
             JSON.stringify({
                 search_query_params: SAMPLE_SEARCH_PARAMS,
                 fields_to_aggregate_for: _.compact(fields.map((field) => AGGREGATION_FIELDS[field])),
+                only_with_pathology_reports: true,
             })
         );
     });

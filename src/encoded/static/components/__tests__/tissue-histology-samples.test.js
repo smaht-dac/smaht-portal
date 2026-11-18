@@ -122,12 +122,13 @@ describe('buildTissueHistologyBarplotData', () => {
 describe('loadTissueSampleAggregations', () => {
     beforeEach(() => ajax.load.mockReset());
 
-    test('asks for the chart\'s fields as TissueSample fields, under the released-donor population', async () => {
+    test('asks for the chart\'s fields as TissueSample fields, samples with reports of the released-donor population', async () => {
         ajax.load.mockImplementation((href, onSuccess, method, onError, body) => {
             expect(href).toBe('/tissue_sample_aggregations/');
             expect(method).toBe('POST');
             const { search_query_params: params, fields_to_aggregate_for: fields } = JSON.parse(body);
             expect(fields).toEqual(['sample_sources.tissue_type', 'sample_type']);
+            expect(JSON.parse(body).only_with_pathology_reports).toBe(true);
             expect(params).toMatchObject({
                 'sample_sources.donor.study': ['Production'],
                 'sample_sources.donor.tags': ['has_released_files'],

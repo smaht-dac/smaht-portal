@@ -767,7 +767,8 @@ export const ChartDataController = {
 
 
     /**
-     * Browse by Tissue's chart data: tissue samples counted per aliquot by
+     * Browse by Tissue's chart data: tissue samples with histology images
+     * and/or pathology reports, counted per aliquot by
      * /tissue_sample_aggregations/ -- see viz/BarPlot/tissue-histology-samples.js.
      * Always unfiltered: the page has no filters of its own to narrow it by.
      *
