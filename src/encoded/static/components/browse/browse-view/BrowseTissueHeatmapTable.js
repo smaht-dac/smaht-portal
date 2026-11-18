@@ -27,6 +27,11 @@ import {
     DonorDemographicsCells,
 } from './heatmap-donor-links';
 import { useUserDownloadAccess } from '../../util/hooks';
+import {
+    NON_BRAIN_REPORT_ALIQUOT_SEARCH_HREF,
+    buildAliquotValuesIndex,
+    getDifferingAliquotEntries,
+} from './heatmap-aliquot-values';
 
 // Ascending order of Tissue.pathology_summary.target_tissue_percentage bands,
 // mirrored from item_utils/pathology_report.py::TARGET_TISSUE_PERCENTAGE_ORDER.
@@ -1794,7 +1799,7 @@ export function portalCellDetailPopover(popover) {
 // the app rather than a one-off design.
 function renderCellDetailPopover({
     donor, tissueType, tissueLabel = null, subtypeLabel = null, metricLabel, value, entries, slots, splitByPreservationType,
-    formatValue, tissueOverviewHref, style, isFlippedUp, isFlippedRight,
+    formatValue, tissueOverviewHref, style, isFlippedUp, isFlippedRight, aliquotEntries = null,
 }, popoverRef) {
     // Ischemic Time's own cells always show a Fixed/Frozen breakdown (see
     // buildTissueMetricMatrix's cellSlots and the table cell's own always-
@@ -1879,6 +1884,20 @@ function renderCellDetailPopover({
                         </div>
                     </>
                 )}
+                {aliquotEntries ? (
+                    <>
+                        <div className="secondary-row-heading">{metricLabel} by Aliquot</div>
+                        <div className="secondary-row">
+                            {aliquotEntries.map((entry, i) => (
+                                // eslint-disable-next-line react/no-array-index-key
+                                <div className="field" key={i}>
+                                    <div className="label">{entry.label}</div>
+                                    <div className="value">{formatValue(entry.value)}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                ) : null}
                 {tissueOverviewHref ? (
                     <div className="footer-row">
                         <a
@@ -2956,6 +2975,9 @@ export function SortableHeaderLabel({ label, sortDirection, onClick }) {
 
 const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
     tissueTypes,
+    // Optional `(donor, columnKey) => [{label, value}] | null` -- a cell's
+    // per-aliquot values for its popover (see getDifferingAliquotEntries).
+    getAliquotEntries = null,
     // Donor external_id -> donor page href, see buildDonorHrefs.
     donorHrefs = null,
     // Brain tables only, per explicit request: each donor's Age/Sex
@@ -3526,6 +3548,9 @@ const MetricHeatmapTable = React.memo(function MetricHeatmapTable({
                         value: selectedCell.value,
                         entries: selectedCell.entries,
                         slots: selectedCell.slots,
+                        aliquotEntries: getAliquotEntries
+                            ? getAliquotEntries(selectedCell.donor, selectedCell.tissueType)
+                            : null,
                         splitByPreservationType: selectedCell.splitByPreservationType,
                         formatValue,
                         tissueOverviewHref: tissueTypeHrefs[selectedCell.tissueType],
@@ -3765,6 +3790,35 @@ export const BrowseTissueHeatmapTable = (props) => {
             }
         );
     }, [session]);
+
+    // Every non-brain report's per-aliquot values (buildAliquotValuesIndex),
+    // for the Autolysis Score/Target Tissue % cell popovers -- fetched once,
+    // the first time either tab is shown (and again on a session change,
+    // since visibility depends on it). null until loaded; a failed or empty
+    // search just leaves the popovers without the breakdown.
+    const [aliquotValuesIndex, setAliquotValuesIndex] = useState(null);
+    const needsAliquotValues = isTargetTabActive || activeTabDotPath === '.autolysis-score';
+    const aliquotValuesSessionRef = useRef(null);
+    useEffect(() => {
+        if (!needsAliquotValues || aliquotValuesSessionRef.current === session) return;
+        const requestSession = session;
+        aliquotValuesSessionRef.current = requestSession;
+        // A response for an earlier session is dropped -- its visibility no
+        // longer applies.
+        const onResponse = (resp) => {
+            if (aliquotValuesSessionRef.current !== requestSession) return;
+            setAliquotValuesIndex(buildAliquotValuesIndex(resp?.['@graph'] || [], makeSubtypeColumnKey));
+        };
+        ajax.load(NON_BRAIN_REPORT_ALIQUOT_SEARCH_HREF, onResponse, 'GET', onResponse);
+    }, [needsAliquotValues, session]);
+    const getAutolysisAliquotEntries = useCallback(
+        (donor, columnKey) => getDifferingAliquotEntries(aliquotValuesIndex, donor, columnKey, 'autolysis'),
+        [aliquotValuesIndex]
+    );
+    const getTargetPercentageAliquotEntries = useCallback(
+        (donor, columnKey) => getDifferingAliquotEntries(aliquotValuesIndex, donor, columnKey, 'targetPercentage'),
+        [aliquotValuesIndex]
+    );
 
     // Brain vs. everything else -- see isBrainTissueResult. The tissue-wide
     // tabs below all build from tissueResultsExcludingBrain; the 2 brain tabs
@@ -4105,6 +4159,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                     tissueTypeHrefs={targetTissueSubtypePlan.fixedTissueTypeHrefs}
                                     tissueTypeCategories={targetTissueSubtypePlan.fixedTissueTypeCategories}
                                     subtypeColumnInfo={targetTissueSubtypePlan.columnInfo}
+                                    getAliquotEntries={getTargetPercentageAliquotEntries}
                                     subtypeTintPercent={subtypeTintPercent}
                                     nonTargetColumnKeys={targetWithNonTargetExpansion.nonTargetColumnKeys}
                                     // Only while the toggle is on -- with it off,
@@ -4232,6 +4287,7 @@ export const BrowseTissueHeatmapTable = (props) => {
                                     tissueTypeHrefs={autolysisSubtypePlan.fixedTissueTypeHrefs}
                                     tissueTypeCategories={autolysisSubtypePlan.fixedTissueTypeCategories}
                                     subtypeColumnInfo={autolysisSubtypePlan.columnInfo}
+                                    getAliquotEntries={getAutolysisAliquotEntries}
                                     subtypeTintPercent={subtypeTintPercent}
                                     metricLabel="Autolysis Score"
                                     tooltip="Autolysis is the breakdown of cells and tissue by their own enzymes after death. It increases with time before preservation and can affect tissue morphology and molecular quality."
