@@ -7,6 +7,42 @@ smaht-portal
 Change Log
 ----------
 
+2.15.20
+=======
+
+`PR 795: eHAT-Seq and scATAC-Seq updates <https://github.com/smaht-dac/smaht-portal/pull/795>`_
+
+* Update annotated file names script so VCFs with germline and somatic variants don't include the string ``germline``
+* Add enums to ``File.data_type`` and ``Software.category`` for scATAC-Seq
+
+
+2.15.19
+=======
+
+`PR 792: feat: publication page update <https://github.com/smaht-dac/smaht-portal/pull/792>`_
+
+* Make publication thumbnails clickable/expandable
+* Pull files using previous_dois in addition to the current doi value
+
+
+2.15.18
+=======
+
+`PR 793: Protected status mixin <https://github.com/smaht-dac/smaht-portal/pull/793>`_
+
+* Add a protected_status mixin and use for ProtectedDonor and other ProtectedDonor linked metadata as a guard against public release.
+* Add a script to allow generation of submitr compatible workbooks for non-submittable items as a convenience
+
+
+2.15.17
+=======
+
+`PR 790: Cord blood release <https://github.com/smaht-dac/smaht-portal/pull/790>`_
+
+* Add cord blood enums
+* Update annotated file names script for cord blood samples
+
+
 2.15.16
 =======
 

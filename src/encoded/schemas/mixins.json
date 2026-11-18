@@ -435,6 +435,8 @@
                 "lb_ipsc_52",
                 "lb_ipsc_60",
                 "tissue",
+                "cord_blood_2404416003",
+                "cord_blood_2111403008",
                 "colo829_snv_indel_challenge_data",
                 "mei_detection_challenge_data",
                 "hapmap_snv_indel_challenge_data",
@@ -985,6 +987,22 @@
                 "protected-network",
                 "protected",
                 "protected-early"
+            ]
+        }
+    },
+    "protected_status": {
+        "status": {
+            "title": "Status",
+            "type": "string",
+            "default": "in review",
+            "permission": "restricted_fields",
+            "enum": [
+                "in review",
+                "obsolete",
+                "deleted",
+                "protected-early",
+                "protected-network",
+                "protected"
             ]
         }
     },
