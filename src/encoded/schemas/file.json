@@ -195,7 +195,8 @@
                     "SV",
                     "Transcript Sequence",
                     "Transcript Model",
-                    "Sequencing information"
+                    "Sequencing information",
+                    "Chromatin Accessibility"
                 ]
             }
         },
