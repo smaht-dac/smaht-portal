@@ -10,7 +10,7 @@ Change Log
 2.15.21
 =======
 
-`PR TBD: Bump nginx to 1.31.9 (CVE-2026-123633, CVE-2026-123007) <https://github.com/smaht-dac/smaht-portal/pulls>`_
+`PR 797: Bump nginx to 1.31.9 (CVE-2026-123633, CVE-2026-123007) <https://github.com/smaht-dac/smaht-portal/pull/797>`_
 
 * Bumps the production nginx pin in ``deploy/docker/production/install_nginx_bookworm.sh`` from
   stable ``1.30.4`` to mainline ``1.31.9`` (njs ``1.0.1`` -> ``1.0.2``, the build matching nginx
