@@ -6,12 +6,16 @@
 # bullseye LTS ended (2026-08-31) and bullseye-security stopped serving the package
 # versions its own index still advertises. See install notes at the bottom of this file.
 #
-# nginx.org STABLE series (https://nginx.org/packages/debian/) -- the previous
-# bullseye pin (1.21.6) came from the MAINLINE series. Stable is the line nginx
-# maintains for production, and nginx.org publishes this exact version, plus all four
-# modules, for both supported releases (amd64 and arm64).
-export NGINX_VERSION=1.30.4
-export NJS_VERSION=1.0.1
+# nginx.org MAINLINE series (https://nginx.org/packages/mainline/debian/). The 1.30.x
+# stable series was used from 2026-09 until the HTTP/2 advisories CVE-2026-123633 and
+# CVE-2026-123007 (https://nginx.org/en/security_advisories.html), fixed in 1.31.9+ (and
+# 1.30.7+). Moved to mainline 1.31.9 per the security remediation request. The mainline
+# repo publishes this exact version, plus all four modules, for both supported releases
+# (amd64 and arm64); njs 1.0.2 is the build matching nginx 1.31.9 (module packages must
+# be built against the exact nginx version, so bump them together).
+# Keep the version pins EXACT (never floating) and the repo URL below in sync with the series.
+export NGINX_VERSION=1.31.9
+export NJS_VERSION=1.0.2
 NGINX_SUPPORTED_DEBIAN_CODENAMES="bookworm trixie"
 
 # The apt suite and package release follow the base image's own Debian release, so
@@ -81,11 +85,11 @@ set -x \
     " \
     && case "$dpkgArch" in \
         amd64|arm64) \
-            echo "deb [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/debian/ $NGINX_DEBIAN_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list \
+            echo "deb [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/mainline/debian/ $NGINX_DEBIAN_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list \
             && apt-get update \
             ;; \
         *) \
-            echo "deb-src [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/debian/ $NGINX_DEBIAN_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list \
+            echo "deb-src [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/mainline/debian/ $NGINX_DEBIAN_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list \
             \
             && tempDir="$(mktemp -d)" \
             && chmod 777 "$tempDir" \
