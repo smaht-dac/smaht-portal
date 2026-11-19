@@ -534,7 +534,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                                 <p className="fs-6 lh-lg ps-05">
                                     By registering, you are agreeing to the{' '}
                                     <a
-                                        href="/privacy-policy"
+                                        href="https://smaht.org/privacy-policy/"
                                         className="link-underline-hover"
                                         target="_blank"
                                         rel="noreferrer noopener">
