@@ -4573,6 +4573,23 @@ $pathology-reports-muted: #B0B0B0;
                     text-align: left;
                 }
 
+                // A report's 2nd+ (autolysis score, target tissue) pair -- its
+                // first cell is the centered score, not the aliquot ID.
+                tbody tr.is-subrow td:first-child {
+                    text-align: center;
+                }
+
+                // Target / non-target tissues read as lists -- left aligned,
+                // so the lines start level; "None" stays centered.
+                td.tissue-lines-cell {
+                    text-align: left;
+                }
+
+                td.tissue-lines-cell .text-muted-placeholder {
+                    display: block;
+                    text-align: center;
+                }
+
                 // A finding's description reads as running text -- left
                 // aligned; "Absent"/"None" placeholders stay centered.
                 // `:first-child` too, to outweigh the brain findings
@@ -4586,14 +4603,18 @@ $pathology-reports-muted: #B0B0B0;
                     background-color: #ffffff;
                 }
 
-                tbody tr:nth-child(even) td:not(.autolysis-score-cell) {
+                // `.is-zebra` where one report spans several rows (non-brain
+                // aliquot table), so stripes follow reports, not <tr>s.
+                &:not(.has-report-subrows) tbody tr:nth-child(even) td:not(.autolysis-score-cell),
+                tbody tr.is-zebra td:not(.autolysis-score-cell) {
                     background-color: $pathology-reports-zebra;
                 }
 
-                // Listed with the zebra selector too -- it outranks the
-                // plain one, so even rows would otherwise stay grey.
+                // Listed with the zebra selectors too -- they outrank the
+                // plain one, so zebra rows would otherwise stay grey.
                 tbody tr td.is-finding-present,
-                tbody tr:nth-child(even) td.is-finding-present {
+                &:not(.has-report-subrows) tbody tr:nth-child(even) td.is-finding-present,
+                tbody tr.is-zebra td.is-finding-present {
                     background-color: #fcffc3;
                 }
 
