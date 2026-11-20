@@ -1512,7 +1512,7 @@ def get_file_extension(
         result += [PHASED_EXTENSION]
     if file_utils.is_filtered(file):
         result += [FILTERED_EXTENSION]
-    if file_utils.is_germline(file):
+    if file_utils.is_germline(file) and not file_utils.is_somatic(file):
         result += [GERMLINE_EXTENSION]
     if file_utils.is_variant_calls(file) and (variant_type := get_variant_type(file)):
         result += [variant_type]

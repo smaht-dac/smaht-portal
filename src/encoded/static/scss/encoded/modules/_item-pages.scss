@@ -2900,15 +2900,27 @@ File, Donor, and Publication Overview Styles
             border-bottom: 1px solid #e5e5e5;
 
             .thumbnail {
-                width: 180px;
-                min-width: 180px;
-                width: 180px;
-                height: auto;
+                width: 160px;
+                min-width: 160px;
+                height: 100px;
                 border-radius: 5px;
                 border: 1px solid #cfebff;
 
+                // Border and rounding live on the container
+                &.clickable-image-container {
+                    overflow: hidden;
+
+                    .clickable-image {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                        object-position: top left;
+                        border: none;
+                        border-radius: 0;
+                    }
+                }
+
                 &.thumbnail-placeholder {
-                    height: 110px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -3244,7 +3256,7 @@ File, Donor, and Publication Overview Styles
                 flex-direction: column;
 
                 .thumbnail {
-                    min-height: 200px;
+                    height: 200px;
                     width: 100%;
                 }
             }
@@ -4561,6 +4573,23 @@ $pathology-reports-muted: #B0B0B0;
                     text-align: left;
                 }
 
+                // A report's 2nd+ (autolysis score, target tissue) pair -- its
+                // first cell is the centered score, not the aliquot ID.
+                tbody tr.is-subrow td:first-child {
+                    text-align: center;
+                }
+
+                // Target / non-target tissues read as lists -- left aligned,
+                // so the lines start level; "None" stays centered.
+                td.tissue-lines-cell {
+                    text-align: left;
+                }
+
+                td.tissue-lines-cell .text-muted-placeholder {
+                    display: block;
+                    text-align: center;
+                }
+
                 // A finding's description reads as running text -- left
                 // aligned; "Absent"/"None" placeholders stay centered.
                 // `:first-child` too, to outweigh the brain findings
@@ -4574,14 +4603,18 @@ $pathology-reports-muted: #B0B0B0;
                     background-color: #ffffff;
                 }
 
-                tbody tr:nth-child(even) td:not(.autolysis-score-cell) {
+                // `.is-zebra` where one report spans several rows (non-brain
+                // aliquot table), so stripes follow reports, not <tr>s.
+                &:not(.has-report-subrows) tbody tr:nth-child(even) td:not(.autolysis-score-cell),
+                tbody tr.is-zebra td:not(.autolysis-score-cell) {
                     background-color: $pathology-reports-zebra;
                 }
 
-                // Listed with the zebra selector too -- it outranks the
-                // plain one, so even rows would otherwise stay grey.
+                // Listed with the zebra selectors too -- they outrank the
+                // plain one, so zebra rows would otherwise stay grey.
                 tbody tr td.is-finding-present,
-                tbody tr:nth-child(even) td.is-finding-present {
+                &:not(.has-report-subrows) tbody tr:nth-child(even) td.is-finding-present,
+                tbody tr.is-zebra td.is-finding-present {
                     background-color: #fcffc3;
                 }
 
@@ -4917,14 +4950,22 @@ $pathology-reports-muted: #B0B0B0;
         // signals "no data here yet".
     }
 
+    // The mini copy's open-slice outline, redrawn on top (see
+    // AliquotVisualization.js) -- same width as an .is-selected slice's faces.
+    .aliquot-slice-highlight-outline polygon {
+        stroke-width: 2.3;
+        stroke-linejoin: round;
+    }
+
     // Read-only mini copy inside a slice popover (AliquotVisualization's
-    // readOnly) -- colors come from the component (DIMMED_SLICE_STYLES).
+    // readOnly) -- colors come from the component (WASHED_SLICE_STYLES / DIMMED_PLACEHOLDER_STYLES).
     &.aliquot-visualization--mini {
         .aliquot-canvas-wrap {
             padding: 0;
         }
 
-        // Capped low -- it only has to show where the slice sits, and the
+        // Capped low (= MINI_CANVAS_HEIGHT_PX in AliquotVisualization.js) -- it
+        // only has to show where the slice sits, and the
         // popover's left column is already the taller one.
         .aliquot-canvas {
             width: auto;
@@ -4933,6 +4974,12 @@ $pathology-reports-muted: #B0B0B0;
 
         .aliquot-slice {
             pointer-events: none;
+        }
+
+        // Lighter than the full view's 600 -- narrower digits, so the
+        // numbers fit the thin Fixed slices (MINI_SLICE_LABEL_MAX_EM_PER_WIDTH).
+        .slice-inline-label {
+            font-weight: 500;
         }
     }
 
@@ -4986,11 +5033,15 @@ $pathology-reports-muted: #B0B0B0;
         pointer-events: none;
     }
 
+    // Row spacing from the items' own vertical margins, not `row-gap` --
+    // .aliquot-legend-break is a (0-high) flex line of its own and would
+    // otherwise get a gap on both sides, doubling the space there.
     .aliquot-legend {
         display: flex;
         flex-wrap: wrap;
-        gap: 12px 24px;
-        margin-top: 14px;
+        gap: 0 24px;
+        // 14px to the first line, with the items' own 6px top margin.
+        margin-top: 8px;
         color: #4e6379;
         font-size: 0.9rem;
     }
@@ -4999,6 +5050,7 @@ $pathology-reports-muted: #B0B0B0;
         display: inline-flex;
         align-items: center;
         gap: 8px;
+        margin: 6px 0;
 
         // The type name (e.g. "Fixed"/"Frozen") is the actual key being
         // defined; the detail that follows it is supplementary, so only
@@ -5018,13 +5070,23 @@ $pathology-reports-muted: #B0B0B0;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
     }
 
-    // Supplementary (no color swatch of its own) -- a divider instead of
-    // the swatch/label gap keeps it reading as "also see" rather than a
-    // third legend key.
+    // Ends the Fixed/Frozen line -- "Data not generated" and the dimensions
+    // note always share the line below.
+    .aliquot-legend-break {
+        flex-basis: 100%;
+        height: 0;
+    }
+
+    // Supplementary (no color swatch of its own), muted. Beside the
+    // "Data not generated" key, a divider instead of the swatch/label gap
+    // keeps it reading as "also see" rather than another key.
     .aliquot-legend-dimensions {
+        color: #7c8ba0;
+    }
+
+    .aliquot-legend-item + .aliquot-legend-dimensions {
         padding-left: 16px;
         border-left: 1px solid #dbe6ef;
-        color: #7c8ba0;
     }
 
     &.nonsolid-aliquot-visualization {
@@ -5741,6 +5803,8 @@ $pathology-reports-muted: #B0B0B0;
 
         &-overlay {
             position: absolute;
+            top: 0;
+            left: 0;
             opacity: 0;
             background-color: rgb(73 96 136 / 25%);
             transition: opacity 0.15s ease;

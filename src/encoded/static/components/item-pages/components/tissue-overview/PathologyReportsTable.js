@@ -113,19 +113,20 @@ const getPresentFindings = (report) =>
 
 const getAliquotSortKey = (report) => getAliquotIds(report)[0] || '';
 
-// Each present target tissue subtype's own autolysis score, stacked in the
-// aliquot row's Autolysis cell in the same order as the Target Tissue %
-// lines beside it (getTargetTissueLines), so each score sits level with its
-// subtype -- "-" for a subtype with no score. Only when they add something
-// to the report-level score: more than one subtype, or a different score.
-const getSubtypeAutolysisLines = (report) => {
+// Each present target tissue subtype's own autolysis score, in the same
+// order as getTargetTissueLines -- null for a subtype with no score. The
+// aliquot table gives each pair its own sub-row (score beside its subtype,
+// divided from the next pair by a line). Empty unless the scores add
+// something to the report-level score: more than one subtype, or a
+// different score.
+const getSubtypeAutolysisScores = (report) => {
     const entries = getPresentTargetTissues(report);
     const scores = entries.map((entry) =>
         typeof entry.target_tissue_autolysis_score === 'number' ? entry.target_tissue_autolysis_score : null
     );
     if (!scores.some((score) => score !== null)) return [];
     const differs = scores.some((score) => score !== null && score !== report?.tissue_autolysis_score);
-    return entries.length > 1 || differs ? scores.map((score) => getDisplayText(score)) : [];
+    return entries.length > 1 || differs ? scores : [];
 };
 
 // Lines stacked one per row, or a muted placeholder when there are none.
@@ -165,7 +166,7 @@ export const AutolysisHeaderInfo = ({ forDonorRow = true }) => (
             How far the tissue has broken down after death, as graded by the pathologist.
             {forDonorRow
                 ? " The donor row shows the highest score across that donor's reports."
-                : ' When target tissues are scored separately, each score is listed level with its target tissue; the color follows the overall score.'}{' '}
+                : ' When target tissues are scored separately, each score is shown beside its target tissue, in its own color.'}{' '}
             An overall score of 3 makes a sample unacceptable.
         </p>
         {AUTOLYSIS_SCORE_LABELS.map((label, score) => (
@@ -327,7 +328,7 @@ export function useScrollToHighlightedReport(highlightedReportId, expandedDonorU
 }
 
 const AliquotReportsTable = ({ reports, highlightedReportId, enableConditionalColor }) => (
-    <table className="pathology-aliquot-table">
+    <table className="pathology-aliquot-table has-report-subrows">
         <colgroup>
             <col style={{ width: '11%' }} />
             <col style={{ width: '7%' }} />
@@ -380,65 +381,86 @@ const AliquotReportsTable = ({ reports, highlightedReportId, enableConditionalCo
             </tr>
         </thead>
         <tbody>
-            {reports.map((report) => {
+            {reports.map((report, reportIndex) => {
                 const reportId = report['@id'];
                 const findings = getPresentFindings(report);
                 const imageIds = (report.histology_images || []).map(getLinkId).filter(Boolean);
                 const reportUuid = getUuidFromAtId(reportId);
-                const subtypeAutolysisLines = getSubtypeAutolysisLines(report);
+                const targetLines = getTargetTissueLines(report);
+                const subtypeScores = getSubtypeAutolysisScores(report);
+                // One sub-row per (autolysis score, target tissue) pair when the
+                // subtypes are scored separately; the other cells span them all.
+                let pairs = [{ score: report.tissue_autolysis_score, targetLines }];
+                if (subtypeScores.length > 0) {
+                    pairs = subtypeScores.map((score, i) => {
+                        return { score, targetLines: [targetLines[i]] };
+                    });
+                }
+                const rowSpan = pairs.length;
+                const rowClassName =
+                    [
+                        reportIndex % 2 === 1 ? 'is-zebra' : null,
+                        reportId === highlightedReportId ? 'is-highlighted' : null,
+                    ]
+                        .filter(Boolean)
+                        .join(' ') || undefined;
+                const renderPairCells = ({ score, targetLines: lines }) => (
+                    <>
+                        <td className={enableConditionalColor ? getAutolysisScoreCellClass(score) : ''}>
+                            {getDisplayText(score)}
+                        </td>
+                        <td className="tissue-lines-cell">
+                            <StackedLines lines={lines} />
+                        </td>
+                    </>
+                );
                 return (
-                    <tr
-                        key={reportId}
-                        id={reportUuid ? `pathology-report-${reportUuid}` : undefined}
-                        className={reportId === highlightedReportId ? 'is-highlighted' : undefined}>
-                        <td>
-                            <a href={reportId} target="_blank" rel="noopener noreferrer">
-                                <StackedLines lines={getAliquotIds(report)} emptyText={report.accession} />
-                            </a>
-                        </td>
-                        <td>
-                            <PathologyOutcomeBadge
-                                outcome={report.outcome}
-                                unacceptableDescription={report.unacceptable_description}
-                            />
-                        </td>
-                        {/* Colored by the report-level score either way. */}
-                        <td
-                            className={
-                                enableConditionalColor ? getAutolysisScoreCellClass(report.tissue_autolysis_score) : ''
-                            }>
-                            {subtypeAutolysisLines.length > 0 ? (
-                                <StackedLines lines={subtypeAutolysisLines} />
-                            ) : (
-                                getDisplayText(report.tissue_autolysis_score)
-                            )}
-                        </td>
-                        <td>
-                            <StackedLines lines={getTargetTissueLines(report)} />
-                        </td>
-                        <td>
-                            <StackedLines lines={getNonTargetTissueLines(report)} />
-                        </td>
-                        {FINDING_TYPES.map((type) => {
-                            const lines = findings.filter((f) => f.type === type).map((f) => f.text);
-                            return (
-                                <td key={type} className={lines.length > 0 ? 'is-finding-present is-finding-text' : undefined}>
-                                    <StackedLines lines={lines} />
-                                </td>
-                            );
-                        })}
-                        <td>
-                            {imageIds.length > 0 ? (
-                                <HistologyImagesLink
-                                    imageIds={imageIds}
-                                    searchHref={`/search/?type=HistologyImage&pathology_reports.uuid=${reportUuid}`}
-                                    showCount={imageIds.length > 1}
+                    <React.Fragment key={reportId}>
+                        <tr id={reportUuid ? `pathology-report-${reportUuid}` : undefined} className={rowClassName}>
+                            <td rowSpan={rowSpan}>
+                                <a href={reportId} target="_blank" rel="noopener noreferrer">
+                                    <StackedLines lines={getAliquotIds(report)} emptyText={report.accession} />
+                                </a>
+                            </td>
+                            <td rowSpan={rowSpan}>
+                                <PathologyOutcomeBadge
+                                    outcome={report.outcome}
+                                    unacceptableDescription={report.unacceptable_description}
                                 />
-                            ) : (
-                                <span className="text-muted-placeholder">-</span>
-                            )}
-                        </td>
-                    </tr>
+                            </td>
+                            {renderPairCells(pairs[0])}
+                            <td rowSpan={rowSpan} className="tissue-lines-cell">
+                                <StackedLines lines={getNonTargetTissueLines(report)} />
+                            </td>
+                            {FINDING_TYPES.map((type) => {
+                                const lines = findings.filter((f) => f.type === type).map((f) => f.text);
+                                return (
+                                    <td
+                                        key={type}
+                                        rowSpan={rowSpan}
+                                        className={lines.length > 0 ? 'is-finding-present is-finding-text' : undefined}>
+                                        <StackedLines lines={lines} />
+                                    </td>
+                                );
+                            })}
+                            <td rowSpan={rowSpan}>
+                                {imageIds.length > 0 ? (
+                                    <HistologyImagesLink
+                                        imageIds={imageIds}
+                                        searchHref={`/search/?type=HistologyImage&pathology_reports.uuid=${reportUuid}`}
+                                        showCount={imageIds.length > 1}
+                                    />
+                                ) : (
+                                    <span className="text-muted-placeholder">-</span>
+                                )}
+                            </td>
+                        </tr>
+                        {pairs.slice(1).map((pair, i) => (
+                            <tr key={i} className={reportIndex % 2 === 1 ? 'is-subrow is-zebra' : 'is-subrow'}>
+                                {renderPairCells(pair)}
+                            </tr>
+                        ))}
+                    </React.Fragment>
                 );
             })}
         </tbody>
