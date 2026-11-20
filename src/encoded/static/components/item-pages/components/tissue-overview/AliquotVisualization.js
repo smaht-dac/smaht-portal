@@ -55,15 +55,45 @@ const PLACEHOLDER_SLICE_STYLES = {
     },
 };
 
-// Every slice but the open one in the read-only mini copy (see readOnly) --
-// one flat neutral grey, real and placeholder alike, so only the open
-// slice carries color.
-const DIMMED_SLICE_STYLES = {
+// Mixes a "#RRGGBB" color `amount` (0..1) of the way toward `toward`.
+const mixHex = (hex, toward, amount) => {
+    const channels = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const [a, b] = [channels(hex), channels(toward)];
+    return '#' + a.map((c, i) => Math.round(c + (b[i] - c) * amount).toString(16).padStart(2, '0')).join('');
+};
+
+// The read-only mini copy (see readOnly) keeps full color only on the open
+// slice. Every other real slice is a washed-out tint of its own type color
+// -- still telling Fixed from Frozen -- and placeholders (no data yet) a flat
+// neutral grey, so the two don't read alike.
+const WASHED_SLICE_STYLES = Object.fromEntries(
+    Object.entries(SLICE_TYPE_STYLES).map(([type, styles]) => [
+        type,
+        {
+            front: mixHex(styles.front, '#F4F5F6', 0.45),
+            top: mixHex(styles.top, '#F4F5F6', 0.45),
+            side: mixHex(styles.side, '#F4F5F6', 0.45),
+            border: mixHex(styles.border, '#C3C8CD', 0.6),
+        },
+    ])
+);
+const DIMMED_PLACEHOLDER_STYLES = {
     front: '#DDE0E3',
     top: '#E6E8EA',
     side: '#D3D7DB',
     border: '#B9BFC5',
 };
+
+// The read-only mini copy's rendered height -- keep in sync with
+// .aliquot-visualization--mini .aliquot-canvas's max-height (_item-pages.scss).
+// Its slice numbers are sized against it, since the whole SVG is scaled down
+// to fit and a plain 12px label would shrink to an unreadable ~4px.
+const MINI_CANVAS_HEIGHT_PX = 84;
+const MINI_SLICE_LABEL_PX = 10;
+// A 3-digit label ("004") is ~1.6em wide in the mini's label font (weight
+// 500, see .aliquot-visualization--mini) -- the numbers shrink (all together)
+// until they fit the narrowest slice with a little room on each side.
+const MINI_SLICE_LABEL_MAX_EM_PER_WIDTH = 0.5;
 
 const DEFAULT_FROZEN_CORE_POSITIONS = ['A1', 'C2'];
 
@@ -282,8 +312,9 @@ export default function AliquotVisualization({
     tissueCodeLabels = null,
     histologyImageIdsByReportId = null,
     // Read-only mini copy (the slice popovers' "where is this slice" view):
-    // no dimension arrows, labels, click targets or popover -- only
-    // `highlightedSliceIndex` keeps its color, the rest is flat grey.
+    // slice numbers only (no dimension arrows, cm labels, click targets or
+    // popover) -- only `highlightedSliceIndex` keeps its color, the rest is
+    // flat grey.
     readOnly = false,
     highlightedSliceIndex = null,
 }) {
@@ -547,6 +578,12 @@ export default function AliquotVisualization({
     // viewBoxMinY's top margin rather than leaving a lot of dead space
     // beneath the diagram.
     const viewBoxHeight = heightPx + depthY + (readOnly ? 8 : 32);
+    // In SVG units (text and slices scale together): MINI_SLICE_LABEL_PX on
+    // screen, or smaller if needed to fit the narrowest slice.
+    const miniSliceLabelFontSize = Math.min(
+        (MINI_SLICE_LABEL_PX * viewBoxHeight) / MINI_CANVAS_HEIGHT_PX,
+        ...geometry.map((slice) => slice.widthPx * MINI_SLICE_LABEL_MAX_EM_PER_WIDTH)
+    );
     const {
         widthLabel = `${totalWidthCm} cm`,
         heightLabel = `${heightCm} cm`,
@@ -823,11 +860,16 @@ export default function AliquotVisualization({
 
                     {geometry.map((slice) => {
                         const isDimmed = readOnly && slice.index !== highlightedSliceIndex;
-                        const styles = isDimmed
-                            ? DIMMED_SLICE_STYLES
-                            : slice.isPlaceholder
+                        let styles;
+                        if (isDimmed) {
+                            styles = slice.isPlaceholder
+                                ? DIMMED_PLACEHOLDER_STYLES
+                                : WASHED_SLICE_STYLES[slice.type];
+                        } else {
+                            styles = slice.isPlaceholder
                                 ? PLACEHOLDER_SLICE_STYLES[slice.type]
                                 : SLICE_TYPE_STYLES[slice.type];
+                        }
                         // A Medial-layer slice (medial/lateral mode -- see
                         // enableMedialLateralLayers) has no visible front
                         // face of its own (it's the box's back half, hidden
@@ -911,18 +953,13 @@ export default function AliquotVisualization({
                                         </button>
                                     </foreignObject>
                                 )}
-                                {readOnly ? null : (
-                                    <text
-                                        className="slice-inline-label slice-sequence-label"
-                                        x={labelX}
-                                        y={
-                                            showSliceLabels && !slice.hideFrontFace
-                                                ? labelY - 10
-                                                : labelY
-                                        }>
-                                        {slice.sequenceLabel}
-                                    </text>
-                                )}
+                                <text
+                                    className="slice-inline-label slice-sequence-label"
+                                    x={labelX}
+                                    y={showSliceLabels && !slice.hideFrontFace && !readOnly ? labelY - 10 : labelY}
+                                    style={readOnly ? { fontSize: miniSliceLabelFontSize } : undefined}>
+                                    {slice.sequenceLabel}
+                                </text>
                                 {showSliceLabels && !slice.hideFrontFace && !readOnly ? (
                                     <text
                                         className="slice-inline-label"
@@ -948,17 +985,36 @@ export default function AliquotVisualization({
                                 points={slice.sidePoints}
                                 fill={
                                     readOnly && slice.index !== highlightedSliceIndex
-                                        ? DIMMED_SLICE_STYLES.side
+                                        ? WASHED_SLICE_STYLES[slice.type].side
                                         : SLICE_TYPE_STYLES[slice.type].side
                                 }
                                 stroke={
                                     readOnly && slice.index !== highlightedSliceIndex
-                                        ? DIMMED_SLICE_STYLES.border
+                                        ? WASHED_SLICE_STYLES[slice.type].border
                                         : SLICE_TYPE_STYLES[slice.type].border
                                 }
                                 pointerEvents="none"
                             />
                         ))}
+                    {/* Mini copy: the open slice's outline again, on top of
+                        everything -- the next slice is drawn after it and its
+                        own lighter border would otherwise cover this one's
+                        right edge. */}
+                    {readOnly
+                        ? geometry
+                            .filter((slice) => slice.index === highlightedSliceIndex)
+                            .map((slice) => (
+                                <g
+                                    key={`highlight-outline-${slice.id || slice.index}`}
+                                    className="aliquot-slice-highlight-outline"
+                                    fill="none"
+                                    stroke={SLICE_TYPE_STYLES[slice.type].border}
+                                    pointerEvents="none">
+                                    <polygon points={slice.topPoints} />
+                                    {slice.hideFrontFace ? null : <polygon points={slice.frontPoints} />}
+                                </g>
+                            ))
+                        : null}
                     {readOnly ? null : (
                         <DimensionArrow
                             x1={heightDimensionLine.x1}

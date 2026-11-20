@@ -4950,14 +4950,22 @@ $pathology-reports-muted: #B0B0B0;
         // signals "no data here yet".
     }
 
+    // The mini copy's open-slice outline, redrawn on top (see
+    // AliquotVisualization.js) -- same width as an .is-selected slice's faces.
+    .aliquot-slice-highlight-outline polygon {
+        stroke-width: 2.3;
+        stroke-linejoin: round;
+    }
+
     // Read-only mini copy inside a slice popover (AliquotVisualization's
-    // readOnly) -- colors come from the component (DIMMED_SLICE_STYLES).
+    // readOnly) -- colors come from the component (WASHED_SLICE_STYLES / DIMMED_PLACEHOLDER_STYLES).
     &.aliquot-visualization--mini {
         .aliquot-canvas-wrap {
             padding: 0;
         }
 
-        // Capped low -- it only has to show where the slice sits, and the
+        // Capped low (= MINI_CANVAS_HEIGHT_PX in AliquotVisualization.js) -- it
+        // only has to show where the slice sits, and the
         // popover's left column is already the taller one.
         .aliquot-canvas {
             width: auto;
@@ -4966,6 +4974,12 @@ $pathology-reports-muted: #B0B0B0;
 
         .aliquot-slice {
             pointer-events: none;
+        }
+
+        // Lighter than the full view's 600 -- narrower digits, so the
+        // numbers fit the thin Fixed slices (MINI_SLICE_LABEL_MAX_EM_PER_WIDTH).
+        .slice-inline-label {
+            font-weight: 500;
         }
     }
 
