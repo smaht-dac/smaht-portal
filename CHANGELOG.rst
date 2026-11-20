@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-2.15.21
+2.15.22
 =======
 
 `PR 797: Bump nginx to 1.31.9 (CVE-2026-123633, CVE-2026-123007) <https://github.com/smaht-dac/smaht-portal/pull/797>`_
@@ -21,6 +21,15 @@ Change Log
   fingerprint checks, ``signed-by=`` verification, base image, uid/gid 121 and ``nginx.conf`` are unchanged.
 * Updates version references in comments/docstrings (``Dockerfile``, ``nginx.conf``,
   ``test_nginx_failover.py``).
+
+
+2.15.21
+=======
+
+`PR 794: feat: separate renamed and retracted files in tabs <https://github.com/smaht-dac/smaht-portal/pull/794>`_
+
+* Separate Retracted Files and Renamed Files tables in tabs
+* Consolidate static sections and render just one
 
 
 2.15.20
