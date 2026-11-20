@@ -768,12 +768,16 @@ export class AggregatedLegend extends React.Component {
     }
 
     width() {
-        const { width: propWidth, windowWidth } = this.props;
+        const { width: propWidth } = this.props;
         if (propWidth) return propWidth;
         const elem = this.legendContainerRef.current;
         const width = elem && elem.offsetWidth;
 
-        return width || layout.gridContainerWidth(windowWidth) * (3 / 12) - 15;
+        // Before the first mount there's nothing to measure: leave the width
+        // unset (the legend fills its column) rather than guessing a grid
+        // fraction -- that guess was narrower than the real column, so long
+        // labels wrapped until the next re-render measured the real width.
+        return width || null;
     }
 
     height() {
