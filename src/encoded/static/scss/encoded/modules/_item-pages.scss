@@ -5033,11 +5033,15 @@ $pathology-reports-muted: #B0B0B0;
         pointer-events: none;
     }
 
+    // Row spacing from the items' own vertical margins, not `row-gap` --
+    // .aliquot-legend-break is a (0-high) flex line of its own and would
+    // otherwise get a gap on both sides, doubling the space there.
     .aliquot-legend {
         display: flex;
         flex-wrap: wrap;
-        gap: 12px 24px;
-        margin-top: 14px;
+        gap: 0 24px;
+        // 14px to the first line, with the items' own 6px top margin.
+        margin-top: 8px;
         color: #4e6379;
         font-size: 0.9rem;
     }
@@ -5046,6 +5050,7 @@ $pathology-reports-muted: #B0B0B0;
         display: inline-flex;
         align-items: center;
         gap: 8px;
+        margin: 6px 0;
 
         // The type name (e.g. "Fixed"/"Frozen") is the actual key being
         // defined; the detail that follows it is supplementary, so only
@@ -5065,13 +5070,23 @@ $pathology-reports-muted: #B0B0B0;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
     }
 
-    // Supplementary (no color swatch of its own) -- a divider instead of
-    // the swatch/label gap keeps it reading as "also see" rather than a
-    // third legend key.
+    // Ends the Fixed/Frozen line -- "Data not generated" and the dimensions
+    // note always share the line below.
+    .aliquot-legend-break {
+        flex-basis: 100%;
+        height: 0;
+    }
+
+    // Supplementary (no color swatch of its own), muted. Beside the
+    // "Data not generated" key, a divider instead of the swatch/label gap
+    // keeps it reading as "also see" rather than another key.
     .aliquot-legend-dimensions {
+        color: #7c8ba0;
+    }
+
+    .aliquot-legend-item + .aliquot-legend-dimensions {
         padding-left: 16px;
         border-left: 1px solid #dbe6ef;
-        color: #7c8ba0;
     }
 
     &.nonsolid-aliquot-visualization {

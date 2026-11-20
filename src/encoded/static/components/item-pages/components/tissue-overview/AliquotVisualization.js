@@ -1106,6 +1106,22 @@ export default function AliquotVisualization({
                             </span>
                         </div>
                     ))}
+                    {/* Second line: no-data key, then the dimensions note. */}
+                    <div className="aliquot-legend-break" />
+                    {/* Placeholder slices (template positions with no aliquot
+                        yet). Their Fixed/Frozen greys differ only by a faint
+                        tint, so one swatch stands for both. */}
+                    {geometry.some((slice) => slice.isPlaceholder) ? (
+                        <div className="aliquot-legend-item">
+                            <span
+                                className="legend-swatch no-data"
+                                style={{ backgroundColor: PLACEHOLDER_SLICE_STYLES.yellow.front }}
+                            />
+                            <span>
+                                <strong>Data not generated</strong>
+                            </span>
+                        </div>
+                    ) : null}
                     {/* Height/depth are one shared box-level dimension (see
                         `dimensions`), identical for every slice regardless of
                         type, so they're stated once here rather than repeated
