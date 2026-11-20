@@ -7,14 +7,6 @@ smaht-portal
 Change Log
 ----------
 
-2.15.21
-=======
-
-`PR 798: Add tissue recovery and aliquot specification fields to OntologyTerm <https://github.com/smaht-dac/smaht-portal/pull/798>`_
-
-* Add optional ``standardized_recovery_description``, ``initial_tissue_configuration``, ``frozen_aliquot_specification``, ``fixed_aliquot_specification``, and ``aliquot_preparation_notes`` properties to ``OntologyTerm``
-
-
 2.15.20
 =======
 
