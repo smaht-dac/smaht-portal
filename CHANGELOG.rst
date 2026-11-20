@@ -7,6 +7,18 @@ smaht-portal
 Change Log
 ----------
 
+2.15.22
+=======
+
+`PR 799: feat: documentation and copy updates <https://github.com/smaht-dac/smaht-portal/pull/799>`_
+
+* Update Creating an Account page
+* Update Data Availability and Access page
+* Update dbGaP Documentation page
+* Correct Privacy Policy link in self registration modal
+* Update Browse View Modal Text
+
+
 2.15.21
 =======
 
