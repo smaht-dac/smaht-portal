@@ -116,6 +116,261 @@
                 "type": "string"
             }
         },
+        "standardized_recovery_description": {
+            "title": "Standardized Recovery Description",
+            "description": "Canonical description of the standardized tissue recovery location.",
+            "type": "string"
+        },
+        "initial_tissue_configuration": {
+            "title": "Initial Tissue Configuration",
+            "description": "Curated description of the tissue configuration before aliquoting.",
+            "type": "string"
+        },
+        "frozen_aliquot_specification": {
+            "title": "Frozen Aliquot Specification",
+            "description": "Source-specified count, scope, and dimensions for frozen aliquots.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "count",
+                "count_scope",
+                "dimensions_cm"
+            ],
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "count_scope": {
+                    "type": "string",
+                    "enum": [
+                        "per organ",
+                        "per tissue",
+                        "per half"
+                    ]
+                },
+                "total_count": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "total_scope": {
+                    "type": "string",
+                    "enum": [
+                        "per organ",
+                        "per bilateral organ"
+                    ]
+                },
+                "dimensions_cm": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "length",
+                        "width",
+                        "full_thickness"
+                    ],
+                    "properties": {
+                        "length": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                        },
+                        "width": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                        },
+                        "depth": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                        },
+                        "full_thickness": {
+                            "type": "boolean"
+                        }
+                    },
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "full_thickness": {
+                                        "const": true
+                                    }
+                                }
+                            },
+                            "then": {
+                                "not": {
+                                    "required": [
+                                        "depth"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "full_thickness": {
+                                        "const": false
+                                    }
+                                }
+                            },
+                            "then": {
+                                "required": [
+                                    "depth"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "required": [
+                            "total_count"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "total_scope"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "required": [
+                            "total_scope"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "total_count"
+                        ]
+                    }
+                }
+            ]
+        },
+        "fixed_aliquot_specification": {
+            "title": "Fixed Aliquot Specification",
+            "description": "Source-specified count, scope, and dimensions for fixed aliquots.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "count",
+                "count_scope",
+                "dimensions_cm"
+            ],
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "count_scope": {
+                    "type": "string",
+                    "enum": [
+                        "per organ",
+                        "per tissue",
+                        "per half"
+                    ]
+                },
+                "total_count": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "total_scope": {
+                    "type": "string",
+                    "enum": [
+                        "per organ",
+                        "per bilateral organ"
+                    ]
+                },
+                "dimensions_cm": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "length",
+                        "width",
+                        "full_thickness"
+                    ],
+                    "properties": {
+                        "length": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                        },
+                        "width": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                        },
+                        "depth": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                        },
+                        "full_thickness": {
+                            "type": "boolean"
+                        }
+                    },
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "full_thickness": {
+                                        "const": true
+                                    }
+                                }
+                            },
+                            "then": {
+                                "not": {
+                                    "required": [
+                                        "depth"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": {
+                                    "full_thickness": {
+                                        "const": false
+                                    }
+                                }
+                            },
+                            "then": {
+                                "required": [
+                                    "depth"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "required": [
+                            "total_count"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "total_scope"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "required": [
+                            "total_scope"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "total_count"
+                        ]
+                    }
+                }
+            ]
+        },
+        "aliquot_preparation_notes": {
+            "title": "Aliquot Preparation Notes",
+            "description": "Curated notes about preparation instructions not represented by counts and dimensions.",
+            "type": "string"
+        },
         "tags": {
             "type": "array",
             "items": {
