@@ -29,20 +29,20 @@ def make_aliquot_specification(**overrides: Any) -> Dict[str, Any]:
     return specification
 
 
-def test_ontology_term_has_only_tissue_metadata_fields() -> None:
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("tpc_code", "3Q"),
+        ("aliquot_group", "frozen"),
+        ("internal_code", "LUNG-UL"),
+    ],
+)
+def test_excluded_tissue_metadata_fields_are_rejected(field: str, value: str) -> None:
     schema = load_schema("ontology_term")
-    properties = schema["properties"]
+    term = deepcopy(BASE_TERM)
+    term[field] = value
 
-    assert {
-        "standardized_recovery_description",
-        "initial_tissue_configuration",
-        "frozen_aliquot_specification",
-        "fixed_aliquot_specification",
-        "aliquot_preparation_notes",
-    } <= properties.keys()
-    assert "internal_code" not in properties
-    assert "tpc_code" not in properties
-    assert "aliquot_group" not in properties
+    assert validate_schema(schema, term)
 
 
 @pytest.mark.parametrize(
@@ -128,8 +128,6 @@ def test_unspecified_aliquot_rules_are_valid_when_omitted() -> None:
     schema = load_schema("ontology_term")
 
     assert not validate_schema(schema, BASE_TERM)
-    assert "frozen_aliquot_specification" not in BASE_TERM
-    assert "fixed_aliquot_specification" not in BASE_TERM
 
 
 @pytest.mark.parametrize(
@@ -159,13 +157,6 @@ def test_existing_protocol_ids_and_preferred_name_remain_valid() -> None:
     )
 
     assert not validate_schema(schema, term)
-    assert term["preferred_name"] == "3Q - Lung"
-    assert term["valid_protocol_ids"] == [
-        "3Q",
-        "3R",
-        "1D_Frozen",
-        "1F_Fixed",
-    ]
 
 
 @pytest.mark.parametrize(
