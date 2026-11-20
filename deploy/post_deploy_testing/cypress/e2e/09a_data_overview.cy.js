@@ -39,7 +39,7 @@ const BASE_DM_BENCHMARKING_OPTS = {
 /* ----------------------------- ROLE MATRIX -----------------------------
    Toggle each step per role:
 
-   - runRetractedFilesList:     "Retracted Files" + "Renamed Files" sections + detail checks
+   - runRetractedFilesList:     "Retracted Files" + "Renamed Files" tabs + detail checks
    - runDataMatrixProduction:   Data Matrix (Production) + popover checks
    - runDataMatrixBenchmarking: Data Matrix (Benchmarking) + popover checks
 ------------------------------------------------------------------------- */
@@ -166,7 +166,8 @@ function testVisitRows({ tableSelector, dataField, countCap, assertOnFilePage })
     let listUrl;
     cy.location().then((loc) => {
         listPathname = loc.pathname;
-        listUrl = `${loc.pathname}${loc.search}`;
+        // Keep the hash, so pages with tabs (e.g. Retracted/Renamed Files) return to the same tab
+        listUrl = `${loc.pathname}${loc.search}${loc.hash}`;
     });
 
     cy.get(`${tableSelector} .search-result-row[data-row-number]`, { timeout: SLOW_LOAD_TIMEOUT })
@@ -211,14 +212,14 @@ function testVisitRows({ tableSelector, dataField, countCap, assertOnFilePage })
             });
         });
 
-    // Return to the list page once; other sections (e.g. Renamed Files) live on the same page
+    // Return to the list page once; other tables (e.g. Renamed Files) live on the same page
     cy.window().then((w) => w.SMaHT.navigate(listUrl));
     cy.location("pathname", { timeout: SLOW_LOAD_TIMEOUT }).should((pathname) => {
         expect(pathname, "back on the list page").to.equal(listPathname);
     });
 }
 
-/** Retracted and Renamed Files sections + row-by-row detail checks */
+/** Retracted and Renamed Files tabs + row-by-row detail checks */
 function stepVisitRetractedFilesList(caps) {
 
     cy.get(dataNavBarItemSelectorStr)
@@ -234,8 +235,8 @@ function stepVisitRetractedFilesList(caps) {
                     cy.location("pathname").should("equal", linkHref);
                 });
 
-            // --- Retracted Files section ---
-            cy.contains("div#retracted-files h2.section-title", "List of Retracted Files")
+            // --- Retracted Files tab (selected by default) ---
+            cy.contains(".data-retraction-tabs h2.data-retraction-panel-title", "Retracted Files")
                 .should("be.visible");
 
             if (caps.expectedRetractedFilesCount > 0) {
@@ -256,8 +257,11 @@ function stepVisitRetractedFilesList(caps) {
                     .should("contain.text", "No Results");
             }
 
-            // --- Renamed Files section ---
-            cy.contains("div#renamed-files h2.section-title", "List of Renamed Files")
+            // --- Renamed Files tab ---
+            // Its table is only mounted once the tab is selected
+            cy.contains(".data-retraction-tabs .dot-tab-nav-list button", "Renamed Files").click();
+            cy.location("hash").should("equal", "#data-retraction.renamed");
+            cy.contains(".data-retraction-tabs h2.data-retraction-panel-title", "Renamed Files")
                 .should("be.visible");
 
             if (caps.expectedRenamedFilesCount > 0) {
