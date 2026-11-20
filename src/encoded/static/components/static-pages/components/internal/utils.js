@@ -43,11 +43,11 @@ export const getItemsFromPortal = (
     ajax.load(
         `/search/?type=${type}${filter}&limit=${limit}`,
         (resp) => {
-            const items = resp['@graph'].map((item) => ({
+            const items = resp['@graph'].map((item) => {return {
                 title: item.display_title,
                 uuid: item.uuid,
                 ...item,
-            }));
+            };});
 
             items.sort((a, b) => a.title.localeCompare(b.title));
             callback(items);
@@ -57,18 +57,16 @@ export const getItemsFromPortal = (
     );
 };
 
-export const getSelect = (options, defaultValue, filterName, onChange) => {
-    return (
-        <React.Fragment>
-            <select
-                className="form-select"
-                defaultValue={defaultValue}
-                onChange={(e) => onChange(filterName, e.target.value)}>
-                {options}
-            </select>
-        </React.Fragment>
-    );
-};
+export const getSelect = (options, defaultValue, filterName, onChange) => (
+    <React.Fragment>
+        <select
+            className="form-select"
+            defaultValue={defaultValue}
+            onChange={(e) => onChange(filterName, e.target.value)}>
+            {options}
+        </select>
+    </React.Fragment>
+);
 
 export const getPagination = (
     type,
@@ -94,6 +92,7 @@ export const getPagination = (
     ) {
         navButtons.push(
             <button
+                type="button"
                 className="btn btn-primary btn-sm"
                 onClick={() => onChangePage(1)}>
                 Next
@@ -104,6 +103,7 @@ export const getPagination = (
     if (state.tablePage > 0) {
         navButtons.push(
             <button
+                type="button"
                 className="btn btn-primary btn-sm mx-2"
                 onClick={() => onChangePage(-1)}>
                 Previous
@@ -129,7 +129,7 @@ export const getPagination = (
 export const getLink = (identifier, title) => {
     const href = '/' + identifier;
     return (
-        <a href={href} target="_blank">
+        <a href={href} target="_blank" rel="noreferrer">
             {title}
         </a>
     );
@@ -161,7 +161,7 @@ export const getStatusBadgeType = (status) => {
         badgeType = 'danger';
     }
     return badgeType;
-}
+};
 
 export const createBadge = (type, description, tooltip = '') => {
     const cn = 'badge text-white bg-' + type;
@@ -180,19 +180,17 @@ export const createQcBadgeLink = (type, identifier, description) => {
             ? 'QC available, but Overal Quality Status not assigned.'
             : 'Overal Quality Status: ' + description;
     return (
-        <a className={cn} target="_blank" href={href} data-tip={tooltip}>
+        <a className={cn} target="_blank" href={href} data-tip={tooltip} rel="noreferrer">
             {description}
         </a>
     );
 };
 
-export const createWarningIcon = () => {
-    return (
-        <span className="p-1 text-large text-warning">
-            <i className="icon fas icon-exclamation-triangle icon-fw"></i>
-        </span>
-    );
-};
+export const createWarningIcon = () => (
+    <span className="p-1 text-large text-warning">
+        <i className="icon fas icon-exclamation-triangle icon-fw"></i>
+    </span>
+);
 
 export const fallbackCallback = (errResp, xhr) => {
     // Error callback
@@ -218,18 +216,17 @@ export const getTargetCoverage = (sequencing) => {
     return targeCoverage;
 };
 
-export const copyBtn = (accession, size = '0.875rem') => {
-    return (
-        <object.CopyWrapper
-            value={accession}
-            className=""
-            data-tip={'Click to copy accession'}
-            wrapperElement="span"
-            iconProps={{
-                style: { fontSize: size, marginLeft: 3 },
-            }}></object.CopyWrapper>
-    );
-};
+export const copyBtn = (accession, size = '0.875rem') => (
+    <object.CopyWrapper
+        value={accession}
+        className=""
+        data-tip={'Click to copy accession'}
+        wrapperElement="span"
+        iconProps={{
+            style: { fontSize: size, marginLeft: 3 },
+        }}>
+    </object.CopyWrapper>
+);
 
 export const getQcBagdeType = (flag) => {
     let badgeType = 'secondary';
@@ -271,13 +268,14 @@ export const getQcResults = (qc_results, showCopyBtn = false) => {
                 wrapperElement="span"
                 iconProps={{
                     style: { marginLeft: 3 },
-                }}></object.CopyWrapper>
+                }}>
+            </object.CopyWrapper>
         ) : (
             ''
         );
         return (
-            <div className="text-nowrap">
-                <a href={href} target="_blank" data-tip={qc_info.display_title}>
+            <div className="text-nowrap" key={qc_info.accession}>
+                <a href={href} target="_blank" data-tip={qc_info.display_title} rel="noreferrer">
                     {qc_info.accession}
                 </a>
                 {retracted}
@@ -307,7 +305,7 @@ export const getQcResultsSummary = (qc_results) => {
         if (i + 1 === unique_statuses.length) {
             return badge;
         } else {
-            return <span>{badge} / </span>;
+            return <span key={status}>{badge} / </span>;
         }
     });
 };
@@ -320,9 +318,7 @@ const QC_FLAG_STATES = ['Warn', 'Fail'];
  * Whether a file/QC-info is still relevant for review. Retracted and deleted
  * files are ignored when deciding QC pass/fail and when building comments.
  */
-export const isActiveFileStatus = (status) => {
-    return status !== 'retracted' && status !== 'deleted';
-};
+export const isActiveFileStatus = (status) => status !== 'retracted' && status !== 'deleted';
 
 /**
  * Index a QualityMetric's qc_values array by their derived_from id for fast lookup.
@@ -456,13 +452,9 @@ export const groupProblematicQcByMetric = (problems) => {
     });
 };
 
-export const isReleasedExternally = (status) => {
-    return EXTERNAL_RELEASE_STATUSES.includes(status);
-};
+export const isReleasedExternally = (status) => EXTERNAL_RELEASE_STATUSES.includes(status);
 
-export const isReleasedInternally = (status) => {
-    return INTERNAL_RELEASE_STATUSES.includes(status);
-};
+export const isReleasedInternally = (status) => INTERNAL_RELEASE_STATUSES.includes(status);
 
 export const getCommentsList = (
     fsUuid,
@@ -479,7 +471,8 @@ export const getCommentsList = (
         const trashSymbol = isUserAdmin ? (
             <span
                 className="far icon icon-fw icon-trash-alt text-muted ps-1 clickable"
-                onClick={() => removeCommentFct(fsUuid, c)}></span>
+                onClick={() => removeCommentFct(fsUuid, c)}>
+            </span>
         ) : (
             ''
         );
@@ -540,7 +533,8 @@ export const getCommentInputField = (
                     <div className="input-group-text">
                         <i
                             className="fas icon icon-save clickable"
-                            onClick={() => handlers.addComment(fs)}></i>
+                            onClick={() => handlers.addComment(fs)}>
+                        </i>
                     </div>
                 </div>
             </div>

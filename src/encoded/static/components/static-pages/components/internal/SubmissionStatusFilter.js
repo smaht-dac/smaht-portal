@@ -64,10 +64,10 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
                     ...primaryTissues.sort((a, b) => a.localeCompare(b)),
                     ...CELL_CULTURE_MIXTURES,
                 ];
-                const selectItems = tissuesAndMixtures.map((tissue) => ({
+                const selectItems = tissuesAndMixtures.map((tissue) => {return {
                     title: tissue,
                     code: tissue, // this is used in the search query. Here we need, e.g. "3AK - Brain, Frontal Lobe"
-                }));
+                };});
                 this.setState({
                     cell_culture_mixtures_and_tissues: selectItems,
                 });
@@ -104,21 +104,21 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         const filter = JSON.parse(JSON.stringify(this.state.filter));
         filter[filterName] = selection;
         this.props.setFilter(filterName, selection);
-        this.setState((prevState) => ({
+        this.setState((prevState) => {return {
             filter: filter,
-        }));
+        };});
     };
 
     getSubmissionCenterSelect = () => {
         const options = [
-            <option value="all">All</option>,
-            <option value="all_gcc">All GCCs</option>,
+            <option key="all" value="all">All</option>,
+            <option key="all_gcc" value="all_gcc">All GCCs</option>,
         ];
         const options_gcc = [];
         const options_other = [];
 
         this.state.submission_centers.forEach((sc) => {
-            const op = <option value={sc.title}>{sc.title}</option>;
+            const op = <option key={sc.title} value={sc.title}>{sc.title}</option>;
             if (sc.title.includes('GCC')) {
                 options_gcc.push(op);
             } else {
@@ -126,10 +126,10 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             }
         });
         if (options_gcc.length > 0) {
-            options.push(<optgroup label="GCCs">{options_gcc}</optgroup>);
+            options.push(<optgroup key="gccs" label="GCCs">{options_gcc}</optgroup>);
         }
         if (options_other.length > 0) {
-            options.push(<optgroup label="Other">{options_other}</optgroup>);
+            options.push(<optgroup key="other" label="Other">{options_other}</optgroup>);
         }
         const defaultValue = 'all_gcc';
         const filterName = 'submission_center';
@@ -138,11 +138,11 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
 
     getFilesetStatusSelect = () => {
         const options = [
-            <option value="all">All</option>,
-            <option value="in review">In Review</option>,
-            <option value="open">Released to public</option>,
-            <option value="released-network">Released to network</option>,
-            <option value="released-public-network">
+            <option key="all" value="all">All</option>,
+            <option key="in-review" value="in review">In Review</option>,
+            <option key="open" value="open">Released to public</option>,
+            <option key="released-network" value="released-network">Released to network</option>,
+            <option key="released-public-network" value="released-public-network">
                 Released to public or network
             </option>,
         ];
@@ -156,13 +156,13 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             return DEFAULT_SELECT;
         }
 
-        const options = [<option value="all">All</option>];
+        const options = [<option key="all" value="all">All</option>];
         this.state.assays.forEach((sc) => {
             // Escape special characters (e.g. "&" in "varCUT&Tag") so the value
             // survives the backend's urlencode/unquote round-trip when building
             // the search subrequest.
             options.push(
-                <option value={encodeURIComponent(sc.title)}>{sc.title}</option>
+                <option key={sc.title} value={encodeURIComponent(sc.title)}>{sc.title}</option>
             );
         });
         const defaultValue = 'all';
@@ -175,12 +175,12 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             return DEFAULT_SELECT;
         }
 
-        const options = [<option value="all">All</option>];
+        const options = [<option key="all" value="all">All</option>];
         this.state.sequencers.forEach((sc) => {
             // Escape special characters so the value survives the backend's
             // urlencode/unquote round-trip when building the search subrequest.
             options.push(
-                <option value={encodeURIComponent(sc.title)}>{sc.title}</option>
+                <option key={sc.title} value={encodeURIComponent(sc.title)}>{sc.title}</option>
             );
         });
         const defaultValue = 'all';
@@ -193,9 +193,9 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             return DEFAULT_SELECT;
         }
 
-        const options = [<option value="all">All</option>];
+        const options = [<option key="all" value="all">All</option>];
         this.state.donors.forEach((d) => {
-            options.push(<option value={d.title}>{d.title}</option>);
+            options.push(<option key={d.title} value={d.title}>{d.title}</option>);
         });
         const defaultValue = 'all';
         const filterName = 'donor';
@@ -207,9 +207,9 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             return DEFAULT_SELECT;
         }
 
-        const options = [<option value="all">All</option>];
+        const options = [<option key="all" value="all">All</option>];
         this.state.cell_culture_mixtures_and_tissues.forEach((sc) => {
-            options.push(<option value={sc.code}>{sc.title}</option>);
+            options.push(<option key={sc.code} value={sc.code}>{sc.title}</option>);
         });
         const defaultValue = 'all';
         const filterName = 'cell_culture_mixtures_and_tissues';
@@ -221,28 +221,26 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             return DEFAULT_SELECT;
         }
 
-        const options = [<option value="all">All</option>];
+        const options = [<option key="all" value="all">All</option>];
         this.state.cell_lines.forEach((sc) => {
-            options.push(<option value={sc.code}>{sc.code}</option>);
+            options.push(<option key={sc.code} value={sc.code}>{sc.code}</option>);
         });
         const defaultValue = 'all';
         const filterName = 'cell_line';
         return getSelect(options, defaultValue, filterName, this.setFilter);
     }
 
-    getFilesetCreationInput = (filter_name) => {
-        return (
-            <React.Fragment>
-                <input
-                    type="date"
-                    className="form-control"
-                    onChange={(e) =>
-                        this.setFilter(filter_name, e.target.value)
-                    }
-                />
-            </React.Fragment>
-        );
-    };
+    getFilesetCreationInput = (filter_name) => (
+        <React.Fragment>
+            <input
+                type="date"
+                className="form-control"
+                onChange={(e) =>
+                    this.setFilter(filter_name, e.target.value)
+                }
+            />
+        </React.Fragment>
+    );
 
     toggleTagFilter = (type, tag) => {
         const tags = this.state.filter[type];
@@ -255,21 +253,20 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         this.setFilter(type, tags);
     };
 
-    getTagFilter = (type) => {
-        return SUBMISSION_STATUS_TAGS.map((tag) => {
-            const badgeType = this.state.filter[type].includes(tag)
-                ? 'info'
-                : 'lighter';
-            const cn = 'badge clickable me-1 bg-' + badgeType;
-            return (
-                <div
-                    className={cn}
-                    onClick={() => this.toggleTagFilter(type, tag)}>
-                    {tag}
-                </div>
-            );
-        });
-    };
+    getTagFilter = (type) => SUBMISSION_STATUS_TAGS.map((tag) => {
+        const badgeType = this.state.filter[type].includes(tag)
+            ? 'info'
+            : 'lighter';
+        const cn = 'badge clickable me-1 bg-' + badgeType;
+        return (
+            <div
+                key={tag}
+                className={cn}
+                onClick={() => this.toggleTagFilter(type, tag)}>
+                {tag}
+            </div>
+        );
+    });
 
     render() {
         return (

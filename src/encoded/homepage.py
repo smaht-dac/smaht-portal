@@ -1,4 +1,3 @@
-import traceback
 from datetime import datetime
 from pyramid.view import view_config
 from snovault.util import debug_log
@@ -123,10 +122,11 @@ def make_concurrent_search_requests(search_helpers):
             try:
                 result = future.result()
                 results[i] = result
-            except Exception as e:
-                log.error(f"Exception occurred in function {search_helpers[i][0].__name__}: {e}")
-                traceback_str = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
-                log.error(traceback_str)
+            except Exception:
+                log.exception(
+                    "Exception occurred in function %s",
+                    search_helpers[i][0].__name__,
+                )
     return results
 
 

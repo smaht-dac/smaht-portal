@@ -77,7 +77,7 @@ export function renderHardyScaleDescriptionPopover(
                                 className="fw-light text-left px-4 py-3"
                                 colSpan={2}>
                                 The Hardy scale is a way to provide standardized
-                                information about a donor's death processes
+                                information about a donor&apos;s death processes
                                 without providing specific (potentially
                                 identifiable) information about the cause or
                                 manner of death. <br />
@@ -172,7 +172,7 @@ export function renderAlcoholFrequencyDescriptionPopover(customId) {
                     <thead>
                         <tr>
                             <th className="text-left" colSpan={2}>
-                                Frequency: The extent of the donor's regular
+                                Frequency: The extent of the donor&apos;s regular
                                 exposure to alcohol
                             </th>
                         </tr>
@@ -228,7 +228,7 @@ export function renderTobaccoFrequencyDescriptionPopover(customId) {
                     <thead>
                         <tr>
                             <th className="text-left" colSpan={2}>
-                                Frequency: The extent of the donor's regular
+                                Frequency: The extent of the donor&apos;s regular
                                 exposure to tobacco
                             </th>
                         </tr>
@@ -300,50 +300,48 @@ const default_donor_information = [
     },
 ];
 
-const DonorStatistics = ({ data, isLoading }) => {
-    return (
-        <div className="data-summary d-flex flex-column gap-3">
-            <div className="d-flex gap-3">
-                <div className="donor-statistic tissues d-flex flex-column p-2 gap-2">
-                    <div className="donor-statistic-label text-center">
-                        <i className="icon icon-lungs fas"></i>Tissues
-                    </div>
-                    <div className="donor-statistic-value text-center">
-                        {!isLoading ? (
-                            <span>{data.tissues}</span>
-                        ) : (
-                            <i className="icon icon-circle-notch icon-spin fas" />
-                        )}
-                    </div>
+const DonorStatistics = ({ data, isLoading }) => (
+    <div className="data-summary d-flex flex-column gap-3">
+        <div className="d-flex gap-3">
+            <div className="donor-statistic tissues d-flex flex-column p-2 gap-2">
+                <div className="donor-statistic-label text-center">
+                    <i className="icon icon-lungs fas"></i>Tissues
                 </div>
-                <div className="donor-statistic assays d-flex flex-column p-2 gap-2">
-                    <div className="donor-statistic-label text-center">
-                        <i className="icon icon-dna fas"></i>Assays
-                    </div>
-                    <div className="donor-statistic-value text-center">
-                        {!isLoading ? (
-                            <span>{data.assays}</span>
-                        ) : (
-                            <i className="icon icon-circle-notch icon-spin fas" />
-                        )}
-                    </div>
+                <div className="donor-statistic-value text-center">
+                    {!isLoading ? (
+                        <span>{data.tissues}</span>
+                    ) : (
+                        <i className="icon icon-circle-notch icon-spin fas" />
+                    )}
                 </div>
-                <div className="donor-statistic files d-flex flex-column p-2 gap-2">
-                    <div className="donor-statistic-label text-center">
-                        <i className="icon icon-file fas"></i>Files
-                    </div>
-                    <div className="donor-statistic-value text-center">
-                        {!isLoading ? (
-                            <span>{data?.files}</span>
-                        ) : (
-                            <i className="icon icon-circle-notch icon-spin fas" />
-                        )}
-                    </div>
+            </div>
+            <div className="donor-statistic assays d-flex flex-column p-2 gap-2">
+                <div className="donor-statistic-label text-center">
+                    <i className="icon icon-dna fas"></i>Assays
+                </div>
+                <div className="donor-statistic-value text-center">
+                    {!isLoading ? (
+                        <span>{data.assays}</span>
+                    ) : (
+                        <i className="icon icon-circle-notch icon-spin fas" />
+                    )}
+                </div>
+            </div>
+            <div className="donor-statistic files d-flex flex-column p-2 gap-2">
+                <div className="donor-statistic-label text-center">
+                    <i className="icon icon-file fas"></i>Files
+                </div>
+                <div className="donor-statistic-value text-center">
+                    {!isLoading ? (
+                        <span>{data?.files}</span>
+                    ) : (
+                        <i className="icon icon-circle-notch icon-spin fas" />
+                    )}
                 </div>
             </div>
         </div>
-    );
-};
+    </div>
+);
 
 /**
  * A card component that displays exposure data for a donor. It shows the
@@ -503,7 +501,7 @@ const DonorDSAValue = ({ donorId }) => {
 
     return link ? (
         <span>
-            <a href={link} target="_blank">
+            <a href={link} target="_blank" rel="noreferrer">
                 Available
             </a>
         </span>
@@ -521,15 +519,13 @@ export const ProtectedDonorViewDataCards = ({
     statisticValues = {},
     isLoading = false,
 }) => {
-    let donor_information = default_donor_information;
+    const donor_information = default_donor_information;
 
     // Isolate medical history properties
     const medical_history = context?.medical_history?.[0] || {};
 
     // Check if there is family cancer history
-    const familyCancerHistory = Object.keys(medical_history)?.filter((key) => {
-        return key?.includes('family') && key?.includes('cancer');
-    });
+    const familyCancerHistory = Object.keys(medical_history)?.filter((key) => key?.includes('family') && key?.includes('cancer'));
     const hasFamilyCancerHistory = familyCancerHistory.some(
         (key) => medical_history[key] === 'Yes'
     );
@@ -558,16 +554,14 @@ export const ProtectedDonorViewDataCards = ({
                             <div className="section-body split d-flex mb-2">
                                 <div className="d-flex flex-column">
                                     {donor_information.map(
-                                        ({ title, getProp, titlePopover }) => {
-                                            return (
-                                                <DataCardRow
-                                                    key={title}
-                                                    title={title}
-                                                    value={getProp(context)}
-                                                    titlePopover={titlePopover}
-                                                />
-                                            );
-                                        }
+                                        ({ title, getProp, titlePopover }) => (
+                                            <DataCardRow
+                                                key={title}
+                                                title={title}
+                                                value={getProp(context)}
+                                                titlePopover={titlePopover}
+                                            />
+                                        )
                                     )}
                                 </div>
                                 <div className="d-flex flex-column">
@@ -613,10 +607,10 @@ export const ProtectedDonorViewDataCards = ({
                                 <span>
                                     {medical_history?.cancer_type?.[0] ??
                                         medical_history?.cancer_history ?? (
-                                            <span className="text-secondary">
-                                                N/A
-                                            </span>
-                                        )}
+                                        <span className="text-secondary">
+                                            N/A
+                                        </span>
+                                    )}
                                 </span>
                             </div>
                         </div>

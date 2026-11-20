@@ -30,9 +30,7 @@ const SchemaPropertiesTable = ({
     data = {},
 }) => {
     // sort the keys based on requirement
-    const sortedPropertyKeys = Object.keys(data).sort((a, b) => {
-        return data[a]?.is_required ? -1 : 1;
-    });
+    const sortedPropertyKeys = Object.keys(data).sort((a, b) => data[a]?.is_required ? -1 : 1);
 
     return sortedPropertyKeys.length > 0 ? (
         <table className="table table-bordered table-striped">
@@ -88,11 +86,9 @@ const SchemaPropertiesTable = ({
             </thead>
             <tbody>
                 {sortedPropertyKeys
-                    .filter((property) => {
-                        return selectedProperty
-                            ? property === selectedProperty
-                            : true;
-                    })
+                    .filter((property) => selectedProperty
+                        ? property === selectedProperty
+                        : true)
                     .map((propertyKey, i) => {
                         const item = data[propertyKey];
 
@@ -199,7 +195,7 @@ export const SubmissionDataDictionary = () => {
 
         return [
             { value: schemaItemName, label: schemaItemName },
-            ...Object.keys(schemaProperties)?.map((propertyName) => {
+            ...Object.keys(schemaProperties).map((propertyName) => {
                 const value = `${schemaItemName}.${propertyName}`;
                 return { value: value, label: value?.toLowerCase() };
             }),
@@ -274,20 +270,18 @@ export const SubmissionDataDictionary = () => {
                 </div>
             )}
             <div className="schemas-container">
-                {Object.keys(schemaData).map((schemaKey, i) => {
-                    return (
-                        <div
-                            id={schemaKey}
-                            className={`schema-item ${schemaKey} mb-5 table-responsive`}
-                            key={i}>
-                            <h3 className="fs-4">{schemaKey}</h3>
-                            <SchemaPropertiesTable
-                                schemaKey={schemaKey}
-                                data={schemaData[schemaKey]?.properties}
-                            />
-                        </div>
-                    );
-                })}
+                {Object.keys(schemaData).map((schemaKey, i) => (
+                    <div
+                        id={schemaKey}
+                        className={`schema-item ${schemaKey} mb-5 table-responsive`}
+                        key={i}>
+                        <h3 className="fs-4">{schemaKey}</h3>
+                        <SchemaPropertiesTable
+                            schemaKey={schemaKey}
+                            data={schemaData[schemaKey]?.properties}
+                        />
+                    </div>
+                ))}
             </div>
         </div>
     ) : (

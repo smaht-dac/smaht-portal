@@ -166,13 +166,11 @@ export const ScatterPlotWithFacets = ({
         );
     };
 
-    const getKeyLabelOption = (q) => {
-        return (
-            <option value={q['key']} key={q['key']}>
-                {q['label']}
-            </option>
-        );
-    };
+    const getKeyLabelOption = (q) => (
+        <option value={q['key']} key={q['key']}>
+            {q['label']}
+        </option>
+    );
 
     const facets = (
         <div className="qc-metrics-facets-container mb-2">
@@ -227,9 +225,7 @@ export const ScatterPlotWithFacets = ({
                             className="form-select form-select-sm"
                             value={selectedAssay}
                             onChange={handleAssayChange}>
-                            {vizInfo.facets.assay.map((q) => {
-                                return getKeyLabelOption(q);
-                            })}
+                            {vizInfo.facets.assay.map((q) => getKeyLabelOption(q))}
                         </select>
                         <div className="mt-1 fw-bold fs-6">
                             Cell line / Cell culture mixture / Tissue
@@ -238,18 +234,14 @@ export const ScatterPlotWithFacets = ({
                             className="form-select form-select-sm"
                             value={selectedSampleSource}
                             onChange={handleSampleSourceChange}>
-                            {vizInfo.facets.sample_source.map((q) => {
-                                return getKeyLabelOption(q);
-                            })}
+                            {vizInfo.facets.sample_source.map((q) => getKeyLabelOption(q))}
                         </select>
                         <div className="mt-1 fw-bold fs-6">Sequencer</div>
                         <select
                             className="form-select form-select-sm"
                             value={selectedSequencer}
                             onChange={handleSequencerChange}>
-                            {vizInfo.facets.sequencer.map((q) => {
-                                return getKeyLabelOption(q);
-                            })}
+                            {vizInfo.facets.sequencer.map((q) => getKeyLabelOption(q))}
                         </select>
                     </div>
                 </div>

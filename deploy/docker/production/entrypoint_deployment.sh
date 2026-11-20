@@ -1,4 +1,8 @@
 #!/bin/bash
+# NOTE: entrypoint.sh dispatches with `exec sh entrypoint_deployment.sh`, so this
+# runs under /bin/sh (dash on the Debian base) and the shebang above is NOT what
+# executes it. Keep everything in this file POSIX sh - no bashisms - and lint with
+# `shellcheck -s sh`.
 
 set -e
 

@@ -20,12 +20,12 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
     const highestUserAccess = userDownloadAccess?.['protected-network']
         ? 'protected-network'
         : userDownloadAccess?.['protected']
-        ? 'protected'
-        : userDownloadAccess?.['open-early']
-        ? 'open-early'
-        : userDownloadAccess?.['open']
-        ? 'open'
-        : null;
+            ? 'protected'
+            : userDownloadAccess?.['open-early']
+                ? 'open-early'
+                : userDownloadAccess?.['open']
+                    ? 'open'
+                    : null;
 
     // Use the most recently released clinical manifest
     const { files } = useResourceFileSearch(
@@ -60,6 +60,7 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
             placement="top"
             overlay={renderProtectedAccessPopover()}>
             <button
+                type="button"
                 className={
                     'donor-metadata btn btn-sm btn-outline-secondary ' +
                     className

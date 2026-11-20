@@ -1,6 +1,8 @@
 import json
 import os
 import re
+
+import yaml
 import pytest
 
 from dcicutils.qa_checkers import ChangeLogChecker, DebuggingArtifactChecker
@@ -327,30 +329,49 @@ def test_user_view_notification_enrollment_updates_store_context():
     assert "[DATA_RELEASE_NOTIFICATION_ENROLLED]: enrolled" in handler_source
 
 
+# Debian major version -> codename, for the production dhi.io tag (e.g. "debian13").
+DEBIAN_CODENAMES_BY_VERSION = {"12": "bookworm", "13": "trixie"}
+
+
+def _production_dhi_codename():
+    """The Debian codename of the production DHI base image that buildspec.yml ships."""
+    with open(os.path.join(REPOSITORY_ROOT_DIR, "buildspec.yml")) as fp:
+        image = yaml.safe_load(fp)["env"]["variables"]["DHI_BASE_IMAGE"]
+    match = re.search(r"-debian(?P<version>\d+)-", image)
+    assert match, f"DHI_BASE_IMAGE {image!r} must name its Debian release (e.g. -debian13-)"
+    assert match.group("version") in DEBIAN_CODENAMES_BY_VERSION, image
+    return DEBIAN_CODENAMES_BY_VERSION[match.group("version")]
+
+
+@pytest.mark.static
+def test_production_dhi_base_image_is_not_end_of_life_debian():
+    assert _production_dhi_codename() not in END_OF_LIFE_DEBIAN_CODENAMES
+
+
 @pytest.mark.static
 def test_nginx_install_script_matches_base_image_release():
-    """The nginx script's apt suite must match the base image's Debian release."""
+    """The nginx script's apt suite must follow the base image's own Debian release,
+    and it must support both the public default base and the production DHI base."""
     dockerfile = _dockerfile_text()
-    codename = _base_image_codename(dockerfile)
     path, script = _nginx_install_script(dockerfile)
 
-    assert codename in os.path.basename(path), (
-        f"{path} is named for a different Debian release than the {codename} base image;"
-        " rename it so the pairing stays obvious."
-    )
+    supported = re.search(r'^NGINX_SUPPORTED_DEBIAN_CODENAMES="(?P<names>[a-z ]+)"\s*$', script, re.M)
+    assert supported, f"{path} must declare NGINX_SUPPORTED_DEBIAN_CODENAMES"
+    supported = set(supported.group("names").split())
+    for codename in (_base_image_codename(dockerfile), _production_dhi_codename()):
+        assert codename in supported, f"{path} does not support the {codename} base image"
+    assert not supported & END_OF_LIFE_DEBIAN_CODENAMES, sorted(supported)
 
-    pkg_release = re.search(r"^export PKG_RELEASE=1~(?P<codename>[a-z]+)\s*$", script, re.M)
-    assert pkg_release, f"{path} must export a PKG_RELEASE of the form 1~<codename>"
-    assert pkg_release.group("codename") == codename, (
-        f"{path} pins nginx packages for Debian {pkg_release.group('codename')} but the base"
-        f" image is {codename}; those packages will not resolve."
+    # The release is read from the image itself, never hard-coded.
+    assert re.search(r'^NGINX_DEBIAN_CODENAME="\$\{VERSION_CODENAME:-\}"\s*$', script, re.M)
+    assert re.search(r'^export PKG_RELEASE="1~\$\{NGINX_DEBIAN_CODENAME\}"\s*$', script, re.M), (
+        f"{path} must pin nginx packages for the detected Debian release"
     )
-
-    # Every nginx.org apt suite the script configures must be the base image's release.
-    suites = re.findall(r"https://nginx\.org/packages/\S*debian/ (?P<codename>[a-z]+) nginx", script)
+    # Every nginx.org apt suite the script configures must be that detected release.
+    suites = re.findall(r"https://nginx\.org/packages/\S*debian/ (?P<suite>\S+) nginx", script)
     assert suites, f"{path} must configure at least one nginx.org apt source"
-    assert set(suites) == {codename}, (
-        f"{path} points apt at nginx.org suites {sorted(set(suites))}, expected only {codename!r}"
+    assert set(suites) == {"$NGINX_DEBIAN_CODENAME"}, (
+        f"{path} points apt at nginx.org suites {sorted(set(suites))}, expected the detected release"
     )
 
 

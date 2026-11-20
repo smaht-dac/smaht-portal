@@ -22,11 +22,11 @@ What it asserts (deterministic, ordering forced with upstream `weight`):
 
 Cases requiring wall-clock/quarantine timing and multi-nginx-worker shared health
 state (quarantine/recovery, handoff-timeout cutoff) are outside this harness. The
-production Docker build runs `nginx -t` against the pinned nginx 1.30.4 config.
+production Docker build runs `nginx -t` against the pinned nginx 1.31.9 config.
 
 Version note
 ------------
-Run this against the PRODUCTION-pinned nginx (1.30.4) for authoritative results. The
+Run this against the PRODUCTION-pinned nginx (1.31.9) for authoritative results. The
 directives under test (proxy_next_upstream, _tries, _timeout, method policy) are core
 and version-stable; a smoke run on another local nginx confirms the harness itself.
 All 10 cases were re-confirmed against nginx 1.30.4 during the 2026-09 bullseye ->
@@ -283,7 +283,7 @@ def validate_checked_in_policy():
         "gateway-only status log": '"~50[24]" 1' in nginx_conf,
         "client address omitted": bool(log_format) and "$remote_addr" not in log_format.group("body"),
         "450MB parent cap": re.findall(r"^rss_limit\s*=\s*(\S+)", base_ini, re.M) == ["450MB"],
-        "pinned nginx syntax gate": "RUN nginx -v && nginx -t" in dockerfile,
+        "production nginx syntax gate": "RUN nginx -v && nginx -t" in dockerfile,
     }
     failed = [name for name, ok in checks.items() if not ok]
     ok = not failed
@@ -301,7 +301,7 @@ def main():
         return 77
     ver = subprocess.run([args.nginx, "-v"], capture_output=True, text=True)
     print(f"nginx: {ver.stderr.strip() or ver.stdout.strip()}")
-    print("(Run against pinned 1.30.4 for authoritative results.)\n")
+    print("(Run against pinned 1.31.9 for authoritative results.)\n")
 
     results = [validate_checked_in_policy()]
     # 1. GET failover: first peer 502 (heavy weight -> first hop), second 200.

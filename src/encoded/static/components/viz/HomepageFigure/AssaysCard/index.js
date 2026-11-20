@@ -6,39 +6,37 @@ import {
     PopoverHeader,
 } from 'react-bootstrap';
 
-const AssayList = ({ list }) => {
-    return (
-        <ul>
-            {list.map((item, i) => {
-                if (item.data) {
-                    return (
-                        <li key={i}>
-                            <OverlayTrigger
-                                trigger={['hover', 'focus']}
-                                placement="left"
-                                rootClose
-                                overlay={
-                                    <Popover>
-                                        <PopoverHeader>
-                                            {item.title}
-                                        </PopoverHeader>
-                                        <PopoverBody>
-                                            Additional information about{' '}
-                                            {item.title} here
-                                        </PopoverBody>
-                                    </Popover>
-                                }>
-                                <div>{item.title}</div>
-                            </OverlayTrigger>
-                        </li>
-                    );
-                } else {
-                    return <li key={i}>{item.title}</li>;
-                }
-            })}
-        </ul>
-    );
-};
+const AssayList = ({ list }) => (
+    <ul>
+        {list.map((item, i) => {
+            if (item.data) {
+                return (
+                    <li key={i}>
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            placement="left"
+                            rootClose
+                            overlay={
+                                <Popover>
+                                    <PopoverHeader>
+                                        {item.title}
+                                    </PopoverHeader>
+                                    <PopoverBody>
+                                        Additional information about{' '}
+                                        {item.title} here
+                                    </PopoverBody>
+                                </Popover>
+                            }>
+                            <div>{item.title}</div>
+                        </OverlayTrigger>
+                    </li>
+                );
+            } else {
+                return <li key={i}>{item.title}</li>;
+            }
+        })}
+    </ul>
+);
 
 export const AssaysCard = ({ currentTier }) => {
     const assaysList = [

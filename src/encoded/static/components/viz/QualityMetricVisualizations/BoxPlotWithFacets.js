@@ -184,13 +184,11 @@ export const BoxPlotWithFacets = ({
         );
     };
 
-    const getKeyLabelOption = (q) => {
-        return (
-            <option value={q['key']} key={q['key']}>
-                {q['label']}
-            </option>
-        );
-    };
+    const getKeyLabelOption = (q) => (
+        <option value={q['key']} key={q['key']}>
+            {q['label']}
+        </option>
+    );
 
     const getGroupLabel = (group) => {
         let groupLabel = 'NA';
@@ -230,9 +228,7 @@ export const BoxPlotWithFacets = ({
                             className="form-select form-select-sm"
                             value={selectedGrouping}
                             onChange={handleGroupingChange}>
-                            {vizInfo.facets.grouping.map((q) => {
-                                return getKeyLabelOption(q);
-                            })}
+                            {vizInfo.facets.grouping.map((q) => getKeyLabelOption(q))}
                         </select>
                     </div>
                 </div>
@@ -243,9 +239,7 @@ export const BoxPlotWithFacets = ({
                             className="form-select form-select-sm"
                             value={selectedAssay}
                             onChange={handleAssayChange}>
-                            {vizInfo.facets.assay.map((q) => {
-                                return getKeyLabelOption(q);
-                            })}
+                            {vizInfo.facets.assay.map((q) => getKeyLabelOption(q))}
                         </select>
                         <div className="mt-1 fw-bold fs-6">
                             Cell line / Cell culture mixture / Tissue
@@ -254,18 +248,14 @@ export const BoxPlotWithFacets = ({
                             className="form-select form-select-sm"
                             value={selectedSampleSource}
                             onChange={handleSampleSourceChange}>
-                            {vizInfo.facets.sample_source.map((q) => {
-                                return getKeyLabelOption(q);
-                            })}
+                            {vizInfo.facets.sample_source.map((q) => getKeyLabelOption(q))}
                         </select>
                         <div className="mt-1 fw-bold fs-6">Sequencer</div>
                         <select
                             className="form-select form-select-sm"
                             value={selectedSequencer}
                             onChange={handleSequencerChange}>
-                            {vizInfo.facets.sequencer.map((q) => {
-                                return getKeyLabelOption(q);
-                            })}
+                            {vizInfo.facets.sequencer.map((q) => getKeyLabelOption(q))}
                         </select>
                     </div>
                 </div>

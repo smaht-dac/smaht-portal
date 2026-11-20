@@ -92,14 +92,12 @@ export const FileOverviewTable = (props) => {
             hideTooltip: true,
             noSort: true,
             widthMap: { lg: 50, md: 50, sm: 50 },
-            render: (result, parentProps) => {
-                return (
-                    <SelectionItemCheckbox
-                        {...{ selectedItems, onSelectItem, result }}
-                        isMultiSelect={true}
-                    />
-                );
-            },
+            render: (result, parentProps) => (
+                <SelectionItemCheckbox
+                    {...{ selectedItems, onSelectItem, result }}
+                    isMultiSelect={true}
+                />
+            ),
             // Merged last so a customColumns['@type'] override (e.g. widthMap)
             // only overrides the specific properties it sets, instead of
             // replacing this whole column definition.
@@ -225,9 +223,7 @@ export const FileOverviewTable = (props) => {
                             Notes
                         </Popover.Header>
                         <Popover.Body>
-                            {notes_to_tsv.map((note, i) => {
-                                return <p key={i}>{note}</p>;
-                            })}
+                            {notes_to_tsv.map((note, i) => <p key={i}>{note}</p>)}
                         </Popover.Body>
                     </Popover>
                 );
@@ -338,16 +334,16 @@ export const FileOverviewTable = (props) => {
                     Object.keys(customColumns).length > 0
                         ? customColumns
                         : {
-                              '@type': {},
-                              access_status: {},
-                              annotated_filename: {},
-                              'software.display_title': {},
-                              'software.version': {},
-                              status: {},
-                              tsv_notes: {},
-                              release_date: {},
-                              file_size: {},
-                          }
+                            '@type': {},
+                            access_status: {},
+                            annotated_filename: {},
+                            'software.display_title': {},
+                            'software.version': {},
+                            status: {},
+                            tsv_notes: {},
+                            release_date: {},
+                            file_size: {},
+                        }
                 }
             />
         </>
@@ -403,6 +399,7 @@ const FileOverviewAboveTableComponent = (props) => {
                         placement="top"
                         overlay={renderLoginAccessPopover()}>
                         <button
+                            type="button"
                             className="btn btn-primary btn-sm me-05 align-items-center pe-auto"
                             disabled={true}>
                             <i className="icon icon-download fas me-03" />

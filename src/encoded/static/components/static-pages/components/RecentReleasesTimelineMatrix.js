@@ -716,7 +716,7 @@ export const RecentReleasesTimelineMatrix = ({ session }) => {
         [months, monthWindowStartIndex, monthWindowSize]
     );
     const visibleMonthsWithWeeks = useMemo(
-        () => visibleMonths.map((month) => ({ ...month, weeks: buildWeekBucketsForMonth(month) })),
+        () => visibleMonths.map((month) => {return { ...month, weeks: buildWeekBucketsForMonth(month) };}),
         [visibleMonths]
     );
     const canGoToNewerMonths = monthWindowStartIndex > 0;

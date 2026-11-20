@@ -36,63 +36,59 @@ const default_donor_information = [
             renderHardyScaleDescriptionPopover(handleShowPopover),
     },
 ];
-const DonorStatistics = ({ data, isLoading }) => {
-    return (
-        <div className="data-summary d-flex flex-column gap-3">
-            <div className="d-flex gap-3">
-                <div className="donor-statistic tissues d-flex flex-column p-2 gap-2">
-                    <div className="donor-statistic-label text-center">
-                        <i className="icon icon-lungs fas"></i>Tissues
-                    </div>
-                    <div className="donor-statistic-value text-center">
-                        {!isLoading ? (
-                            <span>{data.tissues}</span>
-                        ) : (
-                            <i className="icon icon-circle-notch icon-spin fas" />
-                        )}
-                    </div>
+const DonorStatistics = ({ data, isLoading }) => (
+    <div className="data-summary d-flex flex-column gap-3">
+        <div className="d-flex gap-3">
+            <div className="donor-statistic tissues d-flex flex-column p-2 gap-2">
+                <div className="donor-statistic-label text-center">
+                    <i className="icon icon-lungs fas"></i>Tissues
                 </div>
-                <div className="donor-statistic assays d-flex flex-column p-2 gap-2">
-                    <div className="donor-statistic-label text-center">
-                        <i className="icon icon-dna fas"></i>Assays
-                    </div>
-                    <div className="donor-statistic-value text-center">
-                        {!isLoading ? (
-                            <span>{data.assays}</span>
-                        ) : (
-                            <i className="icon icon-circle-notch icon-spin fas" />
-                        )}
-                    </div>
+                <div className="donor-statistic-value text-center">
+                    {!isLoading ? (
+                        <span>{data.tissues}</span>
+                    ) : (
+                        <i className="icon icon-circle-notch icon-spin fas" />
+                    )}
                 </div>
-                <div className="donor-statistic files d-flex flex-column p-2 gap-2">
-                    <div className="donor-statistic-label text-center">
-                        <i className="icon icon-file fas"></i>Files
-                    </div>
-                    <div className="donor-statistic-value text-center">
-                        {!isLoading ? (
-                            <span>{data?.files}</span>
-                        ) : (
-                            <i className="icon icon-circle-notch icon-spin fas" />
-                        )}
-                    </div>
+            </div>
+            <div className="donor-statistic assays d-flex flex-column p-2 gap-2">
+                <div className="donor-statistic-label text-center">
+                    <i className="icon icon-dna fas"></i>Assays
+                </div>
+                <div className="donor-statistic-value text-center">
+                    {!isLoading ? (
+                        <span>{data.assays}</span>
+                    ) : (
+                        <i className="icon icon-circle-notch icon-spin fas" />
+                    )}
+                </div>
+            </div>
+            <div className="donor-statistic files d-flex flex-column p-2 gap-2">
+                <div className="donor-statistic-label text-center">
+                    <i className="icon icon-file fas"></i>Files
+                </div>
+                <div className="donor-statistic-value text-center">
+                    {!isLoading ? (
+                        <span>{data?.files}</span>
+                    ) : (
+                        <i className="icon icon-circle-notch icon-spin fas" />
+                    )}
                 </div>
             </div>
         </div>
-    );
-};
+    </div>
+);
 
-const ProtectedDataPlaceholder = () => {
-    return (
-        <div className="protected-data callout-card">
-            <i className="icon icon-user-lock fas"></i>
-            <h4>Protected Data</h4>
-            <span>
-                To view this data, you must have access to SMaHT protected
-                access data on dbGaP.
-            </span>
-        </div>
-    );
-};
+const ProtectedDataPlaceholder = () => (
+    <div className="protected-data callout-card">
+        <i className="icon icon-user-lock fas"></i>
+        <h4>Protected Data</h4>
+        <span>
+            To view this data, you must have access to SMaHT protected
+            access data on dbGaP.
+        </span>
+    </div>
+);
 
 /**
  * Parent component for the data cards containing information on the file.
@@ -103,7 +99,7 @@ export const PublicDonorViewDataCards = ({
     statisticValues = {},
     isLoading = false,
 }) => {
-    let donor_information = default_donor_information;
+    const donor_information = default_donor_information;
 
     return (
         <div className="data-cards-container d-flex flex-column">
@@ -121,16 +117,14 @@ export const PublicDonorViewDataCards = ({
                             <div className="section-body split d-flex mb-2">
                                 <div className="d-flex flex-column">
                                     {donor_information.map(
-                                        ({ title, getProp, titlePopover }) => {
-                                            return (
-                                                <DataCardRow
-                                                    key={title}
-                                                    title={title}
-                                                    value={getProp(context)}
-                                                    titlePopover={titlePopover}
-                                                />
-                                            );
-                                        }
+                                        ({ title, getProp, titlePopover }) => (
+                                            <DataCardRow
+                                                key={title}
+                                                title={title}
+                                                value={getProp(context)}
+                                                titlePopover={titlePopover}
+                                            />
+                                        )
                                     )}
                                 </div>
                                 <div className="d-flex flex-column">
@@ -153,7 +147,7 @@ export const PublicDonorViewDataCards = ({
                                                     Assembly, refers to the
                                                     reconstruction of the
                                                     complete DNA sequence of a
-                                                    single donor's genome,
+                                                    single donor&apos;s genome,
                                                     allowing for more accurate
                                                     detection of mutations
                                                     (i.e., variants in the DNA

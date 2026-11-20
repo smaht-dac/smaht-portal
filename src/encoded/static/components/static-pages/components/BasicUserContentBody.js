@@ -7,6 +7,7 @@ import { analytics } from '@hms-dbmi-bgm/shared-portal-components/es/components/
 import { BasicStaticSectionBody } from '@hms-dbmi-bgm/shared-portal-components/es/components/static-pages/BasicStaticSectionBody';
 import { OverviewHeadingContainer } from './../../item-pages/components/OverviewHeadingContainer';
 import { replaceString as replacePlaceholderString } from './../placeholders';
+import { store } from '../../../store';
 
 /** THIS FILE NOT SHARED OR COMMON */
 export class BasicUserContentBody extends React.PureComponent {

@@ -31,22 +31,20 @@ const ConsortiumTable = () => {
             const centerTypeClass =
                 'center-type align-middle text-center consortium-table-' +
                 c['center-type-short'];
-            const pis = c['pis'].map((p, j) => {
-                return j === 0 && lab_links[p] ? (
-                    <div className="text-nowrap" key={j}>
-                        <a
-                            href={lab_links[p]}
-                            target="_blank"
-                            className="link-underline-hover">
-                            {p}
-                        </a>
-                    </div>
-                ) : (
-                    <div className="text-nowrap" key={j}>
+            const pis = c['pis'].map((p, j) => j === 0 && lab_links[p] ? (
+                <div className="text-nowrap" key={j}>
+                    <a
+                        href={lab_links[p]}
+                        target="_blank"
+                        className="link-underline-hover" rel="noreferrer">
                         {p}
-                    </div>
-                );
-            });
+                    </a>
+                </div>
+            ) : (
+                <div className="text-nowrap" key={j}>
+                    {p}
+                </div>
+            ));
             centerRows.push(
                 <tr key={i}>
                     <td className={centerTypeClass}>
@@ -111,37 +109,33 @@ const ConsortiumTable = () => {
 /**
  * Contents placed inside of a React Bootstrap PopoverBody component
  */
-const ConsortiumPopoverContent = ({ data }) => {
-    return (
-        <div className="consortium-popover">
-            <div className="consortium-popover-section">
-                <h4 className="consortium-popover-header">Institution</h4>
-                <div className="consortium-popover-content">
-                    {data.institution}
-                </div>
+const ConsortiumPopoverContent = ({ data }) => (
+    <div className="consortium-popover">
+        <div className="consortium-popover-section">
+            <h4 className="consortium-popover-header">Institution</h4>
+            <div className="consortium-popover-content">
+                {data.institution}
             </div>
-            <div className="consortium-popover-section">
-                <h4 className="consortium-popover-header">
-                    Principal Investigators
-                </h4>
-                <div className="consortium-popover-content">
-                    <ul className="consortium-popover-content pi-list">
-                        {data.pis.map((pi, i) => {
-                            return <li key={i}>{pi}</li>;
-                        })}
-                    </ul>
-                </div>
-            </div>
-            <div className="consortium-popover-section">
-                <h4 className="consortium-popover-header">Project</h4>
-                <div className="consortium-popover-content">{data.project}</div>
-            </div>
-            <i className="d-block small fw-normal">
-                Click this marker to open the NIH project page in a new tab.
-            </i>
         </div>
-    );
-};
+        <div className="consortium-popover-section">
+            <h4 className="consortium-popover-header">
+                Principal Investigators
+            </h4>
+            <div className="consortium-popover-content">
+                <ul className="consortium-popover-content pi-list">
+                    {data.pis.map((pi, i) => <li key={i}>{pi}</li>)}
+                </ul>
+            </div>
+        </div>
+        <div className="consortium-popover-section">
+            <h4 className="consortium-popover-header">Project</h4>
+            <div className="consortium-popover-content">{data.project}</div>
+        </div>
+        <i className="d-block small fw-normal">
+            Click this marker to open the NIH project page in a new tab.
+        </i>
+    </div>
+);
 
 // Constant values
 const MARKER_SIZE = 40;
@@ -193,9 +187,11 @@ export const ConsortiumMap = () => {
                     .style('opacity', 0)
                     .style('left', '-1000px')
                     .style('top', '0px');
+                // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                 d3.select(this).attr('fill', (d) => color(15));
             })
-            .on('mouseover', function () {
+            .on('mouseover', function (event) {
+                // eslint-disable-next-line no-invalid-this -- d3-selection listeners bind this to the event element.
                 d3.select(this).attr('fill', (d) => color(25));
             });
 
@@ -225,9 +221,7 @@ export const ConsortiumMap = () => {
             .data(consortia)
             .enter()
             .append('g')
-            .attr('transform', (d) => {
-                return `translate(${d.x}, ${d.y + 4})`;
-            })
+            .attr('transform', (d) => `translate(${d.x}, ${d.y + 4})`)
             .append('svg')
             .attr('data-marker-project', (d, i) => {
                 d['iid'] = d['project-number'] + '-' + i;
@@ -345,9 +339,7 @@ export const ConsortiumMap = () => {
     const addConnectionLines = (svg, centerCoords, location) => {
         const dataset = consortia
             .filter((c) => c.location === location)
-            .map((c) => {
-                return [c.x, c.y];
-            });
+            .map((c) => [c.x, c.y]);
         const datasetWithCenter = [];
         datasetWithCenter.push(centerCoords);
         dataset.forEach((d) => {
@@ -355,7 +347,7 @@ export const ConsortiumMap = () => {
             datasetWithCenter.push(centerCoords);
         });
 
-        let line = d3
+        const line = d3
             .line()
             .x(function (d) {
                 return d[0];
@@ -401,7 +393,8 @@ export const ConsortiumMap = () => {
             <div className="consortium-map">
                 <div
                     id="consortiumMapTooltip"
-                    className="p-1 rounded bg-white consortium-tooltip border"></div>
+                    className="p-1 rounded bg-white consortium-tooltip border">
+                </div>
                 <div className="consortium-map-container" ref={mapReference}>
                     <span className="interaction-notice">
                         Hover over pins to read more about each SMaHT Consortium

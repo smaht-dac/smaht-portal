@@ -44,10 +44,10 @@ export const UserContentBodyList = React.memo(function UserContentBodyList({
                     }>
                     {!hideTitles && c.title && !isCollapsible
                         ? React.createElement(
-                              headerElement,
-                              headerProps,
-                              c.title
-                          )
+                            headerElement,
+                            headerProps,
+                            c.title
+                        )
                         : null}
                     {isCollapsible ? (
                         <ExpandableStaticHeader

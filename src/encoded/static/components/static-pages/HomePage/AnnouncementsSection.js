@@ -60,52 +60,46 @@ const AnnouncementCard = ({
     date = null,
     session = false,
     userId = null,
-}) => {
-    return (
-        <div className={`announcement-container ${type}`}>
-            <h5 className="header">
-                {title}
-                {date ? (
-                    <LocalizedTime
-                        timestamp={date}
-                        formatType="date-sm-compact"
-                    />
-                ) : null}
-            </h5>
-            <div className="body">
-                {typeof body === 'function' ? body(session, userId) : body}
-            </div>
-            {footer ? <div className="footer">{footer}</div> : null}
+}) => (
+    <div className={`announcement-container ${type}`}>
+        <h5 className="header">
+            {title}
+            {date ? (
+                <LocalizedTime
+                    timestamp={date}
+                    formatType="date-sm-compact"
+                />
+            ) : null}
+        </h5>
+        <div className="body">
+            {typeof body === 'function' ? body(session, userId) : body}
         </div>
-    );
-};
+        {footer ? <div className="footer">{footer}</div> : null}
+    </div>
+);
 
 /**
  * AnnouncementsSection component displays the announcements section.
  * @returns { JSX.Element } - The rendered AnnouncementsSection component.
  */
-export const AnnouncementsSection = ({ session }) => {
-    return (
-        <div className="announcements section">
-            <h3 className="section-header">Announcements</h3>
-            <div className="section-body-container">
-                <div className="section-body">
-                    {announcements.map((announcement, i) => {
-                        return (
-                            <AnnouncementCard
-                                key={i}
-                                title={announcement.title}
-                                body={announcement.body}
-                                footer={announcement.footer}
-                                type={announcement.type}
-                                date={announcement.date}
-                                session={session}
-                                userId={JWT?.getUserInfo()?.details?.uuid}
-                            />
-                        );
-                    })}
-                </div>
+export const AnnouncementsSection = ({ session }) => (
+    <div className="announcements section">
+        <h3 className="section-header">Announcements</h3>
+        <div className="section-body-container">
+            <div className="section-body">
+                {announcements.map((announcement, i) => (
+                    <AnnouncementCard
+                        key={i}
+                        title={announcement.title}
+                        body={announcement.body}
+                        footer={announcement.footer}
+                        type={announcement.type}
+                        date={announcement.date}
+                        session={session}
+                        userId={JWT?.getUserInfo()?.details?.uuid}
+                    />
+                ))}
             </div>
         </div>
-    );
-};
+    </div>
+);
