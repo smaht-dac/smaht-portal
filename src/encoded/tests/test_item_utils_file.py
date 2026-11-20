@@ -2,6 +2,7 @@ from typing import Any, Dict, List
 
 import pytest
 
+from ..item_utils import file as file_utils
 from ..item_utils.file import (
     are_reads_phased,
     are_reads_sorted,
@@ -9,6 +10,7 @@ from ..item_utils.file import (
     get_analysis_details,
     get_data_category,
     get_data_type,
+    get_preservation_type,
     has_copy_number_variants,
     has_indel_variants,
     has_mobile_element_insertions,
@@ -194,3 +196,48 @@ def test_get_data_category(
 )
 def test_get_data_type(properties: Dict[str, Any], expected: List[str]) -> None:
     assert get_data_type(properties) == expected
+
+
+class _FakeRequestHandler:
+    """Just enough of RequestHandler to look items up by identifier."""
+
+    def __init__(self, items: Dict[str, Dict[str, Any]]) -> None:
+        self._items = items
+
+    def get_items(self, identifiers: List[str]) -> List[Dict[str, Any]]:
+        return [self._items[identifier] for identifier in identifiers]
+
+
+@pytest.mark.parametrize(
+    "tissues,expected",
+    [
+        ({}, []),
+        ({"t1": {"preservation_type": "Frozen"}}, ["Frozen"]),
+        (
+            {
+                "t1": {"preservation_type": "Fixed"},
+                "t2": {"preservation_type": "Frozen"},
+                "t3": {"preservation_type": "Fixed"},
+            },
+            ["Fixed", "Frozen"],
+        ),
+        # A tissue with no preservation type is left out, not reported as "".
+        ({"t1": {"preservation_type": "Frozen"}, "t2": {}}, ["Frozen"]),
+        # Reported as recorded: Snap Frozen and Frozen stay distinct here.
+        (
+            {
+                "t1": {"preservation_type": "Snap Frozen"},
+                "t2": {"preservation_type": "Frozen"},
+                "t3": {"preservation_type": "Fresh"},
+            },
+            ["Snap Frozen", "Frozen", "Fresh"],
+        ),
+    ],
+)
+def test_get_preservation_type(
+    monkeypatch: pytest.MonkeyPatch, tissues: Dict[str, Dict[str, Any]], expected: List[str]
+) -> None:
+    monkeypatch.setattr(
+        file_utils, "get_tissues", lambda file, request_handler=None: list(tissues)
+    )
+    assert get_preservation_type({}, _FakeRequestHandler(tissues)) == expected

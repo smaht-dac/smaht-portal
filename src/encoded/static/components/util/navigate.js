@@ -73,13 +73,26 @@ navigate.getBrowseBaseParams.mappings = {
             // 'status': ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'],
             'tags': ['has_released_files']
         }
+    },
+    'tissue' : {
+        // Tissue links a single `donor`, so donor fields are under a
+        // 'donor.' prefix, unlike Donor which just *is* the donor. Must
+        // match BROWSE_LINKS.tissue (BrowseView.js) and
+        // ChartDataController.transformFilterDonorToFile's 'tissue' mapping.
+        'parameters': {
+            'type': ['Tissue'],
+            'donor.study': ['Production'],
+            'donor.tags': ['has_released_files']
+        }
     }
 };
 
-navigate.getBrowseBaseHref = function(browseBaseParams = null, mapping = 'all'){
+// `basePath` defaults to '/browse/' -- pass '/search/' for an item type with
+// no /browse/ tab of its own, which /browse/ doesn't render a result list for.
+navigate.getBrowseBaseHref = function(browseBaseParams = null, mapping = 'all', basePath = '/browse/'){
     if (!browseBaseParams) browseBaseParams = navigate.getBrowseBaseParams(null, mapping);
     else if (typeof browseBaseParams === 'string') browseBaseParams = navigate.getBrowseBaseParams(browseBaseParams, mapping);
-    return '/browse/?' + queryString.stringify(browseBaseParams);
+    return basePath + '?' + queryString.stringify(browseBaseParams);
 };
 
 /** Utility function to check if we are on a browse page. */

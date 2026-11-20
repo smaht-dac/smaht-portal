@@ -80,6 +80,16 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
                     mapping
                 );
             }
+            // tissue
+            if (
+                hrefQuery.type === 'Tissue' ||
+                (hrefQuery.type?.length > 0 && hrefQuery.type[0] === 'Tissue')
+            ) {
+                ChartDataController.transformFilterDonorToFile(
+                    hrefQuery,
+                    mapping
+                );
+            }
             delete hrefQuery.limit;
             delete hrefQuery.field;
 

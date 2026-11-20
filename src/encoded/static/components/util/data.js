@@ -249,6 +249,7 @@ export {
     germLayerTissueMapping,
     tissueCategoryOrder,
     tissueToCategory,
+    tissueCategoryByTpcCode,
     compareTissueFacetTerms,
     compareCallSetFacetTerms,
     getTissueInternalCodeFromFacetTerm,
