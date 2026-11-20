@@ -201,42 +201,40 @@ const PublicationTable = ({
     additionalParams,
     showFacets = false,
     ...props
-}) => {
-    return (
-        <div className="publication-search-table-container">
-            <h2 className="table-header text-gray-70 fw-semibold">
-                {props.header_title || 'Publications'}
-            </h2>
-            <EmbeddedItemSearchTable
-                key={session}
-                embeddedTableHeader={null}
-                searchHref={PUBLICATION_LINKS[type] + additionalParams}
-                schemas={schemas}
-                session={session}
-                selectedItems={props.selectedItems}
-                onSelectItem={props.onSelectItem}
-                onResetSelectedItems={props.onResetSelectedItems}
-                hideHeaderRow
-                hideFacetHeader
-                hideFacets={['publication_groups', 'scope', 'status']}
-                rowHeight={150}
-                maxResultsBodyHeight={735}
-                defaultClosedFacets
-                facets={showFacets ? undefined : null}
-                renderResultRow={(result, rowNumber, rowProps) => (
-                    <PublicationSearchResultRow
-                        result={result}
-                        rowNumber={rowNumber}
-                        rowProps={rowProps}
-                    />
-                )}
-                columnExtensionMap={{}}
-                hideColumns={[]}
-                columns={{ '@type': {} }}
-            />
-        </div>
-    );
-};
+}) => (
+    <div className="publication-search-table-container">
+        <h2 className="table-header text-gray-70 fw-semibold">
+            {props.header_title || 'Publications'}
+        </h2>
+        <EmbeddedItemSearchTable
+            key={session}
+            embeddedTableHeader={null}
+            searchHref={PUBLICATION_LINKS[type] + additionalParams}
+            schemas={schemas}
+            session={session}
+            selectedItems={props.selectedItems}
+            onSelectItem={props.onSelectItem}
+            onResetSelectedItems={props.onResetSelectedItems}
+            hideHeaderRow
+            hideFacetHeader
+            hideFacets={['publication_groups', 'scope', 'status']}
+            rowHeight={150}
+            maxResultsBodyHeight={735}
+            defaultClosedFacets
+            facets={showFacets ? undefined : null}
+            renderResultRow={(result, rowNumber, rowProps) => (
+                <PublicationSearchResultRow
+                    result={result}
+                    rowNumber={rowNumber}
+                    rowProps={rowProps}
+                />
+            )}
+            columnExtensionMap={{}}
+            hideColumns={[]}
+            columns={{ '@type': {} }}
+        />
+    </div>
+);
 
 // Layout for PublicationCollection pages
 const PublicationCollectionLayout = ({ ...props }) => {
@@ -302,6 +300,4 @@ const PublicationCollectionLayout = ({ ...props }) => {
     );
 };
 
-export const PublicationCollection = (props) => {
-    return <PublicationCollectionLayout {...props} />;
-};
+export const PublicationCollection = (props) => <PublicationCollectionLayout {...props} />;

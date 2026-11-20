@@ -27,7 +27,8 @@ export const BrowseViewAboveSearchTableControls = React.memo(
                 customizationButtonClassName="btn btn-sm btn-outline-secondary me-05"
                 panelMap={AboveTableControlsBase.getCustomColumnSelectorPanelMapDefinition(
                     props
-                )}></AboveTableControlsBase>
+                )}>
+            </AboveTableControlsBase>
         );
     }
 );

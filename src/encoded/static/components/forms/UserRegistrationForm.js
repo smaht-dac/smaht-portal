@@ -150,7 +150,7 @@ export default class UserRegistrationForm extends React.PureComponent {
         const { captchaSiteKey } = this.state;
         const { onReCaptchaResponse, onReCaptchaExpiration } = this;
         console.info('Loaded Google reCaptcha library..');
-        grecaptcha.render(this.recaptchaContainerRef.current, {
+        window.grecaptcha.render(this.recaptchaContainerRef.current, {
             sitekey: captchaSiteKey,
             callback: onReCaptchaResponse,
             'error-callback': onReCaptchaExpiration,
@@ -234,7 +234,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                     // TODO
                     // If validation failure, set / show status message, return;
                     // Else If unknown failure:
-                    this.setState({ 
+                    this.setState({
                         registrationStatus: err.code === 403 ? 'restricted-email' : 'network-failure',
                     });
                     logger.error(
@@ -345,7 +345,8 @@ export default class UserRegistrationForm extends React.PureComponent {
                     <div>
                         <span>
                             <b>Failed to register new account using your e-mail
-                            address.</b> Please try again using your institutional
+                                address.
+                            </b> Please try again using your institutional
                             e-mail address to register, or contact the SMaHT Data
                             Analysis Center.
                         </span>

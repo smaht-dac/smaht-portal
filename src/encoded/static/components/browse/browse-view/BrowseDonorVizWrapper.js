@@ -310,7 +310,7 @@ export const BrowseDonorVizWrapper = (props) => {
             const searchUrl = navigate.getBrowseBaseHref(null, 'all');
 
             const hrefParts = url.parse(searchUrl, true);
-            let hrefQuery = normalizeQueryValuesForStringify(_.clone(hrefParts.query));
+            const hrefQuery = normalizeQueryValuesForStringify(_.clone(hrefParts.query));
 
             delete hrefQuery.limit;
             delete hrefQuery.field;
@@ -399,7 +399,7 @@ export const BrowseDonorVizWrapper = (props) => {
                         />
                     </div>
                 ) : (
-                    <div className="donor-cohort-view-chart-container">                      
+                    <div className="donor-cohort-view-chart-container">
 
                         <DonorCohortViewChart
                             title="Age Groups"
@@ -473,4 +473,4 @@ export const BrowseDonorVizWrapper = (props) => {
             </div>
         </div>
     );
-}
+};

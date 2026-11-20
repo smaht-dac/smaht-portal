@@ -109,13 +109,13 @@ export default class StatisticsPageView extends React.PureComponent {
             // 'software.display_title'                     : <span><i className="icon icon-fw fas icon-code me-1"/>Software</span>,
         };
         const initialGroupBy = 'data_generation_summary.submission_centers';
-        
+
         const singleSelectFilterOptions = {
             'all'            : <span>All</span>,
             'all_without_dac': <span>All (w/o HMS-DAC)</span>,
             'gcc_only'       : <span>GCC-only</span>,
             'ttd_only'       : <span>TTD-only</span>
-        }
+        };
         const initialSingleSelectFilter = 'all_without_dac';
 
         const dateRangeOptions = {
@@ -135,7 +135,7 @@ export default class StatisticsPageView extends React.PureComponent {
             'daily'     : <span>Daily</span>,
             'weekly'    : <span>Weekly</span>,
             'monthly'   : <span>Monthly</span>,
-        }
+        };
         const initialDateHistogramInterval = 'weekly';
 
         const groupByControllerProps = {
@@ -171,7 +171,7 @@ export default class StatisticsPageView extends React.PureComponent {
             'chart': dataKeys.reduce((acc, key) => { acc[key] = true; return acc; }, {}),
             'table': dataKeys.reduce((acc, key) => { acc[key] = true; return acc; }, {}),
             'expanded': dataKeys.reduce((acc, key) => { acc[key] = false; return acc; }, {})
-        }
+        };
         // override
         // initialChartToggles.table['top_file_set_downloads'] = true;
         initialChartToggles.chart['top_file_set_downloads'] = false;

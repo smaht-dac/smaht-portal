@@ -148,28 +148,28 @@ export function BigDropdownPageTreeMenu(props) {
                 />
                 {hasChildren
                     ? level1Children.map(function (childLevel2) {
-                          return (
-                              <a
-                                  className={
-                                      'level-2-title text-small' +
+                        return (
+                            <a
+                                className={
+                                    'level-2-title text-small' +
                                       (urlParts.pathname.indexOf(
                                           childLevel2.identifier
                                       ) > -1
                                           ? ' active'
                                           : '')
-                                  }
-                                  href={'/' + childLevel2.identifier}
-                                  data-tip={childLevel2.description}
-                                  data-delay-show={500}
-                                  key={childLevel2.identifier}
-                                  id={
-                                      'menutree-linkto-' +
+                                }
+                                href={'/' + childLevel2.identifier}
+                                data-tip={childLevel2.description}
+                                data-delay-show={500}
+                                key={childLevel2.identifier}
+                                id={
+                                    'menutree-linkto-' +
                                       childLevel2.identifier.replace(/\//g, '_')
-                                  }>
-                                  {childLevel2.display_title}
-                              </a>
-                          );
-                      })
+                                }>
+                                {childLevel2.display_title}
+                            </a>
+                        );
+                    })
                     : null}
             </div>
         );
@@ -181,10 +181,10 @@ export function BigDropdownPageTreeMenu(props) {
         (!topLeftMenuCol
             ? ''
             : childItemsLen < 3
-            ? ''
-            : (childItemsLen + 1) % 3 === 1
-            ? ' justify-content-lg-center'
-            : ' justify-content-lg-end');
+                ? ''
+                : (childItemsLen + 1) % 3 === 1
+                    ? ' justify-content-lg-center'
+                    : ' justify-content-lg-end');
 
     return (
         <div className={cls}>

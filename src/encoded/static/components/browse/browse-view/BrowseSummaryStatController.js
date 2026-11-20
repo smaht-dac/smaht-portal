@@ -56,7 +56,7 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
                 : navigate.getBrowseBaseHref(null, mapping);
 
             const hrefParts = url.parse(searchUrl, true);
-            let hrefQuery = normalizeQueryValuesForStringify(
+            const hrefQuery = normalizeQueryValuesForStringify(
                 _.clone(hrefParts.query)
             );
             // donor

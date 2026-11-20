@@ -50,65 +50,63 @@ const CollectionCardThumbnail = ({ collectionKey, label }) => {
     );
 };
 
-export const PublicationCollectionsNavigation = (props) => {
-    return (
-        <div className="publication-collections-container">
-            <div className="publication-collections-breadcrumb">
-                <span>SMaHT Data</span>
-                <span className="crumb-divider">|</span>
-                <span>Publications</span>
-            </div>
-            <div className="publication-collections-heading-row">
-                <h2 className="publication-collections-heading">
-                    <b>Browse</b> all <b>SMaHT Collections</b>
-                </h2>
-                <a
-                    className="publication-collections-search-btn"
-                    href="/browse/?type=Publication&status=open">
-                    <i className="icon icon-book-open fas"></i>
-                    Browse all Publications
-                </a>
-            </div>
-            <div className="publication-collections-grid">
-                {Object.entries(pageLinks).map(
-                    ([
-                        key,
-                        { label, title, description, href, linkText, disabled },
-                    ]) => {
-                        const CardTag = disabled ? 'div' : 'a';
-                        return (
-                            <CardTag
-                                className={
-                                    'publication-collection-card' +
-                                    (disabled ? ' disabled' : '')
-                                }
-                                href={disabled ? undefined : href}
-                                aria-disabled={disabled || undefined}
-                                key={key}>
-                                <CollectionCardThumbnail
-                                    collectionKey={key}
-                                    label={label}
-                                />
-                                <div className="publication-collection-card-body">
-                                    <span className="publication-collection-card-label">
-                                        {label}
-                                    </span>
-                                    <h3 className="publication-collection-card-title">
-                                        {title}
-                                    </h3>
-                                    <p className="publication-collection-card-description">
-                                        {description}
-                                    </p>
-                                    <span className="publication-collection-card-link">
-                                        {linkText}
-                                        <RightArrowIcon stemLength={40} />
-                                    </span>
-                                </div>
-                            </CardTag>
-                        );
-                    }
-                )}
-            </div>
+export const PublicationCollectionsNavigation = (props) => (
+    <div className="publication-collections-container">
+        <div className="publication-collections-breadcrumb">
+            <span>SMaHT Data</span>
+            <span className="crumb-divider">|</span>
+            <span>Publications</span>
         </div>
-    );
-};
+        <div className="publication-collections-heading-row">
+            <h2 className="publication-collections-heading">
+                <b>Browse</b> all <b>SMaHT Collections</b>
+            </h2>
+            <a
+                className="publication-collections-search-btn"
+                href="/browse/?type=Publication&status=open">
+                <i className="icon icon-book-open fas"></i>
+                Browse all Publications
+            </a>
+        </div>
+        <div className="publication-collections-grid">
+            {Object.entries(pageLinks).map(
+                ([
+                    key,
+                    { label, title, description, href, linkText, disabled },
+                ]) => {
+                    const CardTag = disabled ? 'div' : 'a';
+                    return (
+                        <CardTag
+                            className={
+                                'publication-collection-card' +
+                                    (disabled ? ' disabled' : '')
+                            }
+                            href={disabled ? undefined : href}
+                            aria-disabled={disabled || undefined}
+                            key={key}>
+                            <CollectionCardThumbnail
+                                collectionKey={key}
+                                label={label}
+                            />
+                            <div className="publication-collection-card-body">
+                                <span className="publication-collection-card-label">
+                                    {label}
+                                </span>
+                                <h3 className="publication-collection-card-title">
+                                    {title}
+                                </h3>
+                                <p className="publication-collection-card-description">
+                                    {description}
+                                </p>
+                                <span className="publication-collection-card-link">
+                                    {linkText}
+                                    <RightArrowIcon stemLength={40} />
+                                </span>
+                            </div>
+                        </CardTag>
+                    );
+                }
+            )}
+        </div>
+    </div>
+);

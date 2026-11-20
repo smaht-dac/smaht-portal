@@ -33,15 +33,15 @@ import {
  * @param { Array } facets - Facets to use for overrides
  * @returns a function that transforms facet terms with overrides
  */
-export const termTransformFxnWithOverrides = (facets = null) => {
+export const termTransformFxnWithOverrides = (facets = null) =>
     // Returns a separate function that uses schemas for overrides
-    return function (field, key) {
+    function (field, key) {
         return (
             facets.find((f) => f.field === field)?.label_overrides?.[key] ??
             Schemas.Term.toName(field, key)
         );
-    };
-};
+    }
+;
 
 /**
  * Function which is passed into a `.filter()` call to

@@ -1,10 +1,18 @@
 {
+    "ignorePatterns": ["src/encoded/static/build/**"],
     "rules": {
         "array-callback-return" : "error",
         "arrow-body-style" : ["error", "as-needed", { "requireReturnForObjectLiteral": true }],
         "arrow-parens" : ["error", "always"],
         "generator-star-spacing" : "error",
-        "indent": [2, 4, {"SwitchCase": 1}],
+        "indent": [
+            2,
+            4,
+            {
+                "SwitchCase": 1,
+                "ignoredNodes": ["JSXElement", "JSXFragment"]
+            }
+        ],
         "getter-return" :"error",
         "jsx-quotes" : ["error", "prefer-double"],
         "linebreak-style": [2, "unix"],
@@ -75,6 +83,15 @@
         "prettier"
     ],
     "overrides": [
+        {
+            "files": [
+                "./src/encoded/static/server.js",
+                "./src/encoded/static/libs/react-middleware.js"
+            ],
+            "env": {
+                "node": true
+            }
+        },
         // Prettier isn't great at formatting these files, so we're skipping
         // them there; doing this here to prevent annoying squigglies
         {

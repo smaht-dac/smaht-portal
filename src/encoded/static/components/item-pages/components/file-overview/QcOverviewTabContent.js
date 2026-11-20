@@ -157,7 +157,7 @@ const QCOverviewTable = ({
                         <a
                             href={`/qc-metrics?tab=metrics-by-file&file=${accession}`}
                             target="_blank"
-                            className="btn btn-sm btn-primary">
+                            className="btn btn-sm btn-primary" rel="noreferrer">
                             <i className="icon icon-chart-area fas me-1"></i>
                             Visualize Quality Metrics
                         </a>
@@ -178,7 +178,7 @@ const QCOverviewTable = ({
                             <a
                                 href={`/qc-metrics?tab=sample-integrity&file=${accession}`}
                                 target="_blank"
-                                className="btn btn-sm btn-outline-secondary">
+                                className="btn btn-sm btn-outline-secondary" rel="noreferrer">
                                 <i className="icon icon-chart-area fas me-1"></i>
                                 View Relatedness Chart
                             </a>
@@ -233,36 +233,34 @@ const QCOverviewTable = ({
                                     (
                                         { accession, overall_quality_status },
                                         i
-                                    ) => {
-                                        return (
-                                            <th
-                                                className="text-left fw-semibold"
-                                                key={i}>
-                                                <div className="d-flex flex-column">
-                                                    <span className="d-flex align-items-center lh-base">
-                                                        QC Run #{i + 1} (
-                                                        <a
-                                                            href={`/${accession}`}>
-                                                            {accession}
-                                                        </a>
+                                    ) => (
+                                        <th
+                                            className="text-left fw-semibold"
+                                            key={i}>
+                                            <div className="d-flex flex-column">
+                                                <span className="d-flex align-items-center lh-base">
+                                                    QC Run #{i + 1} (
+                                                    <a
+                                                        href={`/${accession}`}>
+                                                        {accession}
+                                                    </a>
+                                                    )
+                                                </span>
+                                                <span className="fw-medium d-flex align-items-center gap-1">
+                                                    Overall QC Status:{' '}
+                                                    {overall_quality_status ? (
+                                                        getBadge(
+                                                            overall_quality_status
                                                         )
-                                                    </span>
-                                                    <span className="fw-medium d-flex align-items-center gap-1">
-                                                        Overall QC Status:{' '}
-                                                        {overall_quality_status ? (
-                                                            getBadge(
-                                                                overall_quality_status
-                                                            )
-                                                        ) : (
-                                                            <span className="text-muted fw-normal">
-                                                                N/A
-                                                            </span>
-                                                        )}
-                                                    </span>
-                                                </div>
-                                            </th>
-                                        );
-                                    }
+                                                    ) : (
+                                                        <span className="text-muted fw-normal">
+                                                            N/A
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </th>
+                                    )
                                 )}
                             </tr>
                         </thead>
@@ -308,11 +306,11 @@ const QCOverviewTable = ({
                                                                         )}
                                                                     </span>
                                                                 </div>
-                                                            ) : (
-                                                                <span className="text-secondary">
-                                                                    -
-                                                                </span>
-                                                            )}
+                                                                ) : (
+                                                                    <span className="text-secondary">
+                                                                        -
+                                                                    </span>
+                                                                )}
                                                         </td>
                                                     );
                                                 }
@@ -338,16 +336,14 @@ const QCOverviewTable = ({
 };
 
 // Top level component for QC Overview tab content
-export const QcOverviewTabContent = ({ session, context }) => {
-    return (
-        <QCOverviewTable
-            qcItems={context?.quality_metrics ?? []}
-            accession={context?.accession}
-            isRNASeq={context?.assays?.some(
-                (assay) => assay?.display_title === 'RNA-seq'
-            )}
-            isOutputFile={context?.['@type'].includes('OutputFile')}
-            session={session}
-        />
-    );
-};
+export const QcOverviewTabContent = ({ session, context }) => (
+    <QCOverviewTable
+        qcItems={context?.quality_metrics ?? []}
+        accession={context?.accession}
+        isRNASeq={context?.assays?.some(
+            (assay) => assay?.display_title === 'RNA-seq'
+        )}
+        isOutputFile={context?.['@type'].includes('OutputFile')}
+        session={session}
+    />
+);
