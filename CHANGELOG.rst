@@ -7,13 +7,22 @@ smaht-portal
 Change Log
 ----------
 
-2.15.20
+2.15.21
 =======
 
 `PR 794: feat: separate renamed and retracted files in tabs <https://github.com/smaht-dac/smaht-portal/pull/794>`_
 
 * Separate Retracted Files and Renamed Files tables in tabs
 * Consolidate static sections and render just one
+
+
+2.15.20
+=======
+
+`PR 795: eHAT-Seq and scATAC-Seq updates <https://github.com/smaht-dac/smaht-portal/pull/795>`_
+
+* Update annotated file names script so VCFs with germline and somatic variants don't include the string ``germline``
+* Add enums to ``File.data_type`` and ``Software.category`` for scATAC-Seq
 
 
 2.15.19
