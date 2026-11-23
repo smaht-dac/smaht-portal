@@ -24,10 +24,10 @@ const primaryTissuePageDescription = (
             benchmarking donors:
         </p>
         <ul>
-            <li>Donor ST001: Liver 1A, Lung 1D, and Skin 1K</li>
-            <li>Donor ST002: Colon 1G, Lung 1D, and Skin 1K</li>
-            <li>Donor ST003: Brain 1Q</li>
-            <li>Donor ST004: Brain 1Q</li>
+            <li>Donor ST001: 1A - Liver, 1D - Lung, and 1K - Skin</li>
+            <li>Donor ST002: 1G - Colon, 1D - Lung, and 1K - Skin</li>
+            <li>Donor ST003: 1Q - Brain</li>
+            <li>Donor ST004: 1Q - Brain</li>
         </ul>
     </>
 );
@@ -252,7 +252,7 @@ export const BenchmarkingDataMap = {
         tabMapArray: [
             {
                 eventKey: '#liver',
-                title: 'Liver 1A',
+                title: '1A - Liver',
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
@@ -260,7 +260,7 @@ export const BenchmarkingDataMap = {
             },
             {
                 eventKey: '#lung',
-                title: 'Lung 1D',
+                title: '1D - Lung',
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
@@ -268,7 +268,7 @@ export const BenchmarkingDataMap = {
             },
             {
                 eventKey: '#skin',
-                title: 'Skin 1K',
+                title: '1K - Skin',
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
@@ -286,7 +286,7 @@ export const BenchmarkingDataMap = {
         tabMapArray: [
             {
                 eventKey: '#colon',
-                title: 'Colon 1G',
+                title: '1G - Colon',
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
@@ -294,7 +294,7 @@ export const BenchmarkingDataMap = {
             },
             {
                 eventKey: '#lung',
-                title: 'Lung 1D',
+                title: '1D - Lung',
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
@@ -302,7 +302,7 @@ export const BenchmarkingDataMap = {
             },
             {
                 eventKey: '#skin',
-                title: 'Skin 1K',
+                title: '1K - Skin',
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
@@ -320,7 +320,7 @@ export const BenchmarkingDataMap = {
         tabMapArray: [
             {
                 eventKey: '#brain',
-                title: 'Brain 1Q',
+                title: '1Q - Brain',
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
@@ -338,7 +338,7 @@ export const BenchmarkingDataMap = {
         tabMapArray: [
             {
                 eventKey: '#brain',
-                title: 'Brain 1Q',
+                title: '1Q - Brain',
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
