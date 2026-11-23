@@ -37,6 +37,7 @@ import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
 import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
 import { PipelineDocsNavigation } from '../PipelineDocsNavigation';
 import { DataMatrixComparisonTabs } from '../components/DataMatrixComparisonTabs';
+import { DataRetractionTabs } from '../components/DataRetractionTabs';
 import { PublicationCollectionsNavigation } from '../PublicationCollectionsNavigation';
 import { PublicationCollection } from '../PublicationCollection';
 import { RecentReleasesTimelineMatrix } from '../components/RecentReleasesTimelineMatrix';
@@ -72,6 +73,7 @@ const placeholders = {
     RetractedFilesTable,
     RenamedFilesTable,
     DataMatrixComparisonTabs,
+    DataRetractionTabs,
     DataMatrix,
     SubmissionDataDictionary,
     DonorManifestDataDictionary,

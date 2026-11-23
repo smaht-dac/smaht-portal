@@ -212,7 +212,8 @@ const CustomWrapper = React.memo(function CustomWrapper({
     // Keep wide-layout pages without affecting other static pages.
     const isWideLayoutPage = parsedHrefPathname === '/data-matrix'
         || parsedHrefPathname === '/recent-releases'
-        || parsedHrefPathname === '/schema-explorer';
+        || parsedHrefPathname === '/schema-explorer'
+        || parsedHrefPathname === '/retracted-files';
     const wrapperClassName = isWideLayoutPage ? 'container-wide' : 'container';
 
     // Prepare event listeners for top nav links to scroll to section

@@ -2,13 +2,11 @@
 
 import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
-import memoize from 'memoize-one';
 import _ from 'underscore';
 import { OverlayTrigger } from 'react-bootstrap';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
-import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { navigate, Schemas } from './../util';
+import { navigate } from './../util';
 import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
 import { transformedFacets, SearchViewPageTitle, termTransformFxnWithOverrides } from './SearchView';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
