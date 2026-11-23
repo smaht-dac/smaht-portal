@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.15.23
+=======
+
+`PR 803: feat: add status facet back to browse and search tables <https://github.com/smaht-dac/smaht-portal/pull/803>`_
+
+* Add status facet to file tables
+
+
 2.15.22
 =======
 
