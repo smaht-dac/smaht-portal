@@ -929,8 +929,8 @@ i.status-indicator-dot {
         font-family: Inter;
         color: #5d5e63;
         font-size: 0.875rem;
-        padding: 8px;
-        line-height: 20px;
+        padding: 15px;
+        line-height: 25px;
 
         .flag {
             font-weight: 600;
@@ -960,7 +960,8 @@ i.status-indicator-dot {
     &.data-available {
         background-color: #e3fbff;
         border: 1px solid #96e8f7;
-        padding: 15px;
+        display: flex;
+        padding: 0px 20px;
         margin-bottom: 10px;
         border-radius: 7px;
 
@@ -973,9 +974,11 @@ i.status-indicator-dot {
         .callout-text {
             color: #0e4855;
             font-size: 1rem;
+            padding-left: 0;
+            padding-right: 0;
 
             b {
-                font-weight: 500;
+                font-weight: 600;
             }
         }
 
@@ -1281,237 +1284,230 @@ body[data-pathname^='/users/'] {
                         box-shadow: 0 0 0 0.2rem #0b62ba4d;
                     }
                 }
+            }
+        }
 
-				}
-			}
+        @include media-breakpoint-up(md) {
+            .editing .user-title .editable-field-entry.inline:not(.editing) {
+                display: inline-block;
+                //max-width: 30%;
+            }
+        }
 
+        .panel.user-work-info {
+            > .block-title {
+                margin-bottom: 20px;
+                padding-bottom: 20px;
+                border-bottom: 1px solid #eee;
+                padding-top: 0;
 
-			@include media-breakpoint-up(md){
-				.editing .user-title .editable-field-entry.inline:not(.editing) {
-					display: inline-block;
-					//max-width: 30%;
-				}
-			}
+                > i.icon.icon-fw {
+                    margin-right: 5px;
+                    font-size: 1.5rem;
+                }
+            }
+        }
 
-			.panel.user-work-info {
+        .access-keys-container {
+            table.access-keys-table {
+                thead {
+                    tr {
+                        background-color: #f0f9ff;
+                        border: 1px solid #edf3f6;
+                        border-left: none;
+                        border-right: none;
+                        th {
+                            background-color: transparent;
+                            border: none;
+                        }
+                    }
+                }
 
-				> .block-title {
-					margin-bottom: 20px;
-					padding-bottom: 20px;
-					border-bottom: 1px solid #eee;
-					padding-top: 0;
+                tr {
+                    width: 100%;
+                    border-bottom: 1px solid #eee;
+                    td {
+                        border-top: none;
+                        &.access-key-buttons {
+                            display: flex;
+                            width: 140px;
+                            margin: auto 10px auto auto;
 
-					> i.icon.icon-fw {
-						margin-right: 5px;
-						font-size: 1.5rem;
-					}
-				}
+                            .btn.btn-xs {
+                                margin: 0 4px;
 
-			}
+                                &.reset {
+                                    background-color: transparent;
+                                    border: none;
+                                    color: $gray-70;
 
-			.access-keys-container {
+                                    &:hover {
+                                        background-color: #eee;
+                                    }
+                                    &:focus {
+                                        box-shadow: #eee;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
-				table.access-keys-table {
-					thead {
-						tr {
-							background-color: #F0F9FF;
-							border: 1px solid #EDF3F6;
-							border-left: none;
-							border-right: none;
-							th {
-								background-color: transparent;
-								border:none;
-							}
-						}
-					}
+            #add-access-key.btn {
+                float: right;
+                min-width: 180px;
+                font-weight: 600;
+                background-color: #0e74d2;
+                border-color: #0b62ba;
+                border-radius: 5px;
 
-					tr {
-						width: 100%;
-						border-bottom: 1px solid #eee;
-						td {
-							border-top: none;
-							&.access-key-buttons {
-								display:flex;
-								width: 140px;
-								margin: auto 10px auto auto;
+                &:hover {
+                    background-color: #0f6cc2;
+                }
+                &:focus {
+                    box-shadow: 0 0 0 0.2rem #0b62ba4d;
+                }
+            }
 
-								.btn.btn-xs {
-									margin: 0 4px;
+            .no-access-keys > hr:first-child {
+                margin-top: 0;
+                margin-bottom: 17px;
+            }
+        }
 
-									&.reset {
-										background-color: transparent;
-										border: none;
-										color: $gray-70;
+        .data-release-notification-enrollment {
+            .card-header {
+                padding-left: 30px;
+                h3 {
+                    color: #343741;
+                    font-size: 1.5rem;
+                    font-weight: 400;
+                }
+            }
+            .card-body {
+                padding: 1rem;
+                padding-left: 22px;
+                color: #343741;
 
-										&:hover {
-											background-color: #eee;
-										}
-										&:focus {
-											box-shadow: #eee;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
+                .alert {
+                    display: flex;
+                    padding-left: 10px;
+                    margin-top: 1.25rem;
+                    margin-bottom: 0px;
 
-				#add-access-key.btn{
-					float: right;
-					min-width: 180px;
-					font-weight: 600;
-					background-color: #0E74D2;
-					border-color: #0B62BA;
-					border-radius: 5px;
+                    &-success {
+                        background-color: #ecfff2;
+                        border: 1px solid #99e199;
+                    }
 
-					&:hover {
-						background-color: #0f6cc2;
-					}
-					&:focus {
-						box-shadow: 0 0 0 0.2rem #0b62ba4d;
-					}
-				}
+                    &-unsubscribed {
+                        background-color: #f0f2ff;
+                        border-color: #c1bbf7;
+                        color: #12052a;
+                    }
+                }
 
-				.no-access-keys > hr:first-child {
-					margin-top: 0;
-                    margin-bottom: 17px;
-				}
+                .subscription-text {
+                    padding: 12px;
 
-			}
+                    p {
+                        margin-right: 20px;
+                    }
 
-			.data-release-notification-enrollment {
-				.card-header {
-					padding-left: 30px;
-					h3 {
-						color: #343741;
-						font-size: 1.5rem;
-						font-weight: 400;
-					}
-				}
-				.card-body {
-					padding: 1rem;
-					padding-left: 22px;
-					color: #343741;
+                    &.subscribed {
+                        border-radius: 0.25rem;
+                        padding: 10px;
+                        background-color: #ecfff2;
+                        border: 1px solid #99e199;
+                    }
+                }
 
-					.alert {
-						display: flex;
-						padding-left: 10px;
-						margin-top: 1.25rem;
-						margin-bottom: 0px;
+                hr {
+                    color: black;
+                    opacity: 0.08;
+                }
 
-						&-success {
-							background-color: #ECFFF2;
-							border: 1px solid #99E199;
-						}
-						
-						&-unsubscribed {
-							background-color: #F0F2FF;
-							border-color: #C1BBF7;
-							color: #12052A;
-						}
-					}
+                .subscribe-button {
+                    font-weight: 600;
+                    border: 1px solid #0963ba;
+                    padding: 6px 12px;
 
-					.subscription-text {
-						padding: 12px;
+                    &.subscribed {
+                        border-color: #dee2e6;
+                    }
+                }
+            }
+        }
+    }
+}
 
-						p {
-							margin-right: 20px;
-						}
+// Modal is portal-rendered to <body>, so it isn't nested under .user-profile-page above.
+.subscription-confirm-modal-backdrop.show {
+    opacity: 0.15;
+}
+div.subscription-confirm-modal {
+    backdrop-filter: blur(3px);
 
-						&.subscribed {
-							border-radius: 0.25rem;
-							padding: 10px;
-							background-color: #ECFFF2;
-							border: 1px solid #99E199;
-						}
-					}
+    #subscription-confirm-modal {
+        max-width: 625px;
 
-					hr {
-						color: black;
-						opacity: 0.08;
-					}
+        .modal-content {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0px 0px 10px #d3d9e7;
 
-					.subscribe-button {
-						font-weight: 600;
-						border: 1px solid #0963BA;
-						padding: 6px 12px;
+            i {
+                color: #597598;
+                font-size: 0.875rem;
+            }
+        }
 
-						&.subscribed {
-							border-color: #DEE2E6;
-						}
-					}
-				}
-			}
+        .modal-header {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1;
+            border: none;
+            padding: 0;
 
-		}
-	}
+            .btn-close {
+                margin: 0px 2px;
+                padding: 0.5rem;
+            }
+        }
 
-	// Modal is portal-rendered to <body>, so it isn't nested under .user-profile-page above.
-	.subscription-confirm-modal-backdrop.show {
-		opacity: 0.15;
-	}
-	div.subscription-confirm-modal {
-		backdrop-filter: blur(3px);
+        .callout-card.protected-data {
+            padding: 20px 0px 10px;
+            color: #343741;
 
-		#subscription-confirm-modal {
-			max-width: 625px;
+            img {
+                width: 50px;
+            }
 
-			.modal-content {
-				border: none;
-				border-radius: 20px;
-				box-shadow: 0px 0px 10px #D3D9E7;
+            h4 {
+                margin: 15px;
+                color: #0e3669;
+            }
 
-				i {
-					color: #597598;
-					font-size: 0.875rem;
-				}
-			}
+            span {
+                color: #343741;
 
-			.modal-header {
-				position: absolute;
-				top: 10px;
-				right: 10px;
-				z-index: 1;
-				border: none;
-				padding: 0;
+                i {
+                    white-space: nowrap;
+                    color: #798fab;
+                }
+            }
+        }
 
-				.btn-close {
-					margin: 0px 2px;
-					padding: 0.5rem;
-				}
-			}
-
-			.callout-card.protected-data {
-				padding: 20px 0px 10px;
-				color: #343741;
-
-				img {
-					width: 50px;
-				}
-
-				h4 {
-					margin: 15px;
-					color: #0E3669;
-				}
-
-				span {
-					color: #343741;
-					
-					i {
-						white-space: nowrap;
-						color: #798FAB;
-					}
-				}
-			}
-
-			.modal-footer {
-				justify-content: center;
-				border: none;
-				padding-top: 0;
-				padding-bottom: 20px;
-			}
-		}
-	}
+        .modal-footer {
+            justify-content: center;
+            border: none;
+            padding-top: 0;
+            padding-bottom: 20px;
+        }
+    }
+}
 
 .qcm-flag[data-flag='fail'] {
     color: rgb(178, 67, 66);
