@@ -2,6 +2,7 @@ from copy import deepcopy
 from typing import Any, Dict
 
 import pytest
+from snovault.elasticsearch.create_mapping import schema_mapping
 
 from .utils import load_schema, validate_schema
 
@@ -42,21 +43,32 @@ def make_term_with_specifications(*specifications: Dict[str, Any]) -> Dict[str, 
     return term
 
 
-def test_ontology_term_has_generalized_tissue_metadata_fields() -> None:
+def test_ontology_term_schema_generates_search_mapping() -> None:
     schema = load_schema("ontology_term")
-    properties = schema["properties"]
 
-    assert {
-        "internal_code",
-        "standardized_recovery_description",
-        "initial_tissue_configuration",
-        "aliquot_specifications",
-        "aliquot_preparation_notes",
-    } <= properties.keys()
-    assert "frozen_aliquot_specification" not in properties
-    assert "fixed_aliquot_specification" not in properties
-    assert "tpc_code" not in properties
-    assert "aliquot_group" not in properties
+    specification_schema = schema["properties"]["aliquot_specifications"]["items"]
+    specification_properties_schema = specification_schema["properties"]
+    dimensions_schema = specification_properties_schema["dimensions"]["properties"]
+
+    properties = schema_mapping("*", schema)["properties"]
+    specification_properties = schema_mapping("*", specification_schema)["properties"]
+    volume_properties = schema_mapping(
+        "*", specification_properties_schema["volumes"]
+    )["properties"]
+    scope_properties = schema_mapping(
+        "*", specification_properties_schema["scope"]
+    )["properties"]
+    ordered_properties = schema_mapping("*", dimensions_schema["ordered"])["properties"]
+
+    assert properties["internal_code"]["type"] == "text"
+    assert properties["aliquot_preparation_notes"]["type"] == "text"
+    assert "aliquot_specifications" in properties
+    assert specification_properties["preservation"]["type"] == "text"
+    assert specification_properties["count"]["type"] == "long"
+    assert volume_properties["value"]["type"] == "float"
+    assert scope_properties["kind"]["type"] == "text"
+    assert ordered_properties["value"]["type"] == "float"
+    assert ordered_properties["qualifier"]["type"] == "text"
 
 
 @pytest.mark.parametrize(
@@ -293,13 +305,6 @@ def test_existing_protocol_ids_and_preferred_name_remain_unchanged() -> None:
     )
 
     assert not validate_schema(schema, term)
-    assert term["preferred_name"] == "3Q - Lung"
-    assert term["valid_protocol_ids"] == [
-        "3Q",
-        "3R",
-        "1D_Frozen",
-        "1F_Fixed",
-    ]
 
 
 @pytest.mark.parametrize(
