@@ -12,8 +12,8 @@ const primaryTissuePageDescription = (
     <>
         <p>
             The SMaHT benchmarking tissues were obtained from four{' '}
-            <i>post mortem</i> donors. From the donors, four tissue types were
-            obtained, in total, i.e., lung, liver, colon, and the brain. The
+            <i>post mortem</i> donors. From the donors, five tissue types were
+            obtained, in total, i.e., lung, liver, colon, skin, and the brain. The
             benchmarking tissues were homogenized (unless otherwise noted) to
             ensure the cellular homogeneity in sample distribution.
         </p>
