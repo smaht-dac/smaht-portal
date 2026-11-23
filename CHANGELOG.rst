@@ -17,6 +17,7 @@ Change Log
 * Update dbGaP Documentation page
 * Correct Privacy Policy link in self registration modal
 * Update Browse View Modal Text
+* Fix data-available callout text overflowing its padding
 
 
 2.15.21
