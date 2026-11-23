@@ -153,6 +153,14 @@ export class FacetCharts extends React.PureComponent {
                 }
             );
         } else {
+            // Already initialized from an earlier visit. barplot_data_fields is
+            // shared by every mapping, so it may still hold another page's Group
+            // By (e.g. Browse by File's Sequencing Center, which Donor charts
+            // don't offer): start from this page's defaults again. A no-op
+            // when the fields are already the defaults.
+            if (Array.isArray(initialFields) && initialFields.length > 0) {
+                ChartDataController.updateBarPlotFields(mapping, initialFields);
+            }
             if (debug) console.log('Mounted FacetCharts');
             setTimeout(() => this.setState({ 'mounted' : true }), 100);
         }
