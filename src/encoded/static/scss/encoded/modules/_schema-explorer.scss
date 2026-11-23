@@ -212,7 +212,10 @@
     // A card's arrows into widely used schemas, drawn only when traced, are named just under it.
     .entity-node text.se-atlas-hub-tag { font-size: 11px; fill: #5d5e63; }
     // Tracing steps the other arrows and their labels back, as on a schema's map.
+    // Arrows between two groups stay faint until a schema or the arrow itself is pointed at.
+    .se-atlas-cross .se-edge { opacity: .25; }
     .se-atlas-tracing {
+        .se-atlas-on .se-edge { opacity: 1; }
         .se-atlas-off .se-edge { opacity: .08; }
         .se-atlas-label-off { opacity: .2; }
         .se-edge.se-traced-edge { stroke-width: 3; }
