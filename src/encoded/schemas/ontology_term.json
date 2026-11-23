@@ -116,6 +116,12 @@
                 "type": "string"
             }
         },
+        "internal_code": {
+            "title": "Internal Code",
+            "description": "Four-letter source-backed tissue code; not a protocol identifier.",
+            "type": "string",
+            "pattern": "^[A-Z]{4}$"
+        },
         "standardized_recovery_description": {
             "title": "Standardized Recovery Description",
             "description": "Canonical description of the standardized tissue recovery location.",
@@ -126,249 +132,17 @@
             "description": "Curated description of the tissue configuration before aliquoting.",
             "type": "string"
         },
-        "frozen_aliquot_specification": {
-            "title": "Frozen Aliquot Specification",
-            "description": "Source-specified count, scope, and dimensions for frozen aliquots.",
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-                "count",
-                "count_scope",
-                "dimensions_cm"
-            ],
-            "properties": {
-                "count": {
-                    "type": "integer",
-                    "minimum": 1
-                },
-                "count_scope": {
-                    "type": "string",
-                    "enum": [
-                        "per organ",
-                        "per tissue",
-                        "per half"
-                    ]
-                },
-                "total_count": {
-                    "type": "integer",
-                    "minimum": 1
-                },
-                "total_scope": {
-                    "type": "string",
-                    "enum": [
-                        "per organ",
-                        "per bilateral organ"
-                    ]
-                },
-                "dimensions_cm": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                        "length",
-                        "width",
-                        "full_thickness"
-                    ],
-                    "properties": {
-                        "length": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                        },
-                        "width": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                        },
-                        "depth": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                        },
-                        "full_thickness": {
-                            "type": "boolean"
-                        }
-                    },
-                    "allOf": [
-                        {
-                            "if": {
-                                "properties": {
-                                    "full_thickness": {
-                                        "const": true
-                                    }
-                                }
-                            },
-                            "then": {
-                                "not": {
-                                    "required": [
-                                        "depth"
-                                    ]
-                                }
-                            }
-                        },
-                        {
-                            "if": {
-                                "properties": {
-                                    "full_thickness": {
-                                        "const": false
-                                    }
-                                }
-                            },
-                            "then": {
-                                "required": [
-                                    "depth"
-                                ]
-                            }
-                        }
-                    ]
-                }
-            },
-            "allOf": [
-                {
-                    "if": {
-                        "required": [
-                            "total_count"
-                        ]
-                    },
-                    "then": {
-                        "required": [
-                            "total_scope"
-                        ]
-                    }
-                },
-                {
-                    "if": {
-                        "required": [
-                            "total_scope"
-                        ]
-                    },
-                    "then": {
-                        "required": [
-                            "total_count"
-                        ]
-                    }
-                }
-            ]
-        },
-        "fixed_aliquot_specification": {
-            "title": "Fixed Aliquot Specification",
-            "description": "Source-specified count, scope, and dimensions for fixed aliquots.",
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-                "count",
-                "count_scope",
-                "dimensions_cm"
-            ],
-            "properties": {
-                "count": {
-                    "type": "integer",
-                    "minimum": 1
-                },
-                "count_scope": {
-                    "type": "string",
-                    "enum": [
-                        "per organ",
-                        "per tissue",
-                        "per half"
-                    ]
-                },
-                "total_count": {
-                    "type": "integer",
-                    "minimum": 1
-                },
-                "total_scope": {
-                    "type": "string",
-                    "enum": [
-                        "per organ",
-                        "per bilateral organ"
-                    ]
-                },
-                "dimensions_cm": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                        "length",
-                        "width",
-                        "full_thickness"
-                    ],
-                    "properties": {
-                        "length": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                        },
-                        "width": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                        },
-                        "depth": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                        },
-                        "full_thickness": {
-                            "type": "boolean"
-                        }
-                    },
-                    "allOf": [
-                        {
-                            "if": {
-                                "properties": {
-                                    "full_thickness": {
-                                        "const": true
-                                    }
-                                }
-                            },
-                            "then": {
-                                "not": {
-                                    "required": [
-                                        "depth"
-                                    ]
-                                }
-                            }
-                        },
-                        {
-                            "if": {
-                                "properties": {
-                                    "full_thickness": {
-                                        "const": false
-                                    }
-                                }
-                            },
-                            "then": {
-                                "required": [
-                                    "depth"
-                                ]
-                            }
-                        }
-                    ]
-                }
-            },
-            "allOf": [
-                {
-                    "if": {
-                        "required": [
-                            "total_count"
-                        ]
-                    },
-                    "then": {
-                        "required": [
-                            "total_scope"
-                        ]
-                    }
-                },
-                {
-                    "if": {
-                        "required": [
-                            "total_scope"
-                        ]
-                    },
-                    "then": {
-                        "required": [
-                            "total_count"
-                        ]
-                    }
-                }
-            ]
+        "aliquot_specifications": {
+            "title": "Aliquot Specifications",
+            "description": "Source-preserving preservation and aliquot specifications; quantitative fields are optional when the source is unspecified or inapplicable.",
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/aliquot_specification"
+            }
         },
         "aliquot_preparation_notes": {
             "title": "Aliquot Preparation Notes",
-            "description": "Curated notes about preparation instructions not represented by counts and dimensions.",
+            "description": "Curated notes about preparation instructions not represented by structured aliquot specifications.",
             "type": "string"
         },
         "tags": {
@@ -381,6 +155,376 @@
                     "germ_layer"
                 ]
             }
+        }
+    },
+    "$defs": {
+        "positive_integer": {
+            "type": "integer",
+            "minimum": 1
+        },
+        "scope_kind": {
+            "type": "string",
+            "enum": [
+                "per organ",
+                "per tissue",
+                "per half",
+                "per bilateral organ",
+                "per collection",
+                "per aliquot",
+                "aggregate"
+            ]
+        },
+        "numeric_measurement": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "value"
+            ],
+            "properties": {
+                "value": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                }
+            }
+        },
+        "full_thickness_measurement": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "qualifier"
+            ],
+            "properties": {
+                "qualifier": {
+                    "const": "full_thickness"
+                }
+            }
+        },
+        "ordered_dimensions": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "unit",
+                "ordered"
+            ],
+            "properties": {
+                "unit": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "ordered": {
+                    "type": "array",
+                    "oneOf": [
+                        {
+                            "minItems": 1,
+                            "maxItems": 3,
+                            "items": {
+                                "$ref": "#/$defs/numeric_measurement"
+                            }
+                        },
+                        {
+                            "minItems": 1,
+                            "maxItems": 1,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/$defs/full_thickness_measurement"
+                                }
+                            ],
+                            "items": false
+                        },
+                        {
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/$defs/numeric_measurement"
+                                },
+                                {
+                                    "$ref": "#/$defs/full_thickness_measurement"
+                                }
+                            ],
+                            "items": false
+                        },
+                        {
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "prefixItems": [
+                                {
+                                    "$ref": "#/$defs/numeric_measurement"
+                                },
+                                {
+                                    "$ref": "#/$defs/numeric_measurement"
+                                },
+                                {
+                                    "$ref": "#/$defs/full_thickness_measurement"
+                                }
+                            ],
+                            "items": false
+                        }
+                    ]
+                }
+            }
+        },
+        "aliquot_volume": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "value",
+                "unit",
+                "scope"
+            ],
+            "properties": {
+                "value": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "unit": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "scope": {
+                    "$ref": "#/$defs/scope_kind"
+                }
+            }
+        },
+        "aliquot_scope": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "kind"
+            ],
+            "properties": {
+                "kind": {
+                    "$ref": "#/$defs/scope_kind"
+                },
+                "owner": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "laterality": {
+                    "type": "string",
+                    "enum": [
+                        "left",
+                        "right",
+                        "bilateral",
+                        "unspecified"
+                    ]
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "kind": {
+                                "const": "aggregate"
+                            }
+                        },
+                        "required": [
+                            "kind"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "owner"
+                        ]
+                    }
+                }
+            ]
+        },
+        "aliquot_specification": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "preservation",
+                "source_text",
+                "status"
+            ],
+            "properties": {
+                "preservation": {
+                    "type": "string",
+                    "enum": [
+                        "Fixed",
+                        "Snap Frozen",
+                        "Fresh",
+                        "Cultured Cells",
+                        "Unspecified",
+                        "Not applicable"
+                    ]
+                },
+                "source_text": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "normative",
+                        "representative",
+                        "unspecified",
+                        "inapplicable"
+                    ]
+                },
+                "variability": {
+                    "type": "string",
+                    "enum": [
+                        "fixed",
+                        "variable",
+                        "unspecified"
+                    ]
+                },
+                "count": {
+                    "$ref": "#/$defs/positive_integer"
+                },
+                "count_unit": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "count_scope": {
+                    "$ref": "#/$defs/scope_kind"
+                },
+                "total_count": {
+                    "$ref": "#/$defs/positive_integer"
+                },
+                "total_scope": {
+                    "$ref": "#/$defs/scope_kind"
+                },
+                "volumes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/aliquot_volume"
+                    }
+                },
+                "dimensions": {
+                    "$ref": "#/$defs/ordered_dimensions"
+                },
+                "scope": {
+                    "$ref": "#/$defs/aliquot_scope"
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "required": [
+                            "count"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "count_unit",
+                            "count_scope"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "required": [
+                            "total_count"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "count_unit",
+                            "total_scope"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "required": [
+                            "count_unit"
+                        ]
+                    },
+                    "then": {
+                        "anyOf": [
+                            {
+                                "required": [
+                                    "count"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "total_count"
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "required": [
+                            "count_scope"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "count"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "required": [
+                            "total_scope"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "total_count"
+                        ]
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "count_scope": {
+                                "const": "aggregate"
+                            }
+                        },
+                        "required": [
+                            "count_scope"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "scope"
+                        ],
+                        "properties": {
+                            "scope": {
+                                "properties": {
+                                    "kind": {
+                                        "const": "aggregate"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "total_scope": {
+                                "const": "aggregate"
+                            }
+                        },
+                        "required": [
+                            "total_scope"
+                        ]
+                    },
+                    "then": {
+                        "required": [
+                            "scope"
+                        ],
+                        "properties": {
+                            "scope": {
+                                "properties": {
+                                    "kind": {
+                                        "const": "aggregate"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
         }
     },
     "columns": {
