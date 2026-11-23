@@ -10,6 +10,13 @@ import { ChartDataController } from './../../viz/chart-data-controller';
 import * as BarPlot from './../../viz/BarPlot';
 import { termTransformFxnWithOverrides } from './../SearchView';
 
+// Browse by File's "Group By" menu -- the default list plus the center that
+// sequenced each file, a File-level field Donor/Protected Donor charts have
+// no single value of.
+const FILE_SUBDIVISION_FIELDS = BarPlot.UIControlsWrapper.defaultProps.availableFields_Subdivision.concat([
+    { title: 'Sequencing Center', field: 'sequencing_center.display_title' },
+]);
+
 function getCandidateFields(field, fieldList) {
     if (typeof field !== 'string') return [];
 
@@ -347,7 +354,10 @@ export class FacetCharts extends React.PureComponent {
         return (
             <div className={"facet-charts show-" + show} key="facet-charts">
                 <ChartDataController.Provider id={"barplot-" + mapping}>
-                    <BarPlot.UIControlsWrapper legend chartHeight={height} {...{ href, windowWidth, cursorDetailActions, donorFilters, mapping, subBarLayout, termLabelTransform }}>
+                    <BarPlot.UIControlsWrapper legend chartHeight={height}
+                        // undefined falls back to UIControlsWrapper's own default list.
+                        availableFields_Subdivision={mapping === 'all' ? FILE_SUBDIVISION_FIELDS : undefined}
+                        {...{ href, windowWidth, cursorDetailActions, donorFilters, mapping, subBarLayout, termLabelTransform }}>
                         <BarPlot.Chart {...{ width, height, schemas, windowWidth, href, cursorDetailActions, context, termLabelTransform }} />
                     </BarPlot.UIControlsWrapper>
                 </ChartDataController.Provider>
