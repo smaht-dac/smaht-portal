@@ -5,6 +5,7 @@ import { routeEdges } from './routing';
 import { researchLabels, concepts } from './research-map';
 import { groupRelationships, sharedRelationships } from './relationship-view';
 import { nodePresentation, stageAccent } from './node-presentation';
+import { exportPNG } from './shared';
 
 // Every schema as one network, drawn like the group maps: each group laid out exactly as its own group map (its
 // stage panels, the same cards and labelled, routed arrows), the groups placed along the donor-to-data path, at a
@@ -147,6 +148,7 @@ export default function SchemaAtlas({ index, query, onOpen }) {
     const [camera, setCamera] = useState(null);
     // Full screen, as on a schema's map: the canvas takes the window; Escape or the button leaves it.
     const [full, setFull] = useState(false);
+    const [exporting, setExporting] = useState(false), [error, setError] = useState('');
     useEffect(() => {
         if (!full) return undefined;
         const escape = (e) => { if (e.key === 'Escape') setFull(false); };
@@ -249,13 +251,25 @@ export default function SchemaAtlas({ index, query, onOpen }) {
                     <label><input type="checkbox" checked={show.calculated} onChange={(e) => setShow({ ...show, calculated: e.target.checked })} /> Calculated links</label>
                     <label><input type="checkbox" checked={show.admin} onChange={(e) => setShow({ ...show, admin: e.target.checked })} /> Admin &amp; ontology links</label>
                 </div>
-                <div className="se-zoom-controls" role="group" aria-label="Zoom controls">
-                    <button type="button" onClick={() => setCamera({ scale: fitScale, x: (size.width - atlas.width * fitScale) / 2, y: (size.height - atlas.height * fitScale) / 2 })}>Fit all</button>
-                    <button type="button" aria-label="Zoom out" onClick={() => zoom(0.8)}>−</button>
-                    <span>{Math.round(view.scale * 100)}%</span>
-                    <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
+                <div className="se-map-tool-section" role="group" aria-label="Canvas controls">
+                    <div className="se-zoom-controls" role="group" aria-label="Zoom controls">
+                        <button type="button" onClick={() => setCamera({ scale: fitScale, x: (size.width - atlas.width * fitScale) / 2, y: (size.height - atlas.height * fitScale) / 2 })}>Fit all</button>
+                        <button type="button" aria-label="Zoom out" onClick={() => zoom(0.8)}>−</button>
+                        <span>{Math.round(view.scale * 100)}%</span>
+                        <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
+                    </div>
+                    {/* Exports the whole map, whatever part of it is in view. */}
+                    <button type="button" id="atlas-export" disabled={exporting} onClick={async () => {
+                        setExporting(true);
+                        setError('');
+                        try { await exportPNG(svg.current, 'all-schemas-map'); }
+                        catch (err) { setError(err.message || 'PNG export failed.'); }
+                        finally { setExporting(false); }
+                    }}>{exporting ? 'Exporting…' : 'Export PNG'}
+                    </button>
                 </div>
             </div>
+            {error && <p role="alert">{error}</p>}
             <div className="se-atlas-stage">
                 <button type="button" className="se-canvas-fullscreen" id="atlas-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'}
                     title={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onClick={() => setFull(!full)}>
@@ -286,7 +300,7 @@ export default function SchemaAtlas({ index, query, onOpen }) {
                             </marker>
                         ))}
                     </defs>
-                    <g transform={`translate(${view.x},${view.y}) scale(${view.scale})`}>
+                    <g data-world="" transform={`translate(${view.x},${view.y}) scale(${view.scale})`}>
                         {atlas.frames.map((frame) => (
                             <g key={frame.id} className="se-domain-frame se-atlas-frame">
                                 <rect x={frame.left} y={frame.top} width={frame.width} height={frame.height} rx="4" />
