@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.15.23
+=======
+
+`PR 804: feat: reorder benchmarking page tissue codes <https://github.com/smaht-dac/smaht-portal/pull/804>`_
+
+* * Reorder tissue names on benchmarking pages to include the code first
+
+
 2.15.22
 =======
 
