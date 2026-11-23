@@ -155,7 +155,7 @@ RUN chown -R nginx:nginx /var/cache/nginx && \
     chown -R nginx:nginx /data/nginx/cache
 
 # nginx config gate: validate the installed config against the EXACT pinned nginx
-# (1.30.4, from install_nginx_bookworm.sh) now that the config file and the log/cache
+# (1.31.9, from install_nginx_bookworm.sh) now that the config file and the log/cache
 # paths it references exist. This runs during `docker build` (the CI Docker job), so a
 # syntactically invalid or directive-incompatible nginx.conf fails the build instead of
 # only failing at container start. Local `nginx -t` on a different nginx version is not a
