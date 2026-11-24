@@ -7,6 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+2.15.24
+=======
+
+`PR 802: Group release summaries by donor and improve notification errors <https://github.com/smaht-dac/smaht-portal/pull/802>`_
+
+* Groups the release summary's full list by donor, with tissue codes after the donor label
+  (e.g. ``SMHT004 (Male, 57 yrs-old): 3AD, 3Q``) and file-format counts summed over its tissues
+* Splits the overview into Core-assay, Non-core assay and Other data sections, with a count for
+  each description and file format
+* Removes the unused ``/get_released_files_text/`` endpoint
+* Returns fixed user-facing errors from the notification status, email recipient and send endpoints,
+  and logs the exception on the server instead of exposing its details
+
+
 2.15.23
 =======
 
