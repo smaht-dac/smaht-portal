@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.15.26
+=======
+
+`PR 800: Data Matrix: Reorder colums for Bulk WGS <https://github.com/smaht-dac/smaht-portal/pull/800>`_
+
+* Move Fiber-seq next to WGS - PacBio in the Data Matrix's Bulk WGS column group
+
+
 2.15.25
 =======
 

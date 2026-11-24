@@ -132,7 +132,7 @@ export default class DataMatrix extends React.PureComponent {
     };
     static DEFAULT_COLUMN_GROUPS = {
         "Bulk WGS": {
-            "values": ['WGS - Illumina', 'WGS - PacBio', 'WGS - Standard ONT', 'WGS - UltraLong ONT', 'WGS - Element AVITI', 'WGS - MGI', 'WGS - Ultima Genomics', 'SBX-D - Roche', 'Fiber-seq'],
+            "values": ['WGS - Illumina', 'WGS - PacBio', 'Fiber-seq', 'WGS - Standard ONT', 'WGS - UltraLong ONT', 'WGS - Element AVITI', 'WGS - MGI', 'WGS - Ultima Genomics', 'SBX-D - Roche'],
             "backgroundColor": "#e04141",
             "textColor": "#ffffff",
             "shortName": "WGS"
