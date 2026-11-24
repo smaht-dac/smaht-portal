@@ -19,6 +19,8 @@ import {
     groupReportsByDonorUuid,
     getDonorHistologyImagesHref,
     useSortableRows,
+    useDonorTableFilters,
+    NoMatchingDonorsRow,
     useScrollToHighlightedReport,
 } from './PathologyReportsTable';
 
@@ -312,8 +314,10 @@ export default function BrainPathologyReportsTable({
         [donors, reports, reportsByDonorUuid, tissueCode]
     );
 
+    const { filteredRows, filterBar } = useDonorTableFilters(rows, highlightedReportId);
+
     // Histology Images isn't sortable -- it's a link/count.
-    const { sortedRows, renderSortableHeader } = useSortableRows(rows, {
+    const { sortedRows, renderSortableHeader } = useSortableRows(filteredRows, {
         donorId: ({ donor: d }) => getDisplayText(d),
         age: ({ donor: d }) => (typeof d?.age === 'number' ? d.age : null),
         sex: ({ donor: d }) => d?.sex ?? null,
@@ -328,7 +332,7 @@ export default function BrainPathologyReportsTable({
         return <div className="pathology-reports-empty">No donor data available for this tissue type.</div>;
     }
 
-    return (
+    const table = (
         <table className="tissue-donor-table pathology-reports-table table">
             <colgroup>
                 <col style={{ width: '15%' }} />
@@ -449,6 +453,14 @@ export default function BrainPathologyReportsTable({
                     </tbody>
                 );
             })}
+            {sortedRows.length === 0 ? <NoMatchingDonorsRow colSpan={7} /> : null}
         </table>
+    );
+
+    return (
+        <>
+            {filterBar}
+            {table}
+        </>
     );
 }

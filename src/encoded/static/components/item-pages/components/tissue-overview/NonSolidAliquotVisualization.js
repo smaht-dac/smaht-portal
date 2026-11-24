@@ -206,7 +206,7 @@ export default function NonSolidAliquotVisualization({
     // re-sorted) so each one's own branch/sub-tube lines up with its own
     // sequence number below it, left to right.
     const sampleAliquots = aliquots.map((aliquot, index) => {
-        // `hasFiles` (see TissueView.js's nonSolidAliquots) is ground
+        // `hasFiles` (see TissueTypeView.js's nonSolidAliquots) is ground
         // truth from this donor+tissue's actual indexed Files, not just
         // an inference from having a real (non-TPC) submission_centers
         // value -- a sample can be submitted to a real GCC well before

@@ -521,7 +521,7 @@ const TISSUE_COLLECTION_SAMPLE_SLICES = [
 ];
 
 // Non-interactive, illustrative stand-in for a real per-tissue aliquot
-// diagram (AliquotVisualization.js's own solid-organ view on TissueView.js/
+// diagram (AliquotVisualization.js's own solid-organ view on
 // TissueTypeView.js) -- this panel isn't scoped to one tissue, so there's no
 // single real slice layout to draw. Renders a generic Fixed/Frozen demo
 // block (TISSUE_COLLECTION_SAMPLE_SLICES), wrapped so it can't be clicked

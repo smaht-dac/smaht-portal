@@ -3322,20 +3322,8 @@ $pathology-reports-zebra: #F8F8F8;
 $pathology-reports-link: #2783E0;
 $pathology-reports-muted: #B0B0B0;
 
-// Only the legacy per-item /tissues/<uuid>/ "Tissue Overview" tab renders
-// inside .item-page-container.type-Tissue's tabs bar; the type-keyed
-// /tissue-overview/?tissue_type=<value> page (TissueTypeView.js) is a
-// standalone page with no tabs bar, so this rule stays scoped separately
-// from the shared .tissue-view content styling below.
-.item-page-container.type-Tissue {
-    .tabs-bar-outer .tabs-bar .tab-item.active {
-        border-top-color: #1f9f55;
-    }
-}
-
-// Shared by both the legacy /tissues/<uuid>/ "Tissue Overview" tab and the
-// type-keyed /tissue-overview/?tissue_type=<value> page -- both render
-// inside a top-level <div className="tissue-view">. The base .view-title
+// The type-keyed /tissue-overview/?tissue_type=<value> page
+// (TissueTypeView.js) renders inside a top-level <div className="tissue-view">. The base .view-title
 // rules are duplicated here rather than widening the shared
 // .item-page-container.type-File/Donor/etc. block above, since that block
 // also carries File/Donor-specific rules (e.g. .data-group) that shouldn't
@@ -3664,8 +3652,7 @@ $pathology-reports-muted: #B0B0B0;
 
             // Type-keyed page only (TissueTypeView.js): Tissue Summary and the
             // Sequencing/Histology data cards stack in a left column beside the
-            // aliquot card. The legacy per-item TissueView.js keeps the plain
-            // two-card row above.
+            // aliquot card.
             &.tissue-overview-layout {
                 .tissue-summary-column {
                     flex: 6 1 520px;
@@ -4328,6 +4315,28 @@ $pathology-reports-muted: #B0B0B0;
             .body {
                 padding: 16px 18px 14px;
                 overflow: visible;
+            }
+
+            // Donor ID search and donor group buttons (useDonorTableFilters)
+            // above the table.
+            .pathology-table-filters {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 8px 24px;
+                margin-bottom: 12px;
+
+                .form-control {
+                    width: 200px;
+                }
+
+                .pathology-table-filter-count {
+                    margin-left: auto;
+                }
+            }
+
+            .pathology-reports-table > tbody > tr > td.text-muted-placeholder {
+                padding: 16px;
             }
         }
 
@@ -5749,7 +5758,7 @@ $pathology-reports-muted: #B0B0B0;
         text-align: center;
     }
 
-    // A core's own "<Assay> - <Platform>" combos (see TissueView.js's
+    // A core's own "<Assay> - <Platform>" combos (see TissueTypeView.js's
     // assayPlatformsBySampleName) -- short/muted secondary line,
     // right-aligned under its own row's id like a caption rather than
     // another data row.
