@@ -37,7 +37,7 @@ export const ScatterPlot = ({
     // Assign a new ref to the popover target
     const handleShowOverlay = (e, d) => {
         const targetId = e.target.getAttribute('data-point-index');
-        const scatterPlot = d3.select('#scatterplot-svg' + '-' + plotId);
+        const scatterPlot = d3.select(`#scatterplot-svg-${plotId}`);
 
         overlayTarget.current = {
             node: scatterPlot.select(`[data-point-index='${targetId}']`).node(),
@@ -72,7 +72,7 @@ export const ScatterPlot = ({
             // Create the SVG containers
             const svgContainer = container
                 .append('svg')
-                .attr('id', 'scatterplot-svg' + '-' + plotId)
+                .attr('id', `scatterplot-svg-${plotId}`)
                 .attr('class', 'scatterplot-svg')
                 .attr('width', chartWidth)
                 .attr('height', chartHeight)
@@ -127,7 +127,7 @@ export const ScatterPlot = ({
             const svg = svgContainer.append('g').attr('class', 'chartBody');
 
             // Append definitions for use in SVG
-            let defs = svg.append('defs');
+            const defs = svg.append('defs');
 
             // Instantiate clip paths for the chart content and axes
             defs.append('clipPath')
@@ -164,7 +164,7 @@ export const ScatterPlot = ({
                 if (customFilter) {
                     return customFilter(d);
                 }
-              
+
                 return !!(
                     d?.quality_metrics?.qc_values[yAxisField] &&
                     d?.quality_metrics?.qc_values[xAxisField]
@@ -327,19 +327,13 @@ export const ScatterPlot = ({
                 .data(filteredData)
                 .enter()
                 .append('circle')
-                .attr('class', (d, i) => {
-                    return 'data-point';
-                })
+                .attr('class', (d, i) => 'data-point')
                 .attr('data-point-index', (d, i) => {
                     d['data-point-index'] = d[dataPointIndexField];
                     return d[dataPointIndexField];
                 })
-                .attr('cy', (d) => {
-                    return y(d.quality_metrics.qc_values[yAxisField]['value']);
-                })
-                .attr('cx', (d) => {
-                    return x(d.quality_metrics.qc_values[xAxisField]['value']);
-                })
+                .attr('cy', (d) => y(d.quality_metrics.qc_values[yAxisField]['value']))
+                .attr('cx', (d) => x(d.quality_metrics.qc_values[xAxisField]['value']))
                 .attr('r', 8)
                 .attr('fill', (d) => {
                     const group = groupBy ? d[groupBy] : "default";
@@ -357,7 +351,7 @@ export const ScatterPlot = ({
                     if(updateHighlightedBam){
                         updateHighlightedBam(d[dataPointIndexField]);
                     }
-                    
+
                 })
                 .on('mouseout', function () {
                     setShowOverlay(false);
@@ -431,6 +425,7 @@ export const ScatterPlot = ({
 
             svgContent.call(zoom).node();
 
+            // eslint-disable-next-line no-inner-declarations -- this D3 zoom callback closes over chart-local selections.
             function zoomed({ transform: t }) {
                 plotElements.attr(
                     'transform',
@@ -474,7 +469,7 @@ export const ScatterPlot = ({
 
                 gY.call(yAxis.ticks(5 * t.k));
 
-                d3.select('#popover-scatterplot' + '-' + plotId).attr(
+                d3.select(`#popover-scatterplot-${plotId}`).attr(
                     'transform',
                     'translate(' + t.x + ', ' + t.y + ')'
                 );
@@ -490,6 +485,7 @@ export const ScatterPlot = ({
             }
 
             // prevent scrolling then apply the default filter
+            // eslint-disable-next-line no-inner-declarations -- this D3 filter callback closes over the chart lifecycle.
             function filter(event) {
                 event.preventDefault();
                 return (
@@ -506,21 +502,25 @@ export const ScatterPlot = ({
 
     return (
         <div className="scatterplot-canvas" ref={containerRef}>
-            {tooltipFields ? <Overlay
-                target={overlayTarget?.current?.node}
-                show={showOverlay}
-                placement="bottom"
-                flip={true}>
-                <Popover id={"popover-scatterplot" + '-' + plotId} className="popover-d3-plot">
-                    <PopoverBody>
-                        <PlotPopoverContent
-                            tooltipFields={tooltipFields}
-                            data={overlayTarget?.current?.data}
-                        />
-                    </PopoverBody>
-                </Popover>
-            </Overlay> : ""}
-            
+            {tooltipFields ? (
+                <Overlay
+                    target={overlayTarget?.current?.node}
+                    show={showOverlay}
+                    placement="bottom"
+                    flip={true}>
+                    <Popover
+                        id={`popover-scatterplot-${plotId}`}
+                        className="popover-d3-plot">
+                        <PopoverBody>
+                            <PlotPopoverContent
+                                tooltipFields={tooltipFields}
+                                data={overlayTarget?.current?.data}
+                            />
+                        </PopoverBody>
+                    </Popover>
+                </Overlay>
+            ) : null}
+
         </div>
     );
 };

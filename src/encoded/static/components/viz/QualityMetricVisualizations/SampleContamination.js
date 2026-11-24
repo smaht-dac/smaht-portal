@@ -146,7 +146,8 @@ export const SampleContamination = ({ qcData, preselectedFile }) => {
                         rerenderNumber={rerenderNumber}
                         data={
                             somalierResults[selectedDonor['value']]['results']
-                        }></SampleContaminationHeatmap>
+                        }>
+                    </SampleContaminationHeatmap>
                 </div>
                 {/* Disable the table for now, as it is not as useful as the heatmap */}
                 {/* <div className="col-12">

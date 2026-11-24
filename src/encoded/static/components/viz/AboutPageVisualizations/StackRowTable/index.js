@@ -9,82 +9,72 @@ import tableData from '../Alluvial/data/stackrow_data.json';
 import alluvial_data from '../Alluvial/data/alluvial_data.json';
 
 // Legend rendered below the table
-const StackRowItemLegend = ({ text }) => {
-    return (
-        <div className="stackrow-item-legend">
-            <div className="stackrow-item">
-                <div className="stackrow-item-container clickable">
-                    <span className="stackrow-item-value">#</span>
-                </div>
+const StackRowItemLegend = ({ text }) => (
+    <div className="stackrow-item-legend">
+        <div className="stackrow-item">
+            <div className="stackrow-item-container clickable">
+                <span className="stackrow-item-value">#</span>
             </div>
-            <p className="text">{text}</p>
         </div>
-    );
-};
+        <p className="text">{text}</p>
+    </div>
+);
 
 // A list of information provided to show in the Bootstrap Popover
-const PopoverContents = ({ data }) => {
-    return (
-        <div className="stackrow-item-popover-list">
-            <ul>
-                {data.map((d, i) => {
-                    return <li key={i}>{d}</li>;
-                })}
-            </ul>
-        </div>
-    );
-};
+const PopoverContents = ({ data }) => (
+    <div className="stackrow-item-popover-list">
+        <ul>
+            {data.map((d, i) => <li key={i}>{d}</li>)}
+        </ul>
+    </div>
+);
 
 // Component serving as a trigger for the Bootstrap Popover component
 const OverlayTriggerContent = forwardRef(
-    ({ value, data, ...triggerHandler }, ref) => {
-        return (
-            <div
-                className="stackrow-item-container clickable"
-                tabIndex={0}
-                {...triggerHandler}>
-                <span className="stackrow-item-value" ref={ref}>
-                    {value}
-                </span>
-            </div>
-        );
-    }
+    ({ value, data, ...triggerHandler }, ref) => (
+        <div
+            className="stackrow-item-container clickable"
+            tabIndex={0}
+            {...triggerHandler}>
+            <span className="stackrow-item-value" ref={ref}>
+                {value}
+            </span>
+        </div>
+    )
 );
 
 /**
  * Renders an item to be shown on the table.
  * Note: [value] defaults to 0
  */
-const StackRowItem = ({ value = 0, data = [], data_generator = '' }) => {
-    return (
-        <td
-            className={
-                'stackrow-item' + (value === 0 ? ' empty-label-row' : '')
-            }>
-            {value > 0 ? (
-                <OverlayTrigger
-                    trigger={['hover', 'focus', 'click']}
-                    placement="bottom"
-                    rootClose
-                    overlay={
-                        <Popover id="popover-consortium-data-alluvial-table">
-                            <PopoverHeader>
-                                {value +
+const StackRowItem = ({ value = 0, data = [], data_generator = '' }) => (
+    <td
+        className={
+            'stackrow-item' + (value === 0 ? ' empty-label-row' : '')
+        }>
+        {value > 0 ? (
+            <OverlayTrigger
+                trigger={['hover', 'focus', 'click']}
+                placement="bottom"
+                rootClose
+                overlay={
+                    <Popover id="popover-consortium-data-alluvial-table">
+                        <PopoverHeader>
+                            {value +
                                     (value > 1
                                         ? ' sequencing platforms'
                                         : ' sequencing platform')}
-                            </PopoverHeader>
-                            <PopoverBody>
-                                <PopoverContents data={data} />
-                            </PopoverBody>
-                        </Popover>
-                    }>
-                    <OverlayTriggerContent value={value} data={data} />
-                </OverlayTrigger>
-            ) : null}
-        </td>
-    );
-};
+                        </PopoverHeader>
+                        <PopoverBody>
+                            <PopoverContents data={data} />
+                        </PopoverBody>
+                    </Popover>
+                }>
+                <OverlayTriggerContent value={value} data={data} />
+            </OverlayTrigger>
+        ) : null}
+    </td>
+);
 
 // Top diagonal labels for table
 const StackRowTopLabel = ({ assayType }) => {
@@ -174,46 +164,43 @@ const StackRow = ({ node, data }) => {
  * StackRowTable is a table representing [data] as a table with horizontal
  * and vertical headers representing Assay Types and GCC's, respectively.
  */
-export const StackRowTable = ({ data = tableData }) => {
-    return (
-        <div className="stackrow-table-container">
-            <p className="visualization-warning d-block d-sm-none">
-                <span>Note:</span> for the best experience, please view the
-                visualization below on a tablet or desktop.
-            </p>
-            <div className="table-container">
-                <table className="stackrow-table">
-                    {/* Render the row labels (across the top of table) */}
-                    <thead className="stackrow-table-top-labels">
-                        <tr>
-                            {data.map((d, i) => {
-                                return (
-                                    <StackRowTopLabel assayType={d} key={i} />
-                                );
-                            })}
-                        </tr>
-                    </thead>
-                    {/* Render the left labels and body of the table */}
-                    <tbody className="stackrow-table-body">
-                        {alluvial_data.nodes.map((node, i) => {
-                            if (node.type === 'data_generator') {
-                                return (
-                                    <StackRow key={i} node={node} data={data} />
-                                );
-                            }
-                        })}
-                    </tbody>
-                </table>
-            </div>
-            <p className="stackrow-table-footnote">
-                Scroll to the right to view more assays. <br />
-                Hover over assay types to see additional details.
-            </p>
-            <StackRowItemLegend
-                text={
-                    'Number of sequencing platforms used in benchmarking experiments.'
-                }
-            />
+export const StackRowTable = ({ data = tableData }) => (
+    <div className="stackrow-table-container">
+        <p className="visualization-warning d-block d-sm-none">
+            <span>Note:</span> for the best experience, please view the
+            visualization below on a tablet or desktop.
+        </p>
+        <div className="table-container">
+            <table className="stackrow-table">
+                {/* Render the row labels (across the top of table) */}
+                <thead className="stackrow-table-top-labels">
+                    <tr>
+                        {data.map((d, i) => (
+                            <StackRowTopLabel assayType={d} key={i} />
+                        ))}
+                    </tr>
+                </thead>
+                {/* Render the left labels and body of the table */}
+                <tbody className="stackrow-table-body">
+                    {alluvial_data.nodes.map((node, i) => {
+                        if (node.type === 'data_generator') {
+                            return (
+                                <StackRow key={i} node={node} data={data} />
+                            );
+                        }
+                        return null;
+                    })}
+                </tbody>
+            </table>
         </div>
-    );
-};
+        <p className="stackrow-table-footnote">
+            Scroll to the right to view more assays. <br />
+            Hover over assay types to see additional details.
+        </p>
+        <StackRowItemLegend
+            text={
+                'Number of sequencing platforms used in benchmarking experiments.'
+            }
+        />
+    </div>
+);

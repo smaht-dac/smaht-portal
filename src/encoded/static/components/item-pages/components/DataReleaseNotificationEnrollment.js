@@ -145,7 +145,7 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                         <div className="mb-2">
                             <b className="text-danger">Important:</b>{' '}
                             <i>
-                                To unsubscribe, use the "Unsubscribe" button on
+                                To unsubscribe, use the &quot;Unsubscribe&quot; button on
                                 this page, not the link provided in the email.
                             </i>
                         </div>
@@ -233,7 +233,7 @@ export function DataReleaseNotificationEnrollment({ user, onChange }) {
                             <br />
                             When you have received the email from AWS,
                             <br />
-                            click the "confirm subscription" link to begin
+                            click the &quot;confirm subscription&quot; link to begin
                             receiving data updates.
                         </span>
                     </div>

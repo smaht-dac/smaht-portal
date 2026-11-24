@@ -6,43 +6,29 @@ import {
     PopoverHeader,
 } from 'react-bootstrap';
 
-const CLTList = ({ list }) => {
-    return (
-        <ul>
-            {list.map((item, i) => {
-                if (item.data) {
-                    return (
-                        <li key={i}>
-                            <OverlayTrigger
-                                trigger={['hover', 'focus']}
-                                // Looks like popperConfig's flip is broken here; might create an issue for that...
-                                // auto-start and auto-end seem to give us left/right alignment on large screens and
-                                // top/bottom on smaller ones; should suffice for now, in the absense of a better solution
-                                placement="auto-start"
-                                rootClose
-                                overlay={
-                                    <Popover
-                                        id={item.title}
-                                        className="md-w-25">
-                                        <PopoverHeader>
-                                            {item.title}
-                                        </PopoverHeader>
-                                        <PopoverBody>{item.data}</PopoverBody>
-                                    </Popover>
-                                }>
-                                <div>
-                                    <img
-                                        src={item.iconSrc}
-                                        alt={`${item.title} icon`}
-                                    />
-                                    <span>{item.title}</span>
-                                </div>
-                            </OverlayTrigger>
-                        </li>
-                    );
-                } else {
-                    return (
-                        <li key={i}>
+const CLTList = ({ list }) => (
+    <ul>
+        {list.map((item, i) => {
+            if (item.data) {
+                return (
+                    <li key={i}>
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            // Looks like popperConfig's flip is broken here; might create an issue for that...
+                            // auto-start and auto-end seem to give us left/right alignment on large screens and
+                            // top/bottom on smaller ones; should suffice for now, in the absense of a better solution
+                            placement="auto-start"
+                            rootClose
+                            overlay={
+                                <Popover
+                                    id={item.title}
+                                    className="md-w-25">
+                                    <PopoverHeader>
+                                        {item.title}
+                                    </PopoverHeader>
+                                    <PopoverBody>{item.data}</PopoverBody>
+                                </Popover>
+                            }>
                             <div>
                                 <img
                                     src={item.iconSrc}
@@ -50,13 +36,25 @@ const CLTList = ({ list }) => {
                                 />
                                 <span>{item.title}</span>
                             </div>
-                        </li>
-                    );
-                }
-            })}
-        </ul>
-    );
-};
+                        </OverlayTrigger>
+                    </li>
+                );
+            } else {
+                return (
+                    <li key={i}>
+                        <div>
+                            <img
+                                src={item.iconSrc}
+                                alt={`${item.title} icon`}
+                            />
+                            <span>{item.title}</span>
+                        </div>
+                    </li>
+                );
+            }
+        })}
+    </ul>
+);
 
 // CLT = Cell Lines and Tissues
 export const CLTCard = ({ currentTier }) => {

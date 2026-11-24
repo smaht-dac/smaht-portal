@@ -65,14 +65,12 @@ export const BenchmarkingTable = (props) => {
             hideTooltip: true,
             noSort: true,
             widthMap: { lg: 63, md: 63, sm: 63 },
-            render: (result, parentProps) => {
-                return (
-                    <SelectionItemCheckbox
-                        {...{ selectedItems, onSelectItem, result }}
-                        isMultiSelect={true}
-                    />
-                );
-            },
+            render: (result, parentProps) => (
+                <SelectionItemCheckbox
+                    {...{ selectedItems, onSelectItem, result }}
+                    isMultiSelect={true}
+                />
+            ),
         },
         // Access
         access_status: {

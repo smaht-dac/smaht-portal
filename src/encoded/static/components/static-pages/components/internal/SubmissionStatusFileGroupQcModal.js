@@ -115,10 +115,10 @@ class FileGroupQCModalComponent extends React.PureComponent {
             tags: currentFileSetTags,
         };
         this.setState(
-            (prevState) => ({
+            (prevState) => {return {
                 loading: true,
-            }),
-            function () {
+            };},
+            () => {
                 ajax.load(
                     fileSetUuid,
                     (resp) => {
@@ -151,6 +151,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
             const cn = 'badge clickable mx-1 bg-' + badgeType;
             return (
                 <span
+                    key={tag}
                     className={cn}
                     onClick={() => this.toggleTag(filesetUuid, tag)}>
                     {tag}
@@ -192,7 +193,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
 
         // Table header construction
         const header = [
-            <th>
+            <th key="qc-value">
                 <div className="d-flex justify-content-between">
                     <div>QC value</div>
                     <div>{loadingSymbol}</div>
@@ -212,7 +213,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
                 ? this.getFileSetTags(file.fileset_uuid)
                 : '';
             header.push(
-                <th>
+                <th key={file.fileset_uuid}>
                     <span className="text-wrap" title={file.display_title}>
                         {file.accession} {retracted}
                     </span>
@@ -236,25 +237,34 @@ class FileGroupQCModalComponent extends React.PureComponent {
         const body = [];
         qc_value_derived_from_list_unique.forEach((qc_derived_from) => {
             const qc_key = qc_value_derived_from_to_key[qc_derived_from];
-            const row = [<td className="text-start">{qc_key}</td>];
+            const row = [
+                <td key={`qc-${qc_derived_from}`} className="text-start">
+                    {qc_key}
+                </td>,
+            ];
             files.forEach((file) => {
                 if (!this.state.visibleFileSets.includes(file.fileset_uuid)) {
                     return;
                 }
-                if (!file.qc_values_dict.hasOwnProperty(qc_derived_from)) {
-                    row.push(<td></td>);
+                if (
+                    !Object.prototype.hasOwnProperty.call(
+                        file.qc_values_dict,
+                        qc_derived_from
+                    )
+                ) {
+                    row.push(<td key={`file-${file.fileset_uuid}`}></td>);
                     return;
                 }
                 const qc_value = file.qc_values_dict[qc_derived_from];
                 let badge = '';
-                if (qc_value.hasOwnProperty('flag')) {
+                if (Object.prototype.hasOwnProperty.call(qc_value, 'flag')) {
                     const flag = qc_value['flag'];
                     const badgeType = getQcBagdeType(flag);
                     badge = createBadge(badgeType, flag);
                 }
 
                 row.push(
-                    <td>
+                    <td key={`file-${file.fileset_uuid}`}>
                         <span className="px-1">
                             {formatQcValue(qc_value.value)}
                         </span>
@@ -262,7 +272,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
                     </td>
                 );
             });
-            body.push(<tr>{row}</tr>);
+            body.push(<tr key={qc_derived_from}>{row}</tr>);
         });
 
         // We prefer the sticky table header, but that does not allow for a responsive table
@@ -291,17 +301,15 @@ class FileGroupQCModalComponent extends React.PureComponent {
     };
 
     toggleFileset = (e, uuid) => {
-        const visibleFileSets = JSON.parse(
-            JSON.stringify(this.state.visibleFileSets)
-        );
-        const index = visibleFileSets.indexOf(uuid);
-        if (index === -1) {
-            visibleFileSets.push(uuid);
-        } else {
-            visibleFileSets.splice(index, 1);
-        }
-        this.setState({
-            visibleFileSets: visibleFileSets,
+        this.setState((prevState) => {
+            const visibleFileSets = [...prevState.visibleFileSets];
+            const index = visibleFileSets.indexOf(uuid);
+            if (index === -1) {
+                visibleFileSets.push(uuid);
+            } else {
+                visibleFileSets.splice(index, 1);
+            }
+            return { visibleFileSets };
         });
     };
 
@@ -309,9 +317,9 @@ class FileGroupQCModalComponent extends React.PureComponent {
         if (e) {
             e.preventDefault();
         }
-        this.setState((prevState) => ({
+        this.setState((prevState) => {return {
             commentInputVisible: !prevState.commentInputVisible,
-        }));
+        };});
     };
 
     handleCommentInput = (comment) => {
@@ -352,13 +360,13 @@ class FileGroupQCModalComponent extends React.PureComponent {
         }
 
         this.setState(
-            (prevState) => ({
+            (prevState) => {return {
                 fileSets: fileSets,
                 loading: false,
                 parentReloadNecessary: true,
                 newComment: '',
-            }),
-            function () {
+            };},
+            () => {
                 this.forceUpdate();
             }
         );
@@ -415,7 +423,8 @@ class FileGroupQCModalComponent extends React.PureComponent {
                         wrapperElement="span"
                         iconProps={{
                             style: { fontSize: '0.875rem', marginLeft: 3 },
-                        }}></object.CopyWrapper>
+                        }}>
+                    </object.CopyWrapper>
                 </span>
             );
 
@@ -476,21 +485,20 @@ class FileGroupQCModalComponent extends React.PureComponent {
                         <div className="input-group-text">
                             <i
                                 className="fas icon icon-save clickable"
-                                onClick={() => this.addComment()}></i>
+                                onClick={() => this.addComment()}>
+                            </i>
                         </div>
                     </div>
                 </div>
             </span>
         );
 
-        const warnings = this.state.warnings.map((warning) => {
-            return (
-                <div className="alert alert-warning">
-                    <i className="icon icon-exclamation-circle fas me-1" />
-                    {warning}
-                </div>
-            );
-        });
+        const warnings = this.state.warnings.map((warning, index) => (
+            <div className="alert alert-warning" key={index}>
+                <i className="icon icon-exclamation-circle fas me-1" />
+                {warning}
+            </div>
+        ));
 
         const modalBody = (
             <div>

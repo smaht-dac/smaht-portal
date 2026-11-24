@@ -12,43 +12,41 @@ import { AssaysCard } from './AssaysCard';
  * TierSelection <-- currentTier select
  */
 
-const TierSelector = ({ currentTier, setCurrentTier }) => {
-    return (
-        <div className="selector-buttons">
-            <div className={'backdrop' + ' tier-' + currentTier}></div>
-            <button
-                onClick={() => setCurrentTier(0)}
-                className={currentTier === 0 ? 'active' : ''}>
-                <span>Benchmarking</span>
-            </button>
-            <button
-                onClick={() => setCurrentTier(1)}
-                className={currentTier === 1 ? 'active' : ''}>
-                <span>Production</span>
-            </button>
-        </div>
-    );
-};
+const TierSelector = ({ currentTier, setCurrentTier }) => (
+    <div className="selector-buttons">
+        <div className={`backdrop tier-${currentTier}`}></div>
+        <button
+            type="button"
+            onClick={() => setCurrentTier(0)}
+            className={currentTier === 0 ? 'active' : ''}>
+            <span>Benchmarking</span>
+        </button>
+        <button
+            type="button"
+            onClick={() => setCurrentTier(1)}
+            className={currentTier === 1 ? 'active' : ''}>
+            <span>Production</span>
+        </button>
+    </div>
+);
 
-export const HomepageFigure = ({ currentTier, setCurrentTier }) => {
-    return (
-        <div className="homepage-figure">
-            <div className="homepage-figure-content">
-                <CLTCard currentTier={currentTier} />
-                <div className="human-figure-container">
-                    <img
-                        src="/static/img/homepage_human_figure.svg"
-                        alt="Human figure diagram"
-                    />
-                </div>
-                <AssaysCard currentTier={currentTier} />
-            </div>
-            <div className="homepage-figure-tier-selector">
-                <TierSelector
-                    currentTier={currentTier}
-                    setCurrentTier={setCurrentTier}
+export const HomepageFigure = ({ currentTier, setCurrentTier }) => (
+    <div className="homepage-figure">
+        <div className="homepage-figure-content">
+            <CLTCard currentTier={currentTier} />
+            <div className="human-figure-container">
+                <img
+                    src="/static/img/homepage_human_figure.svg"
+                    alt="Human figure diagram"
                 />
             </div>
+            <AssaysCard currentTier={currentTier} />
         </div>
-    );
-};
+        <div className="homepage-figure-tier-selector">
+            <TierSelector
+                currentTier={currentTier}
+                setCurrentTier={setCurrentTier}
+            />
+        </div>
+    </div>
+);

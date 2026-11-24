@@ -8,7 +8,7 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 export const isReleased = (status) => {
     const releasedStatuses = ['released', 'open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'];
     return releasedStatuses.includes(status.toLowerCase());
-}
+};
 
 export const getBoxPlot = (
     qcData,
@@ -53,28 +53,24 @@ export const getBoxPlot = (
     );
 };
 
-export const PlotPopoverContent = ({ tooltipFields, data = null }) => {
-    return data ? (
-        <div className="d3-popover-content">
-            <table className="table table-sm">
-                <tbody>
-                    {tooltipFields.map((tt, i) => {
-                        return (
-                            <tr key={i}>
-                                <td className="small text-left">{tt.label}</td>
-                                <td className="text-wrap text-left">
-                                    <div className="restricted-width">
-                                        {data[tt.key]}
-                                    </div>
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
-        </div>
-    ) : null;
-};
+export const PlotPopoverContent = ({ tooltipFields, data = null }) => data ? (
+    <div className="d3-popover-content">
+        <table className="table table-sm">
+            <tbody>
+                {tooltipFields.map((tt, i) => (
+                    <tr key={i}>
+                        <td className="small text-left">{tt.label}</td>
+                        <td className="text-wrap text-left">
+                            <div className="restricted-width">
+                                {data[tt.key]}
+                            </div>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+) : null;
 
 export const formatLargeInteger = (num) => {
     if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B';
@@ -90,7 +86,7 @@ export const addPaddingToExtend = (
 ) => {
     const [eMin, eMax] = extend;
     const range = eMax - eMin;
-    let adjustedExtendMin = eMin - range * minAdjustment;
+    const adjustedExtendMin = eMin - range * minAdjustment;
     const adjustedExtendMax = eMax + range * maxAdjustment;
     return [adjustedExtendMin, adjustedExtendMax];
 };
@@ -133,23 +129,17 @@ export const getBadge = (
     return '';
 };
 
-const isInteger = (num) => {
-    return Number.isInteger(num);
-};
+const isInteger = (num) => Number.isInteger(num);
 
-const isFloat = (num) => {
-    return Number(num) === num && num % 1 !== 0;
-};
+const isFloat = (num) => Number(num) === num && num % 1 !== 0;
 
-export const removeToolName = (metric) => {
-    return metric
-        .replace(' [Samtools]', '')
-        .replace(' [Picard]', '')
-        .replace(' [RNA-SeQC]', '')
-        .replace(' [mosdepth]', '')
-        .replace(' [VerifyBamID2]', '')
-        .replace(' [bamstats]', '');
-};
+export const removeToolName = (metric) => metric
+    .replace(' [Samtools]', '')
+    .replace(' [Picard]', '')
+    .replace(' [RNA-SeQC]', '')
+    .replace(' [mosdepth]', '')
+    .replace(' [VerifyBamID2]', '')
+    .replace(' [bamstats]', '');
 
 export const formatQcValue = (value) => {
     if (isInteger(value)) {
@@ -162,84 +152,84 @@ export const formatQcValue = (value) => {
 };
 
 export const customReactSelectStyle = {
-    control: (provided, state) => ({
+    control: (provided, state) => {return {
         ...provided,
         minHeight: '30px', // Adjust the height
         height: '30px', // Ensure consistent height
         fontSize: '0.875rem', // Adjust font size
         borderColor: state.isFocused ? 'blue' : '#dee2e6',
         boxShadow: state.isFocused ? '0 0 0 1px blue' : 'none',
-    }),
-    valueContainer: (provided) => ({
+    };},
+    valueContainer: (provided) => {return {
         ...provided,
         height: '30px', // Adjust to match the control height
         padding: '0 6px',
-    }),
-    input: (provided) => ({
+    };},
+    input: (provided) => {return {
         ...provided,
         margin: '0', // Remove extra margin
         padding: '0',
-    }),
-    indicatorsContainer: (provided) => ({
+    };},
+    indicatorsContainer: (provided) => {return {
         ...provided,
         height: '30px', // Adjust to match the control height
-    }),
-    menu: (provided) => ({
+    };},
+    menu: (provided) => {return {
         ...provided,
         marginTop: '0px', // Optional: adjust spacing between control and dropdown
-    }),
-    menuList: (provided) => ({
+    };},
+    menuList: (provided) => {return {
         ...provided,
         padding: '0', // Remove extra padding around the list
-    }),
-    option: (provided, state) => ({
+    };},
+    option: (provided, state) => {return {
         ...provided,
         fontSize: '0.875rem', // Adjust font size
         padding: '4px 10px', // Adjust padding to make options smaller
-    }),
+    };},
 };
 
 export const customReactSelectStyleMulti = {
-    control: (provided, state) => ({
+    control: (provided, state) => {return {
         ...provided,
         fontSize: '0.875rem', // Adjust font size
         borderColor: state.isFocused ? 'blue' : '#dee2e6',
         boxShadow: state.isFocused ? '0 0 0 1px blue' : 'none',
-    }),
-    valueContainer: (provided) => ({
+    };},
+    valueContainer: (provided) => {return {
         ...provided,
         padding: '0 6px',
-    }),
-    input: (provided) => ({
+    };},
+    input: (provided) => {return {
         ...provided,
         margin: '0', // Remove extra margin
         padding: '0',
-    }),
-    indicatorsContainer: (provided) => ({
+    };},
+    indicatorsContainer: (provided) => {return {
         ...provided,
-    }),
-    menu: (provided) => ({
+    };},
+    menu: (provided) => {return {
         ...provided,
         marginTop: '0px', // Optional: adjust spacing between control and dropdown
-    }),
-    menuList: (provided) => ({
+    };},
+    menuList: (provided) => {return {
         ...provided,
         padding: '0', // Remove extra padding around the list
-    }),
-    multiValueLabel: (provided) => ({
+    };},
+    multiValueLabel: (provided) => {return {
         ...provided,
         padding: '0px 0px',
-    }),
-    multiValue: (provided) => ({
+    };},
+    multiValue: (provided) => {return {
         ...provided,
         padding: '0px 0px',
         backgroundColor: '#f2f2f2',
-    }),
-    option: (provided, state) => ({
+    };},
+    option: (provided, state) => {return {
         ...provided,
         fontSize: '0.875rem', // Adjust font size
         padding: '4px 10px', // Adjust padding to make options smaller
-    }),
+    };},
 };
 
 export const getFileModalContent = (file, qcInfo) => {
@@ -267,7 +257,7 @@ export const getFileModalContent = (file, qcInfo) => {
                     <tr>
                         <td className="restricted-width">File</td>
                         <td>
-                            <a href={fileLink} target="_blank">
+                            <a href={fileLink} target="_blank" rel="noreferrer">
                                 {title}
                             </a>
                         </td>
@@ -279,7 +269,7 @@ export const getFileModalContent = (file, qcInfo) => {
                     <tr>
                         <td className="restricted-width">Fileset</td>
                         <td>
-                            <a href={filesetLink} target="_blank">
+                            <a href={filesetLink} target="_blank" rel="noreferrer">
                                 {fileset}
                             </a>
                         </td>
@@ -348,7 +338,7 @@ export const getFileModalContent = (file, qcInfo) => {
 export const ajaxWithRetry = (url, successCallback, method = 'GET', errorCallback = null, options = {}) => {
     const { maxRetries = 3, retryDelay = 1000, retryDelayMultiplier = 2 } = options;
     let attempt = 0;
-    
+
     const makeRequest = () => {
         ajax.load(
             url,
@@ -370,6 +360,6 @@ export const ajaxWithRetry = (url, successCallback, method = 'GET', errorCallbac
             }
         );
     };
-    
+
     makeRequest();
 };

@@ -451,8 +451,8 @@ export class SelectAllFilesButton extends React.PureComponent {
             (selecting
                 ? 'circle-notch icon-spin fas'
                 : isAllSelected
-                ? 'square far'
-                : 'check-square far');
+                    ? 'square far'
+                    : 'check-square far');
         const cls =
             'btn btn-sm me-05 align-items-center ' +
             (isAllSelected ? 'btn-secondary' : 'btn-outline-secondary');
@@ -542,8 +542,8 @@ export class SelectAllFilesButton extends React.PureComponent {
                     {selecting
                         ? `Selecting ${selectingProgress}%`
                         : isAllSelected
-                        ? 'Deselect'
-                        : 'Select'}{' '}
+                            ? 'Deselect'
+                            : 'Select'}{' '}
                 </span>
                 <span className="text-600">All</span>
             </button>
@@ -1458,9 +1458,7 @@ const SelectedItemsDownloadStartButton = React.memo(
                         className="btn btn-primary mt-0 me-1 btn-block-xs-only"
                         data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
                         <i className="icon icon-fw icon-download fas me-1" />
-                        Download <b>
-                            {isAWSDownload ? 'AWS CLI ' : 'cURL'}
-                        </b>{' '}
+                        Download <b>{isAWSDownload ? 'AWS CLI ' : 'cURL'}</b>{' '}
                         File Manifest
                     </button>
                 </form>

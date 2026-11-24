@@ -109,7 +109,6 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
         const preferred = tabConfigs.find((tab) => tab.key === 'production') || tabConfigs[0];
         setActiveKey(preferred?.key ?? null);
         // activeKey intentionally omitted from deps to avoid clobbering user selection on data reload.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tabConfigs, session, getHashKey, resolveTabKey]);
 
     useEffect(() => {
