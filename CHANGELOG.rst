@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+2.15.23
+=======
+
+`PR 801: Add Sequencing Center to Browse by File chart's Group By menu <https://github.com/smaht-dac/smaht-portal/pull/801>`_
+
+* Adds a "Sequencing Center" (``sequencing_center.display_title``) option to the Browse by File bar chart's
+  Group By menu; Donor and Protected Donor charts keep their default list
+* Resets an already-initialized chart to its page's default fields on mount, so a Group By picked on
+  Browse by File no longer carries over to Browse by Donor as a raw field name
+
+
 2.15.22
 =======
 
