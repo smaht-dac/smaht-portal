@@ -45,6 +45,7 @@ def _build_tissue_embedded_list() -> List[str]:
         "donor.protected_donor",
         "donor.study",
         "donor.tags",
+        "donor.donor_groups",
         "uberon_id.identifier",
         "uberon_id.grouping_term",
         "uberon_id.description",
