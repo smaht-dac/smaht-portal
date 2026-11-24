@@ -14,4 +14,4 @@ from .pathology_report import PathologyReport
 class NonBrainPathologyReport(PathologyReport):
     item_type = "non_brain_pathology_report"
     schema = load_schema("encoded:schemas/non_brain_pathology_report.json")
-    embedded_list = []
+    embedded_list = PathologyReport.embedded_list

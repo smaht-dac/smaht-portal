@@ -70,6 +70,7 @@ def includeme(config):
     config.add_route('date_histogram_aggregations', '/date_histogram_aggregations/')
     config.add_route('bar_plot_chart', '/bar_plot_aggregations/')
     config.add_route('data_matrix_aggregations', '/data_matrix_aggregations/')
+    config.add_route('tissue_sample_aggregations', '/tissue_sample_aggregations/')
     config.scan(__name__)
 
 
@@ -467,12 +468,13 @@ def bar_plot_chart(context, request):
 @debug_log
 def data_matrix_aggregations(context, request):
 
-    # Max terms returned per aggregation bucket, applied at every nesting level (e.g. Donor
-    # nested inside each Tissue bucket in the Donor x Tissue matrix). Must stay above the
-    # largest possible per-bucket cardinality, which in practice is the total donor count
-    # (expected to cap around 150) since some tissues are sampled by nearly every donor.
-    # A value at or below that cardinality silently drops the lowest doc_count buckets.
-    MAX_BUCKET_COUNT = 200
+    # Max terms returned per aggregation bucket, applied at every nesting level. Must stay
+    # above the largest possible per-bucket cardinality or the lowest doc_count buckets get
+    # silently dropped; callers with higher-cardinality fields can opt in via `max_bucket_count`.
+    DEFAULT_MAX_BUCKET_COUNT = 200
+    # Hard ceiling regardless of what a caller requests -- each nesting level multiplies bucket
+    # count, so an unbounded value could let row x column reach this squared.
+    MAX_BUCKET_COUNT_CEILING = 5000
     DEFAULT_SEARCH_PARAM_LISTS = {'type': ['File']}
     DEFAULT_VALUE_DELIMITER = ' '
     # Set of field names whose array values should be concatenated into a single key during data matrix aggregation (e.g., {'data_type'}).
@@ -494,11 +496,25 @@ def data_matrix_aggregations(context, request):
         row_agg_fields_orig = json_body.get('row_agg_fields')
         flatten_values = json_body.get('flatten_values', False)
         value_delimiter = json_body.get('value_delimiter', DEFAULT_VALUE_DELIMITER)
+        MAX_BUCKET_COUNT = min(
+            int(json_body.get('max_bucket_count', DEFAULT_MAX_BUCKET_COUNT)),
+            MAX_BUCKET_COUNT_CEILING
+        )
     except json.decoder.JSONDecodeError:
         raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
 
     if column_agg_fields_orig is None or len(column_agg_fields_orig) == 0 or row_agg_fields_orig is None or len(row_agg_fields_orig) == 0:
         raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
+
+    # SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION and EXTRA_TOTAL_AGGREGATIONS
+    # (donors.external_id) are File-only fields; guarded behind is_file_type_search
+    # (mirrors bar_plot_chart's own isFileTypeSearch) so a non-File search doesn't
+    # inherit fields that don't exist on that type.
+    search_type = search_param_lists.get('type')
+    is_file_type_search = (
+        (isinstance(search_type, list) and 'File' in search_type and len(search_type) == 1) or
+        (isinstance(search_type, str) and search_type == 'File')
+    )
 
     def flatten(items):
         for item in items:
@@ -587,7 +603,10 @@ def data_matrix_aggregations(context, request):
             }
         return extra_aggs
 
-    extra_total_aggs = build_extra_total_aggs()
+    extra_total_aggs = build_extra_total_aggs() if is_file_type_search else {}
+    coverage_agg_def = (
+        deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION) if is_file_type_search else {}
+    )
 
     primary_agg = {
         "field_0": {
@@ -596,7 +615,7 @@ def data_matrix_aggregations(context, request):
                 "missing": TERM_NAME_FOR_NO_VALUE,
                 "size": MAX_BUCKET_COUNT
             },
-            "aggs": deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION)
+            "aggs": deepcopy(coverage_agg_def)
         },
         "row_totals_0": {
             "terms": {
@@ -650,7 +669,7 @@ def data_matrix_aggregations(context, request):
 
     # Nest in additional fields, if any
     base_aggregation_def = {
-        **deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION),
+        **deepcopy(coverage_agg_def),
         **deepcopy(extra_total_aggs)
     }
     build_nested_aggs(primary_agg, row_agg_fields, base_aggregation_def, "field_0", "field_")
@@ -860,3 +879,193 @@ def data_matrix_aggregations(context, request):
         ret_result["column_totals"] = column_totals
 
     return ret_result
+
+
+# --- TissueSample counts, one per physical aliquot ---------------------------
+#
+# A Frozen tissue aliquot is cut into several Core TissueSamples, and a GCC
+# files its own record of each core it receives (same external_id), so a
+# record count overstates Frozen against Fixed (one record per aliquot). These
+# scripts count samples per *aliquot* instead -- kit id + 3-digit aliquot
+# number off the external_id ("SMHT001-3AL-001" for "SMHT001-3AL-001B2") --
+# without a stored field for it. Plain string handling, no regex: Painless
+# regexes can be disabled per cluster.
+TISSUE_SAMPLE_ALIQUOT_KEY_SCRIPT = """
+    def ids = doc['embedded.external_id.raw'];
+    if (ids.size() == 0) { return null; }
+    String s = ids.value;
+    int i = s.lastIndexOf('-');
+    if (i < 0) { return s; }
+    String tail = s.substring(i + 1);
+    if (tail.length() < 3 || !Character.isDigit(tail.charAt(0))
+            || !Character.isDigit(tail.charAt(1)) || !Character.isDigit(tail.charAt(2))) {
+        return s;
+    }
+    if (tail.length() == 3) { return s; }
+    if (tail.length() == 5 && tail.charAt(3) >= (char) 'A' && tail.charAt(3) <= (char) 'F'
+            && tail.charAt(4) >= (char) '1' && tail.charAt(4) <= (char) '6') {
+        return s.substring(0, i + 4);
+    }
+    return s;
+"""
+
+# "Sample type" as Browse by Tissue charts it: the sample's own
+# preservation_type, except that every sample of a Fresh tissue (Buccal
+# Swab, Fibroblast, ...) is "Fresh" -- those are mostly recorded as Frozen
+# themselves (see viz/BarPlot/tissue-histology-samples.js).
+TISSUE_SAMPLE_TYPE_SCRIPT = """
+    for (def value : doc['embedded.sample_sources.preservation_type.raw']) {
+        if (value == 'Fresh') { return 'Fresh'; }
+    }
+    def own = doc['embedded.preservation_type.raw'];
+    return own.size() == 0 ? null : own.value;
+"""
+
+# `only_with_pathology_reports`: Browse by Tissue's Cohort View chart counts
+# only samples with histology images and/or pathology reports (a
+# HistologyImage always links a report) -- a Fixed sample's own reports, or a
+# Frozen sample's reports of the Fixed sample cut from the same tissue block
+# -- plus, per request, every sample of a Fresh tissue, whose protocols have
+# no Fixed counterpart to link. Snovault filters can't OR fields, so this is
+# a filter aggregation around the rest.
+TISSUE_SAMPLE_WITH_PATHOLOGY_FILTER = {
+    "bool": {
+        "should": [
+            {"exists": {"field": "embedded.pathology_reports.accession.raw"}},
+            {"exists": {"field": "embedded.associated_pathology_reports.pathology_reports.accession.raw"}},
+            {"term": {"embedded.sample_sources.preservation_type.raw": "Fresh"}},
+        ],
+        "minimum_should_match": 1,
+    }
+}
+
+# Pseudo field name callers pass to group by TISSUE_SAMPLE_TYPE_SCRIPT.
+TISSUE_SAMPLE_TYPE_AGG_FIELD = 'sample_type'
+TISSUE_SAMPLE_AGG_MAX_BUCKETS = 200
+# Cardinality is exact below this (OpenSearch's maximum).
+TISSUE_SAMPLE_CARDINALITY_PRECISION = 40000
+
+
+def _tissue_sample_bucket_aggs():
+    return {
+        "samples": {
+            "cardinality": {
+                "script": {"source": TISSUE_SAMPLE_ALIQUOT_KEY_SCRIPT},
+                "precision_threshold": TISSUE_SAMPLE_CARDINALITY_PRECISION,
+            }
+        },
+        "donors": {
+            "terms": {
+                "field": "embedded.sample_sources.donor.display_title.raw",
+                "size": 10000,
+                "order": {"_key": "asc"},
+            }
+        },
+        # A Fixed sample's own reports -- the chart's popovers count these and
+        # their histology images.
+        "pathology_reports": {
+            "terms": {"field": "embedded.pathology_reports.uuid.raw", "size": 10000}
+        },
+    }
+
+
+def _tissue_sample_terms_agg(field):
+    if field == TISSUE_SAMPLE_TYPE_AGG_FIELD:
+        terms = {"script": {"source": TISSUE_SAMPLE_TYPE_SCRIPT}}
+    else:
+        terms = {"field": "embedded." + field + ".raw", "missing": TERM_NAME_FOR_NO_VALUE}
+    terms["size"] = TISSUE_SAMPLE_AGG_MAX_BUCKETS
+    return {"terms": terms}
+
+
+def _format_tissue_sample_bucket(bucket):
+    donor_ids = [b["key"] for b in bucket["donors"]["buckets"]]
+    return {
+        "doc_count": int(bucket.get("doc_count", 0)),
+        "samples": int(bucket["samples"]["value"]),
+        "donors": len(donor_ids),
+        "all_donors_ids": donor_ids,
+        "pathology_report_uuids": [b["key"] for b in bucket["pathology_reports"]["buckets"]],
+    }
+
+
+@view_config(route_name='tissue_sample_aggregations', request_method=['POST'])
+@debug_log
+def tissue_sample_aggregations(context, request):
+    """TissueSample counts by up to 2 fields, one sample per physical aliquot.
+
+    Body: `search_query_params` (a TissueSample search's filters -- the type is
+    always TissueSample) and `fields_to_aggregate_for` ([field] or [field,
+    group field]; "sample_type" groups by TISSUE_SAMPLE_TYPE_SCRIPT), plus an
+    optional `only_with_pathology_reports` (see TISSUE_SAMPLE_WITH_PATHOLOGY_FILTER).
+    Runs as a normal search, so each viewer only counts what they are allowed
+    to see.
+
+    Returns {field, group_field, total, terms}: each count has `samples`
+    (distinct aliquots), `donors`/`all_donors_ids` and the samples' own
+    `pathology_report_uuids`; a term grouped by a 2nd field also has `terms`.
+    """
+    try:
+        json_body = request.json_body
+    except json.decoder.JSONDecodeError:
+        raise HTTPBadRequest(detail="Expected a JSON body.")
+    search_param_lists = deepcopy(json_body.get('search_query_params') or {})
+    fields = json_body.get('fields_to_aggregate_for') or []
+    if isinstance(fields, str):
+        fields = [fields]
+    if not 1 <= len(fields) <= 2:
+        raise HTTPBadRequest(detail="fields_to_aggregate_for takes 1 or 2 fields.")
+
+    bucket_aggs = _tissue_sample_bucket_aggs()
+    field_agg = _tissue_sample_terms_agg(fields[0])
+    field_agg["aggs"] = deepcopy(bucket_aggs)
+    if len(fields) == 2:
+        group_agg = _tissue_sample_terms_agg(fields[1])
+        group_agg["aggs"] = deepcopy(bucket_aggs)
+        field_agg["aggs"]["group"] = group_agg
+    aggregations = {"field_0": field_agg}
+    aggregations.update(deepcopy(bucket_aggs))
+    only_with_pathology_reports = bool(json_body.get('only_with_pathology_reports', False))
+    if only_with_pathology_reports:
+        aggregations = {
+            "scope": {"filter": deepcopy(TISSUE_SAMPLE_WITH_PATHOLOGY_FILTER), "aggs": aggregations}
+        }
+
+    search_param_lists['type'] = ['TissueSample']
+    search_param_lists['limit'] = search_param_lists['from'] = [0]
+    search_param_lists['skip_default_facets'] = ['true']
+    subreq = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)))
+    search_result = perform_search_request(None, subreq, custom_aggregations=aggregations)
+    result_aggs = search_result.get('aggregations') or {}
+    total_doc_count = search_result.get('total', 0)
+    if only_with_pathology_reports:
+        result_aggs = result_aggs.get('scope') or {}
+        total_doc_count = result_aggs.get('doc_count', 0)
+
+    terms = {}
+    for bucket in result_aggs.get('field_0', {}).get('buckets', []):
+        if len(fields) == 2:
+            terms[bucket['key']] = {
+                "term": bucket['key'],
+                "field": fields[1],
+                "total": _format_tissue_sample_bucket(bucket),
+                "terms": {
+                    group['key']: _format_tissue_sample_bucket(group)
+                    for group in bucket['group']['buckets']
+                },
+            }
+        else:
+            terms[bucket['key']] = _format_tissue_sample_bucket(bucket)
+
+    total = (
+        _format_tissue_sample_bucket(dict(result_aggs, doc_count=total_doc_count))
+        if 'samples' in result_aggs
+        else {"doc_count": 0, "samples": 0, "donors": 0, "all_donors_ids": [], "pathology_report_uuids": []}
+    )
+    return {
+        "field": fields[0],
+        "group_field": fields[1] if len(fields) == 2 else None,
+        "total": total,
+        "terms": terms,
+        "time_generated": str(datetime.utcnow()),
+    }

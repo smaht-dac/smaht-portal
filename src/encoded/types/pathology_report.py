@@ -1,4 +1,7 @@
-from snovault import abstract_collection, load_schema
+from typing import List, Union
+
+from pyramid.request import Request
+from snovault import abstract_collection, load_schema, calculated_property
 
 from .submitted_item import SubmittedItem
 
@@ -15,4 +18,33 @@ class PathologyReport(SubmittedItem):
     item_type = "pathology_report"
     base_types = ["PathologyReport"] + SubmittedItem.base_types
     schema = load_schema("encoded:schemas/pathology_report.json")
-    embedded_list = []
+    embedded_list = [
+        # Lets PathologyReport search filter by its samples' tissue_type and
+        # donor population -- Browse by Tissue's chart links to the reports of
+        # one tissue, for the same released-donor Production population the
+        # chart counts (see TissueSample's own sample_sources.* embeds).
+        "tissue_samples.sample_sources.tissue_type",
+        "tissue_samples.sample_sources.donor.study",
+        "tissue_samples.sample_sources.donor.tags",
+    ]
+
+    rev = {
+        "histology_images": ("HistologyImage", "pathology_reports")
+    }
+
+    @calculated_property(
+        schema={
+            "title": "Histology Images",
+            "description": "Histology images referencing this pathology report",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "HistologyImage",
+            },
+        },
+    )
+    def histology_images(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "histology_images")
+        if result:
+            return result
+        return
