@@ -32,7 +32,6 @@ import FileSearchView from './browse/FileSearchView';
 import FileView from './item-pages/FileView';
 import PublicDonorView from './item-pages/PublicDonorView';
 import ProtectedDonorView from './item-pages/ProtectedDonorView';
-import TissueView from './item-pages/TissueView';
 import TissueTypeView from './browse/TissueTypeView';
 import PublicationView from './item-pages/PublicationView';
 import OktaLoginCallbackView from './auth/OktaLoginCallbackView';
@@ -59,7 +58,6 @@ content_views.register(StaticSectionView, 'StaticSection');
 content_views.register(FileView, 'File');
 content_views.register(PublicDonorView, 'Donor');
 content_views.register(ProtectedDonorView, 'ProtectedDonor');
-content_views.register(TissueView, 'Tissue');
 content_views.register(TissueTypeView, 'Tissue-Overview');
 content_views.register(PublicationView, 'Publication');
 // Okta redirect URI page - see encoded.okta.okta_login_callback_view.

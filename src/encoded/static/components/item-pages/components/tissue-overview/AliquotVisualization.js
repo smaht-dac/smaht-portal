@@ -289,8 +289,8 @@ export default function AliquotVisualization({
     // each slice carrying `medialLateralLayer` (0 or 1) and `isPlaceholder`.
     enableMedialLateralLayers = false,
     // Per real TissueSample external_id, the distinct "<Assay> - <Platform>"
-    // combinations among its own Files (see TissueView.js's identical
-    // state for how this is built) -- shown per core position row below,
+    // combinations among its own Files (see TissueTypeView.js's
+    // state of the same name for how this is built) -- shown per core position row below,
     // same label convention the Donor x Assay DataMatrix's own column
     // headers use.
     assayPlatformsBySampleName = {},

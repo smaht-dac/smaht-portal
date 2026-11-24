@@ -57,9 +57,10 @@ import {
 // Standalone page for /tissue-overview/?tissue_type=<value>, registered
 // against the synthetic 'Tissue-Overview' @type the backend's
 // tissue_overview.py route forces onto its search response -- a real
-// tissue_type-keyed page (unlike the legacy TissueOverview tab on a single
-// Tissue item's page at /tissues/<uuid>/), so `context` here is the search
-// response itself (its `@graph` is the Tissue-search-by-tissue_type dataset).
+// tissue_type-keyed page (a single Tissue item's own page at
+// /tissues/<uuid>/ uses the default item view), so `context` here is the
+// search response itself (its `@graph` is the Tissue-search-by-tissue_type
+// dataset).
 
 // This page renders its own title/breadcrumb (TissueTypeViewTitle, below)
 // inline with its content, same as item pages do -- suppress
@@ -68,10 +69,12 @@ import {
 // overrides that field per-request to the actual tissue_type value.
 pageTitleViews.register(() => null, 'Tissue-Overview');
 
-// See TissueView.js's identical constant for the full rationale.
+// `search_query_params` for /data_matrix_aggregations/ takes status as a
+// plain array, not a query string -- derived once from BROWSE_STATUS_FILTERS
+// itself (rather than a second hardcoded list) so the two can't drift apart.
 const BROWSE_STATUS_VALUES = new URLSearchParams(BROWSE_STATUS_FILTERS).getAll('status');
-// This page's Files stat spans every donor sharing a tissue_type (unlike
-// TissueView.js's single-donor scope), so the number of distinct
+// This page's Files stat spans every donor sharing a tissue_type (not just
+// one donor), so the number of distinct
 // sample_summary.sample_names values can realistically exceed
 // data_matrix_aggregations' default per-bucket cap -- opt into a higher one
 // (see visualization.py's max_bucket_count/MAX_BUCKET_COUNT_CEILING).
@@ -227,7 +230,7 @@ export default function TissueTypeView({
     // this tissue_type (donor.study=Production&donor.tags=has_released_files,
     // baked into the link that got the user here -- see
     // BrowseTissueHeatmapTable.js) -- no separate client-side fetch needed
-    // for this, unlike the legacy per-item TissueView.js.
+    // for this.
     const allTissuesForType = context?.['@graph'] || [];
     const donors = useMemo(() => dedupeTissuesByDonor(allTissuesForType), [allTissuesForType]);
 
@@ -398,11 +401,26 @@ export default function TissueTypeView({
 
     const [isLoading, setIsLoading] = useState(true);
     const [fileCount, setFileCount] = useState(0);
-    // See TissueView.js's identical state for the full rationale.
+    // Every sample_summary.sample_names value seen across this tissue_type's
+    // actual indexed Files (built off the same fetch used for fileCount) --
+    // lets each aliquot/core position check whether it *really* has files
+    // instead of inferring "probably yes" from having a real (non-TPC)
+    // submission_centers value, since a TissueSample can be submitted to a
+    // real GCC well before that GCC's files actually exist/are indexed.
     const [sampleNamesWithFiles, setSampleNamesWithFiles] = useState(null);
-    // See TissueView.js's identical state for the full rationale.
+    // Per real sample_name (core external_id), the distinct "<Assay> -
+    // <Platform>" combinations among its own Files -- same "<assay> -
+    // <platform>" column-label convention ProtectedDonorView.js/
+    // PublicDonorView.js's Donor x Assay DataMatrix uses, so a core's own
+    // popover list reads as the same vocabulary as that matrix's column
+    // headers. Built off the same fetch as sampleNamesWithFiles above.
     const [assayPlatformsBySampleName, setAssayPlatformsBySampleName] = useState({});
-    // See TissueView.js's identical state for the full rationale.
+    // Which donors, keyed by external_id, actually have >=1 real
+    // TissueSample (Core/Fixed/Frozen/Liquid/Cells) for this tissue_type --
+    // a donor can have a real Tissue record well before any aliquot has
+    // actually been submitted/processed for it. null (not an empty Set)
+    // while still loading/unknown, so nothing gets incorrectly disabled
+    // before this resolves.
     const [donorsWithAliquotData, setDonorsWithAliquotData] = useState(null);
     const [tissueSamples, setTissueSamples] = useState(null);
     // True only while re-fetching for an already-rendered donor switch (not
@@ -473,8 +491,12 @@ export default function TissueTypeView({
             // (10, not the more commonly assumed 25) silently truncates the
             // result set with no error or indication anything was missing.
             //
-            // See TissueView.js's identical fetch for why this is
-            // `status%21=deleted`, not the literal `status!=deleted`.
+            // `status%21=deleted`, not the literal `status!=deleted` -- a
+            // raw "!" is technically valid in a query string (RFC 3986
+            // leaves it unreserved), but Snovault's own URL canonicalization
+            // always percent-encodes it, 301-redirecting to `%21` before
+            // serving the search. Sending the encoded form directly skips
+            // that redirect round-trip.
             `/search/?type=TissueSample&status%21=deleted&${sampleSourceParams}&limit=all`,
             (resp) => {
                 if (ignore) return;
@@ -543,8 +565,12 @@ export default function TissueTypeView({
                             existing.frozenCorePositionSubmissionCenters[corePosition] =
                                 existingCenters.concat([center]);
                             // Parallel to the centers array above (same
-                            // index per (position, center) pair) -- see
-                            // TissueView.js's identical field for why.
+                            // index per (position, center) pair) -- this
+                            // record's own external_id, so the position's
+                            // files link (below) can narrow down to just
+                            // this specific TissueSample's files instead of
+                            // every file the GCC produced for the whole
+                            // donor+tissue.
                             existing.frozenCorePositionExternalIds[corePosition] = (
                                 existing.frozenCorePositionExternalIds[corePosition] || []
                             ).concat([sample.external_id || null]);
@@ -564,9 +590,10 @@ export default function TissueTypeView({
                         : sample.external_id || sample.accession || undefined,
                     idPrefix,
                     // The real aliquot number this slice was actually
-                    // submitted under -- see TissueView.js's identical field
-                    // for why AliquotVisualization prefers this over its own
-                    // positional numbering.
+                    // submitted under (e.g. "002") -- AliquotVisualization
+                    // prefers this over its own positional numbering, since
+                    // a tissue's aliquot numbering isn't always contiguous
+                    // from 001.
                     aliquotNumber: aliquotNumber || undefined,
                     frozenCorePositions: corePosition ? [corePosition] : [],
                     associatedPathologyReports: sample.associated_pathology_reports || [],
@@ -609,12 +636,17 @@ export default function TissueTypeView({
             // GCC into one row group (see AliquotVisualization.js), and
             // that group's own header link means "this GCC's files for this
             // whole donor+tissue", not any one position's (which link to
-            // frozenCorePositionFilesHrefs above instead). See TissueView.js's
-            // identical field for the full rationale.
+            // frozenCorePositionFilesHrefs above instead). Named for the
+            // *filter* the resulting href applies (sequencing_center.
+            // display_title on File) rather than the submissionCenter
+            // input value, since submission_centers on a File is often a
+            // downstream analysis center (e.g. "HMS DAC"), not this GCC.
             slice.gccFilesHrefs = {};
-            // See TissueView.js's identical block for the full rationale
-            // (hasFiles is ground truth from sampleNamesWithFiles, not an
-            // inference from having a real submissionCenter).
+            // Ground truth, not an inference from having a real (non-TPC)
+            // submissionCenter -- see nonSolidAliquots' identical hasFiles
+            // for the full rationale. `sampleNamesWithFiles === null`
+            // (still loading) intentionally reads as "yes" so the popover
+            // doesn't flash "No data" and then correct itself.
             const centersWithFiles = new Set();
             Object.entries(slice.frozenCorePositionSubmissionCenters).forEach(
                 ([corePosition, submissionCenters]) => {
@@ -747,9 +779,21 @@ export default function TissueTypeView({
     const nonSolidAliquots = useMemo(() => {
         const realAliquots = (tissueSamples || []).map((sample) => {
             const rawSubmissionCenter = sample.submission_centers?.[0]?.display_title || null;
-            // See TissueView.js's identical block for the full rationale.
+            // A TPC (e.g. "NDRI TPC") is a procurement-level record with no
+            // files of its own -- excluded here the same way
+            // AliquotVisualization.js excludes it from the solid-tissue core
+            // grid/popover. `hasOnlyTpcSubmission` (vs. just leaving
+            // submissionCenter null, which also covers "no data at all") lets
+            // the render side tell a real TPC-only aliquot apart from an
+            // illustrative placeholder.
             const hasOnlyTpcSubmission = isTpcSubmissionCenter(rawSubmissionCenter);
-            // See TissueView.js's identical field for the full rationale.
+            // Ground truth, not an inference from submission_centers -- a
+            // sample can be legitimately submitted to a real GCC well
+            // before that GCC's files for it actually exist/are indexed
+            // (see sampleNamesWithFiles above). `sampleNamesWithFiles ===
+            // null` (still loading) intentionally reads as "yes" here
+            // rather than flashing "No data" and then correcting
+            // itself once the fetch resolves.
             const hasFiles =
                 !hasOnlyTpcSubmission &&
                 (sampleNamesWithFiles === null ||
@@ -768,7 +812,11 @@ export default function TissueTypeView({
                         coreExternalId: sample.external_id || null,
                     })
                     : null,
-                // See TissueView.js's identical field.
+                // The GCC's own name is also a link in the solid-tissue
+                // popover (AliquotVisualization.js's group header) -- to
+                // this generic (not core-specific) "all this GCC's files
+                // for this donor+tissue" href, not this aliquot's own
+                // narrower one above.
                 gccFilesHref: hasFiles
                     ? getGccFilesBrowseHref({
                         donorDisplayTitle: selectedDonorDisplayTitle,
@@ -822,12 +870,18 @@ export default function TissueTypeView({
             setIsLoading(false);
             return;
         }
-        // See TissueView.js's identical effect for the full rationale
-        // (aggregation instead of /search/?limit=all, status as the
-        // column dimension to avoid double-counting pooled/"MC" files'
-        // coverage). max_bucket_count is raised here (see the constant
-        // above) since this page's scope is every donor sharing this
-        // tissue_type, not just one.
+        // Uses /data_matrix_aggregations/ (the same aggregation endpoint
+        // DataMatrix.js/BrowseDonorVizWrapper.js rely on) instead of a plain
+        // /search/?limit=all fetch of every matching File -- a single
+        // request gets fileCount *and* sampleNamesWithFiles as proper ES
+        // aggregations, with no File document bodies transferred.
+        // `column_agg_fields: ['status']` groups by File's own
+        // single-valued status so per-bucket values can be summed
+        // client-side without double-counting; sample_summary.sample_names
+        // is nested as `row_agg_fields` instead because a pooled/"MC" File
+        // can legitimately list more than one sample_name. max_bucket_count
+        // is raised here (see the constant above) since this page's scope
+        // is every donor sharing this tissue_type, not just one.
         const searchQueryParams = {
             type: ['File'],
             status: BROWSE_STATUS_VALUES,
@@ -1045,7 +1099,15 @@ export default function TissueTypeView({
         return true;
     };
 
-    // See TissueView.js's identical effect for the full rationale.
+    // Batch pre-check (one request, not one per donor) for which donors
+    // actually have real TissueSample data for this tissue_type -- reuses
+    // /data_matrix_aggregations/, scoped to every donor's own Tissue uuid(s)
+    // at once via sample_sources.uuid, bucketed by
+    // sample_sources.donor.external_id (already embedded, see
+    // types/sample.py's embedded_list) so it doesn't need per-donor
+    // requests. max_bucket_count is set generously above this tissue_type's
+    // actual donor count since a caller undercounting it silently drops
+    // the lowest-count donors from the result (see visualization.py).
     useEffect(() => {
         const tissueUuids = allTissuesForType.map((t) => t?.uuid).filter(Boolean);
         if (tissueUuids.length === 0) {

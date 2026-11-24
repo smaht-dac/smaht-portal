@@ -315,6 +315,86 @@ export function useSortableRows(rows, sortValueGetters) {
     return { sortedRows, renderSortableHeader };
 }
 
+/**
+ * Client-side filters for a donor table -- every row is already loaded, so
+ * nothing goes back to the server: a Donor ID text match, and one of the
+ * donors' own `donor_groups` (same All | ... button group as the Cohort
+ * chart's Tissue Type filter). Opening a report from outside (the aliquot
+ * diagram) clears them so its donor row can't be hidden.
+ */
+export function useDonorTableFilters(rows, highlightedReportId) {
+    const [query, setQuery] = useState('');
+    const [donorGroup, setDonorGroup] = useState(null);
+
+    useEffect(() => {
+        if (!highlightedReportId) return;
+        setQuery('');
+        setDonorGroup(null);
+    }, [highlightedReportId]);
+
+    const groups = useMemo(
+        () => Array.from(new Set(rows.flatMap(({ donor: d }) => d?.donor_groups || []))).sort(),
+        [rows]
+    );
+
+    const filteredRows = useMemo(() => {
+        const text = query.trim().toLowerCase();
+        return rows.filter(({ donor: d }) => {
+            if (text && !getDisplayText(d).toLowerCase().includes(text)) return false;
+            return !donorGroup || (d?.donor_groups || []).includes(donorGroup);
+        });
+    }, [rows, query, donorGroup]);
+
+    const isFiltered = !!query.trim() || !!donorGroup;
+
+    const filterBar = (
+        <div className="pathology-table-filters">
+            <input
+                type="search"
+                className="form-control form-control-sm"
+                placeholder="Search Donor ID"
+                aria-label="Search Donor ID"
+                value={query}
+                // eslint-disable-next-line react/jsx-no-bind
+                onChange={(e) => setQuery(e.target.value)}
+            />
+            {groups.length > 0 ? (
+                <div className="d-flex align-items-center gap-2">
+                    <span className="text-muted small">Donor Group</span>
+                    <div className="btn-group btn-group-sm" role="group" aria-label="Filter donors by donor group">
+                        {[null, ...groups].map((group) => (
+                            <button
+                                key={group || 'all'}
+                                type="button"
+                                className={`btn ${donorGroup === group ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                                // eslint-disable-next-line react/jsx-no-bind
+                                onClick={() => setDonorGroup(group)}>
+                                {group || 'All'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            ) : null}
+            <span className="pathology-table-filter-count text-muted small">
+                {isFiltered ? `${filteredRows.length} of ${rows.length} donors` : `${rows.length} donors`}
+            </span>
+        </div>
+    );
+
+    return { filteredRows, filterBar };
+}
+
+// Shown in place of the donor rows when the filters leave none.
+export const NoMatchingDonorsRow = ({ colSpan }) => (
+    <tbody>
+        <tr>
+            <td colSpan={colSpan} className="text-muted-placeholder">
+                No donors match these filters.
+            </td>
+        </tr>
+    </tbody>
+);
+
 // Brings a report opened from outside (the aliquot diagram) into view once
 // its donor's row has expanded -- the report's element carries
 // `id="pathology-report-<uuid>"`.
@@ -520,8 +600,10 @@ export default function PathologyReportsTable({
         [donors, reports, reportsByDonorUuid]
     );
 
+    const { filteredRows, filterBar } = useDonorTableFilters(rows, highlightedReportId);
+
     // Histology Images isn't sortable -- it's a link/count.
-    const { sortedRows, renderSortableHeader } = useSortableRows(rows, {
+    const { sortedRows, renderSortableHeader } = useSortableRows(filteredRows, {
         donorId: ({ donor: d }) => getDisplayText(d),
         age: ({ donor: d }) => (typeof d?.age === 'number' ? d.age : null),
         sex: ({ donor: d }) => d?.sex ?? null,
@@ -539,7 +621,7 @@ export default function PathologyReportsTable({
         return <div className="pathology-reports-empty">No donor data available for this tissue type.</div>;
     }
 
-    return (
+    const table = (
         <table className="tissue-donor-table pathology-reports-table table">
             <colgroup>
                 <col style={{ width: '14%' }} />
@@ -674,6 +756,14 @@ export default function PathologyReportsTable({
                     </tbody>
                 );
             })}
+            {sortedRows.length === 0 ? <NoMatchingDonorsRow colSpan={7} /> : null}
         </table>
+    );
+
+    return (
+        <>
+            {filterBar}
+            {table}
+        </>
     );
 }
