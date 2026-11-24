@@ -3837,7 +3837,10 @@ $pathology-reports-muted: #B0B0B0;
                             background-color: var(--tissue-data-tint);
                         }
 
+                        // Each value sits centered under its own label.
                         &-stat {
+                            text-align: center;
+
                             .stat-label {
                                 font-size: 0.75rem;
                                 font-weight: 500;
