@@ -116,6 +116,17 @@
                 "type": "string"
             }
         },
+        "internal_code": {
+            "title": "Internal Code",
+            "description": "Four-letter source-backed tissue code; not a protocol identifier.",
+            "type": "string",
+            "pattern": "^[A-Z]{4}$"
+        },
+        "standardized_recovery_description": {
+            "title": "Standardized Recovery Description",
+            "description": "Canonical description of the standardized tissue recovery location.",
+            "type": "string"
+        },
         "tags": {
             "type": "array",
             "items": {
@@ -131,6 +142,9 @@
     "columns": {
         "identifier": {
             "title": "Identifier"
+        },
+        "internal_code": { 
+            "title": "Code"
         },
         "valid_protocol_ids": {
             "title": "Valid Protocol ID"
