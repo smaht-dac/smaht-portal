@@ -251,6 +251,7 @@ export const Field = {
         'sample_summary.tissues': 'Tissue',
         'assays.display_title': 'Assay Type',
         'sequencers.display_title': 'Sequencer',
+        'sequencing_center.display_title': 'Sequencing Center',
         'donors.display_title': 'Donor',
         data_type: 'Data Type',
         'file_format.display_title': 'File Format',
