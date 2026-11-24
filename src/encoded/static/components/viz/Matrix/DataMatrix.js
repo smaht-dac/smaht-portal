@@ -132,7 +132,7 @@ export default class DataMatrix extends React.PureComponent {
     };
     static DEFAULT_COLUMN_GROUPS = {
         "Bulk WGS": {
-            "values": ['WGS - Illumina', 'WGS - PacBio', 'WGS - Standard ONT', 'WGS - UltraLong ONT', 'WGS - Element AVITI', 'WGS - MGI', 'WGS - Ultima Genomics', 'SBX-D - Roche', 'Fiber-seq'],
+            "values": ['WGS - Illumina', 'WGS - PacBio', 'Fiber-seq', 'WGS - Standard ONT', 'WGS - UltraLong ONT', 'WGS - Element AVITI', 'WGS - MGI', 'WGS - Ultima Genomics', 'SBX-D - Roche'],
             "backgroundColor": "#e04141",
             "textColor": "#ffffff",
             "shortName": "WGS"
@@ -2474,6 +2474,8 @@ export default class DataMatrix extends React.PureComponent {
                                                 : null;
                                             const hideFacetFields = new Set(FILE_BROWSE_HIDE_FACETS || []);
                                             hideFacetFields.add('type');
+                                            // Status is a browse/search facet only, not a matrix count breakdown
+                                            hideFacetFields.add('status');
                                             const visibleFacets = _.filter(facetsForPanel || [], (facet) => {
                                                 if (!facet || !facet.field || !Array.isArray(facet.terms) || facet.terms.length === 0) {
                                                     return false;
