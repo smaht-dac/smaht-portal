@@ -61,13 +61,18 @@ SUBJECT_INVALID_ERROR = (
     "with a space"
 )
 
-UNNAMED_FILE = "(unnamed file)"
-
 # Fixed rather than interpolated with the exception, as with the SNS errors
 # above: an OpenSearch failure stringifies to index and host detail.
 RELEASE_SUMMARY_ERROR = (
     "Could not load the release summary. Please try again."
 )
+NOTIFICATION_STATUS_ERROR = (
+    "Could not load previous messages. Please try again."
+)
+EMAIL_RECIPIENTS_ERROR = (
+    "Could not list the email recipients. Please try again."
+)
+SEND_NOTIFICATION_ERROR = "Could not send the email. Please try again."
 
 RELEASE_SUMMARY_AUDIENCE = (
     "* For the SMaHT Network members with Data Use Agreements established "
@@ -83,6 +88,25 @@ RETRACTED_HEADLINE = "RETRACTED DATA: {files} (link to all retracted files: {url
 FULL_LIST_HEADING = "FULL LIST OF THE NEW DATA RELEASED"
 PORTAL_URL = "https://data.smaht.org"
 RETRACTED_FILES_URL = f"{PORTAL_URL}/retracted-files"
+
+# The overview lists assays and categories in these sections, in this order.
+CORE_ASSAY_HEADING = "Core-assay data"
+NON_CORE_ASSAY_HEADING = "Non-core assay data"
+OTHER_DATA_HEADING = "Other data"
+OVERVIEW_SECTIONS = (CORE_ASSAY_HEADING, NON_CORE_ASSAY_HEADING, OTHER_DATA_HEADING)
+# The consortium's core assays, as release-tracker descriptions without the
+# file format.
+CORE_ASSAYS = frozenset({
+    "Fiber-seq PacBio Revio",
+    "Kinnex PacBio Revio",
+    "RNA-seq Illumina NovaSeq X Plus",
+    "WGS Illumina NovaSeq X Plus",
+    "WGS ONT PromethION 24",
+    "WGS PacBio Revio",
+})
+# Only the aligned reads count as an assay's data; any other format of the
+# same assay is listed under OTHER_DATA_HEADING.
+ASSAY_FILE_FORMATS = frozenset({"bam", "cram"})
 
 # Only these are labeled: "Unknown" sex says nothing worth printing.
 DONOR_SEXES = frozenset({"Male", "Female"})
@@ -124,7 +148,6 @@ NOTIFICATIONS_UNAVAILABLE_ERROR = (
 
 def includeme(config):
     config.add_route("get_notification_status", "/get_notification_status/")
-    config.add_route("get_released_files_text", "/get_released_files_text/")
     config.add_route(
         "get_released_files_summary", "/get_released_files_summary/"
     )
@@ -184,67 +207,13 @@ def get_notification_status(context, request):
 
         return {
             "email_notifications": email_notifications,
-            # Lets the page disable the send-to-all button 
+            # Lets the page disable the send-to-all button for callers not
+            # in CONSORTIUM_SENDERS.
             "can_notify_all": validate_user_may_notify_all(request),
         }
-    except Exception as e:
-        return {
-            "error": f"Error when trying to get notification status: {e}",
-        }
-
-
-@view_config(route_name="get_released_files_text", request_method="POST")
-@debug_log
-def get_released_files_text(context, request):
-    # Admin-gated like the other two: the status filter below includes
-    # open-early and protected-early, which are consortium-restricted.
-    if not validate_user_is_admin(request):
-        return {"error": ADMIN_ONLY_ERROR}
-    try:
-        body = request.json_body
-        date_from = body.get("date_from")
-        if not date_from:
-            return {"error": "date_from is required"}
-
-        search_params = [
-            ("type", "File"),
-            ("status", "open"),
-            ("status", "open-early"),
-            ("status", "protected-early"),
-            ("status", "protected"),
-            ("dataset!", "No value"),
-            ("file_status_tracking.release_dates.initial_release_date.from", date_from),
-            ("limit", "all"),
-            ("sort", "display_title"),
-        ]
-        subreq = make_search_subreq(
-            request, f"/search?{urlencode(search_params)}", inherit_user=True
-        )
-        files = search(context, subreq)["@graph"]
-
-        if not files:
-            return {"text": f"No files were released since {date_from}."}
-
-        # Plain text, not Markdown: a setext-style underline instead of `####`,
-        # and ASCII bullets. Titles are single unbreakable tokens (accessions,
-        # filenames), so no hard wrap -- mail clients soft-wrap anyway.
-        heading = f"Files Released Since {date_from}"
-        lines = [heading, "-" * len(heading), ""]
-        for f in files:
-            title = (
-                f.get("display_title")
-                or f.get("accession")
-                or f.get("uuid")
-                or UNNAMED_FILE
-            )
-            lines.append(f"- {title}")
-
-        # No trailing newline: the composer appends this with '\n\n' + text.
-        return {"text": "\n".join(lines)}
-    except Exception as e:
-        return {
-            "error": f"Error when trying to get released files: {e}",
-        }
+    except Exception:
+        log.exception("get_notification_status failed")
+        return {"error": NOTIFICATION_STATUS_ERROR}
 
 
 def framed_heading(heading: str) -> List[str]:
@@ -286,8 +255,9 @@ def search_released_files(
 ) -> List[Dict]:
     """The files the release summary counts, one hit per file.
 
-    The only read of the released files: the counts, the donors, the title
-    labels and whether a title is a tissue all come from these hits.
+    The only read of the released files: the counts, the donors, the donor
+    groups and their labels, and whether a title is a tissue all come from
+    these hits.
     """
     # The same filters as the home-page release tracker (recent_files_summary's
     # base query, which is nested there and cannot be imported), so the email
@@ -321,28 +291,65 @@ def search_released_files(
     return search(context, subreq).get("@graph") or []
 
 
-def title_donor_labels(hits: List[Dict]) -> Dict[str, str]:
-    """Map each release-tracker title to its donor's sex and age.
+class TitleGroup(NamedTuple):
+    """Where a release-tracker title is printed in the full list."""
+    # The donor ID, or the title itself when it stands alone.
+    name: str
+    # The tissue code after the donor ID ("3AD"), or None when standalone.
+    member: Optional[str]
 
-    E.g. "Male, 57 yrs-old", printed as "SMHT023-3Q (Male, 57 yrs-old)".
 
-    A title gets a label only when all its files agree on a single donor with
-    known sex and age, so cell lines, mixtures and multi-donor titles stay
-    unlabeled.
+def title_groups(hits: List[Dict]) -> Dict[str, TitleGroup]:
+    """Group each release-tracker title under its donor.
+
+    "SMHT004-3AD" becomes member "3AD" of "SMHT004" when all its files agree
+    on that one donor; production tissue IDs lead with the donor's (see
+    assert_external_id_donor_match). Cell lines, mixtures, multi-donor titles
+    and override titles stand alone.
     """
     donors_by_title: Dict[str, set] = {}
     for hit in hits:
         title = hit.get(AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE)
         if not title:
             continue
-        pairs = donors_by_title.setdefault(title, set())
+        donors = donors_by_title.setdefault(title, set())
+        for donor in hit.get("donors") or []:
+            donors.add(donor.get("display_title"))
+
+    groups = {}
+    for title, donors in donors_by_title.items():
+        donor = next(iter(donors)) if len(donors) == 1 else None
+        if donor and title.startswith(f"{donor}-") and len(title) > len(donor) + 1:
+            groups[title] = TitleGroup(donor, title[len(donor) + 1:])
+        else:
+            groups[title] = TitleGroup(title, None)
+    return groups
+
+
+def group_donor_labels(
+    hits: List[Dict], groups: Dict[str, TitleGroup]
+) -> Dict[str, str]:
+    """Map each group name to its donor's sex and age.
+
+    E.g. "Male, 57 yrs-old", printed as "SMHT023 (Male, 57 yrs-old): 3Q".
+
+    A group gets a label only when all its files agree on a single donor with
+    known sex and age, so cell lines, mixtures and multi-donor titles stay
+    unlabeled.
+    """
+    donors_by_group: Dict[str, set] = {}
+    for hit in hits:
+        group = groups.get(hit.get(AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE))
+        if not group:
+            continue
+        pairs = donors_by_group.setdefault(group.name, set())
         for donor in hit.get("donors") or []:
             pairs.add((donor.get("sex"), donor.get("age")))
 
     labels = {}
-    for title, pairs in donors_by_title.items():
+    for name, pairs in donors_by_group.items():
         if len(pairs) == 1 and (label := donor_label(*next(iter(pairs)))):
-            labels[title] = label
+            labels[name] = label
     return labels
 
 
@@ -385,14 +392,19 @@ def totals_from_hits(hits: List[Dict]) -> Dict[Tuple[str, str], int]:
     return totals
 
 
-def assay_label(description: str) -> str:
-    """Drop the trailing file format: "... NovaSeq X bam" -> "... NovaSeq X".
+def overview_section(description: str) -> str:
+    """The overview section a release-tracker description is listed under.
 
-    The counterpart of `uppercase_file_format`, so the BAM and CRAM of one
-    assay are a single entry in the overview.
+    BAM and CRAM files of a core assay are core-assay data, those of any other
+    assay non-core; every other format, and every override description such as
+    "Filtered somatic SNV vcf vcf_gz", is other data.
     """
     head, _, file_format = description.rpartition(" ")
-    return head or file_format
+    if not head or file_format.lower() not in ASSAY_FILE_FORMATS:
+        return OTHER_DATA_HEADING
+    # The description without its format: "... NovaSeq X Plus bam" is
+    # matched as "... NovaSeq X Plus".
+    return CORE_ASSAY_HEADING if head in CORE_ASSAYS else NON_CORE_ASSAY_HEADING
 
 
 class FileOverview(NamedTuple):
@@ -402,7 +414,8 @@ class FileOverview(NamedTuple):
     tissue_count: int
     # Titles that are not tissues: cell lines and cell culture mixtures.
     other_count: int
-    assays: Dict[str, int]
+    # Section heading -> description with its file format -> file count.
+    sections: Dict[str, Dict[str, int]]
 
 
 def build_overview(
@@ -426,16 +439,19 @@ def build_overview(
         for donor in hit.get("donors") or []
         if donor.get("display_title")
     }
-    assays: Dict[str, int] = {}
+    sections: Dict[str, Dict[str, int]] = {}
     for (_, description), count in totals.items():
-        label = assay_label(description)
+        assays = sections.setdefault(overview_section(description), {})
+        # With its format, as in the full list: an assay's BAM and CRAM files
+        # are separate entries.
+        label = uppercase_file_format(description)
         assays[label] = assays.get(label, 0) + count
     return FileOverview(
         file_count=file_count,
         donor_count=len(donors),
         tissue_count=len(titles & tissue_titles),
         other_count=len(titles - tissue_titles),
-        assays=assays,
+        sections=sections,
     )
 
 
@@ -460,14 +476,21 @@ def format_overview(headline: str, overview: FileOverview, url: str) -> List[str
             overview.other_count, "cell line / mixture", "cell lines / mixtures"
         ))
     counts.append(pluralize(
-        len(overview.assays), "assay / category", "assays / categories"
+        sum(len(assays) for assays in overview.sections.values()),
+        "assay / category", "assays / categories",
     ))
     lines += [f" - {count}" for count in counts]
-    # Alphabetical, ignoring case, so a lowercase-initial assay ("scRNA-seq")
-    # is not pushed below every capitalized one.
-    lines += [
-        f"    - {assay}" for assay in sorted(overview.assays, key=str.casefold)
-    ]
+    for heading in OVERVIEW_SECTIONS:
+        assays = overview.sections.get(heading)
+        if not assays:
+            continue
+        lines.append(f"    {heading}")
+        # Alphabetical, ignoring case, so a lowercase-initial assay
+        # ("scRNA-seq") is not pushed below every capitalized one.
+        lines += [
+            f"     - {assays[assay]} {assay}"
+            for assay in sorted(assays, key=str.casefold)
+        ]
     return lines
 
 
@@ -481,11 +504,11 @@ def recent_releases_url(date_from: str) -> str:
 
 
 def format_release_summary(
-    totals: Dict[Tuple[str, str], int], date_from: str, date_to: str,
+    date_from: str, date_to: str,
     released_hits: List[Dict], retracted_hits: List[Dict],
-    title_labels: Optional[Dict[str, str]] = None,
 ) -> str:
-    """Render the grouped counts as the plain text the composer inserts."""
+    """Render the released and retracted files as the plain text the composer inserts."""
+    totals = totals_from_hits(released_hits)
     # The headline is the sum of the full list printed below it, so the two can
     # never disagree -- a hit missing a tracker field is in neither.
     released = build_overview(totals, released_hits, sum(totals.values()))
@@ -504,19 +527,29 @@ def format_release_summary(
     lines += ["", ""]
     lines += format_overview(RETRACTED_HEADLINE, retracted, RETRACTED_FILES_URL)
 
-    by_title: Dict[str, Dict[str, int]] = {}
+    # One block per donor rather than per tissue, so hundreds of files over a
+    # donor's tissues stay a few lines; the counts are summed over its tissues.
+    groups = title_groups(released_hits)
+    labels = group_donor_labels(released_hits, groups)
+    by_group: Dict[str, Dict[str, int]] = {}
+    members: Dict[str, set] = {}
     for (title, description), count in totals.items():
-        by_title.setdefault(title, {})[description] = count
-    if by_title:
+        group = groups.get(title) or TitleGroup(title, None)
+        counts = by_group.setdefault(group.name, {})
+        counts[description] = counts.get(description, 0) + count
+        if group.member:
+            members.setdefault(group.name, set()).add(group.member)
+    if by_group:
         lines += ["", "", FULL_LIST_HEADING]
-    title_labels = title_labels or {}
-    # By name alone: titles lead with the donor ID, so a donor's tissues stay
-    # together and each month's email lists them in the same order.
-    for title in sorted(by_title):
-        label = title_labels.get(title)
-        lines += ["", f"{title} ({label})" if label else title]
+    # By name alone, so each month's email lists them in the same order.
+    for name in sorted(by_group):
+        label = labels.get(name)
+        heading = f"{name} ({label})" if label else name
+        if name in members:
+            heading += ": " + ", ".join(sorted(members[name]))
+        lines += ["", heading]
         for description, count in sorted(
-            by_title[title].items(), key=by_count_then_name
+            by_group[name].items(), key=by_count_then_name
         ):
             lines.append(f"  - {count} {uppercase_file_format(description)}")
 
@@ -547,9 +580,7 @@ def get_released_files_summary(context, request):
             context, request, date_from, date_to
         )
         return {"text": format_release_summary(
-            totals_from_hits(released_hits), date_from, date_to,
-            released_hits, retracted_hits,
-            title_donor_labels(released_hits),
+            date_from, date_to, released_hits, retracted_hits,
         )}
     except Exception:
         log.exception("get_released_files_summary failed")
@@ -655,10 +686,9 @@ def get_email_recipients(context, request):
             response["confirmed"] = confirmed
             response["pending"] = pending
         return response
-    except Exception as e:
-        return {
-            "error": f"Error when trying to list email recipients: {e}",
-        }
+    except Exception:
+        log.exception("get_email_recipients failed")
+        return {"error": EMAIL_RECIPIENTS_ERROR}
 
 
 def publish_notification_email(topic: str, subject: str, body: str) -> None:
@@ -779,7 +809,8 @@ def send_notification_email(context, request):
             "sent": True,
             "recorded": True,
         }
-    except Exception as e:
-        return {
-            "error": f"Error when trying to send notification email: {e}",
-        }
+    except Exception:
+        # Only reachable before the publish: everything after it has its own
+        # handler, so this never reports a delivered mail as failed.
+        log.exception("send_notification_email failed")
+        return {"error": SEND_NOTIFICATION_ERROR}
