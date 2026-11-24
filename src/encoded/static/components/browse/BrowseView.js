@@ -69,7 +69,6 @@ export const BROWSE_LINKS = {
 export const FILE_BROWSE_HIDE_FACETS = [
     'dataset',
     'file_sets.libraries.analytes.samples.sample_sources.code',
-    'status',
     'validation_errors.name',
     'version',
     'sample_summary.studies',

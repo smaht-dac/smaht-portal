@@ -7,6 +7,31 @@ smaht-portal
 Change Log
 ----------
 
+2.15.26
+=======
+
+`PR 800: Data Matrix: Reorder colums for Bulk WGS <https://github.com/smaht-dac/smaht-portal/pull/800>`_
+
+* Move Fiber-seq next to WGS - PacBio in the Data Matrix's Bulk WGS column group
+
+
+2.15.25
+=======
+
+`PR 803: feat: add status facet back to browse and search tables <https://github.com/smaht-dac/smaht-portal/pull/803>`_
+
+* Add status facet to file tables
+
+
+2.15.24
+=======
+
+`PR 804: feat: reorder benchmarking page tissue codes <https://github.com/smaht-dac/smaht-portal/pull/804>`_
+
+* Reorder tissue names on benchmarking pages to include the code first
+* Correct the benchmarking tissue description to list five tissue types (adding skin) instead of four
+
+
 2.15.23
 =======
 
