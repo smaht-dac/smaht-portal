@@ -2474,6 +2474,8 @@ export default class DataMatrix extends React.PureComponent {
                                                 : null;
                                             const hideFacetFields = new Set(FILE_BROWSE_HIDE_FACETS || []);
                                             hideFacetFields.add('type');
+                                            // Status is a browse/search facet only, not a matrix count breakdown
+                                            hideFacetFields.add('status');
                                             const visibleFacets = _.filter(facetsForPanel || [], (facet) => {
                                                 if (!facet || !facet.field || !Array.isArray(facet.terms) || facet.terms.length === 0) {
                                                     return false;
