@@ -143,6 +143,9 @@
         "identifier": {
             "title": "Identifier"
         },
+        "internal_code": { 
+            "title": "Code"
+    },
         "valid_protocol_ids": {
             "title": "Valid Protocol ID"
         }
