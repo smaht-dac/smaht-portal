@@ -3837,7 +3837,10 @@ $pathology-reports-muted: #B0B0B0;
                             background-color: var(--tissue-data-tint);
                         }
 
+                        // Each value sits centered under its own label.
                         &-stat {
+                            text-align: center;
+
                             .stat-label {
                                 font-size: 0.75rem;
                                 font-weight: 500;
@@ -4316,8 +4319,15 @@ $pathology-reports-muted: #B0B0B0;
 
             // The table sits inset from the card's edges, as in the mockup,
             // instead of running flush against them.
+            // The header row sticks to the page while scrolling (see thead th
+            // below), which no scroll container may sit between -- `clip`
+            // still rounds the card's corners without being one, and the
+            // body gives up its sideways scroll.
+            overflow: clip;
+
             .body {
                 padding: 16px 18px 14px;
+                overflow: visible;
             }
         }
 
@@ -4341,6 +4351,19 @@ $pathology-reports-muted: #B0B0B0;
                 color: $pathology-reports-text;
                 border-right: none;
                 border-bottom: 1px solid $pathology-reports-header-border;
+                position: sticky;
+                top: 0;
+                z-index: 2;
+
+                // Right under the top nav where it's fixed -- by the time the
+                // header reaches it the page has scrolled, which shrinks the
+                // nav to its small height (_navbar.scss).
+                @include navbar-fixed-position {
+                    top: $navbar-small-height;
+                }
+                // A collapsed-border table's borders don't travel with a
+                // sticky cell, so the bottom rule is drawn as a shadow too.
+                box-shadow: inset 0 -1px 0 $pathology-reports-header-border;
             }
 
             > thead > tr > th:first-child,
