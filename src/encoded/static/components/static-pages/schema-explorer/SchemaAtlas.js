@@ -5,6 +5,7 @@ import { routeEdges } from './routing';
 import { researchLabels, concepts } from './research-map';
 import { groupRelationships, sharedRelationships } from './relationship-view';
 import { nodePresentation, stageAccent } from './node-presentation';
+import { exportPNG } from './shared';
 
 // Every schema as one network, drawn like the group maps: each group laid out exactly as its own group map (its
 // stage panels, the same cards and labelled, routed arrows), the groups placed along the donor-to-data path, at a
@@ -44,8 +45,21 @@ export function atlasLayout(index) {
         }
         frames.push({ id: block.id, label: block.label, count: block.count, left: dx, top: dy, width: block.width, height: block.height });
     }
+    // Arrows between two groups go around the other groups (`regions`), along lanes through the gaps between them.
+    const regionPad = 12, laneStep = 16;
+    const lanesIn = (from, to) => {
+        const list = [];
+        for (let v = from + regionPad + laneStep; v <= to - regionPad - laneStep; v += laneStep) list.push(v);
+        return list;
+    };
+    const gapLanes = (sizes, gap) => sizes.slice(0, -1).flatMap((size, i) => {
+        const end = margin + sum(sizes, i, gap) + (size || 0);
+        return lanesIn(end, end + gap);
+    });
     return {
         positions, frames, layers,
+        regions: frames.map((f) => { return { id: f.id, left: f.left - regionPad, right: f.left + f.width + regionPad, top: f.top - regionPad, bottom: f.top + f.height + regionPad }; }),
+        lanes: { x: gapLanes(columnWidths, blockGap.x), y: gapLanes(rowHeights, blockGap.y) },
         // Arrows keep clear of group and panel titles, as on a group map.
         headings: [...frames.map((f) => { return { left: f.left + 18, top: f.top + 12, width: Math.min(f.width - 36, f.label.length * 15 + 12), height: 38 }; }), ...layers],
         width: margin * 2 + sum(columnWidths, columnWidths.length, blockGap.x) - blockGap.x,
@@ -98,6 +112,7 @@ export default function SchemaAtlas({ index, query, onOpen }) {
         return new Map([...sources].filter(([, from]) => from.size >= 5).map(([name, from]) => [name, from.size]));
     }, [groups]);
     const hubbed = (g) => hubs.has(g.to);
+    const crosses = (g) => domainFor(g.from) !== domainFor(g.to);
     // Each card's arrows into widely used schemas, named under the card.
     const hubTags = useMemo(() => {
         const tags = new Map();
@@ -114,12 +129,14 @@ export default function SchemaAtlas({ index, query, onOpen }) {
         return { left: p.x - cardWidth / 2, top: p.y + cardHeight / 2 + 2, width: tagText(name).length * 6 + 8, height: 16 };
     })], [atlas, hubTags]);
     const routes = useMemo(() => {
-        const route = (list, extra = {}) => routeEdges(atlas.positions, list, cardWidth, cardHeight, obstacles, { spreadPorts: true,
+        const route = (list, extra = {}) => routeEdges(atlas.positions, list, cardWidth, cardHeight, obstacles, { spreadPorts: true, regions: atlas.regions, regionOf: domainFor, lanes: atlas.lanes,
             portKey: (g, name) => (name === g.to && bundles.has(g.key) ? `fan:${bundles.get(g.key).key}` : g.key), ...extra });
-        // The other arrows are laid out first; arrows into widely used schemas keep off their lines.
-        const main = route(groups.filter((g) => !hubbed(g)));
-        const avoid = Object.values(main).flatMap((r) => r.points.slice(1).map((b, i) => [r.points[i], b]));
-        const result = { ...main, ...route(groups.filter(hubbed), { avoid }) };
+        // Arrows inside a group are laid out first, as on its own map; arrows between groups keep off their lines,
+        // and arrows into widely used schemas keep off both.
+        const segments = (routed) => Object.values(routed).flatMap((r) => r.points.slice(1).map((b, i) => [r.points[i], b]));
+        const inner = route(groups.filter((g) => !hubbed(g) && !crosses(g)));
+        const main = { ...inner, ...route(groups.filter((g) => !hubbed(g) && crosses(g)), { avoid: segments(inner) }) };
+        const result = { ...main, ...route(groups.filter(hubbed), { avoid: segments(main) }) };
         // A fan-in's name goes on its shared trunk: the run nearest the card that is long enough to hold it.
         for (const [key, bundle] of bundles) {
             const r = result[key], g = groups.find((group) => group.key === key);
@@ -147,6 +164,7 @@ export default function SchemaAtlas({ index, query, onOpen }) {
     const [camera, setCamera] = useState(null);
     // Full screen, as on a schema's map: the canvas takes the window; Escape or the button leaves it.
     const [full, setFull] = useState(false);
+    const [exporting, setExporting] = useState(false), [error, setError] = useState('');
     useEffect(() => {
         if (!full) return undefined;
         const escape = (e) => { if (e.key === 'Escape') setFull(false); };
@@ -249,13 +267,25 @@ export default function SchemaAtlas({ index, query, onOpen }) {
                     <label><input type="checkbox" checked={show.calculated} onChange={(e) => setShow({ ...show, calculated: e.target.checked })} /> Calculated links</label>
                     <label><input type="checkbox" checked={show.admin} onChange={(e) => setShow({ ...show, admin: e.target.checked })} /> Admin &amp; ontology links</label>
                 </div>
-                <div className="se-zoom-controls" role="group" aria-label="Zoom controls">
-                    <button type="button" onClick={() => setCamera({ scale: fitScale, x: (size.width - atlas.width * fitScale) / 2, y: (size.height - atlas.height * fitScale) / 2 })}>Fit all</button>
-                    <button type="button" aria-label="Zoom out" onClick={() => zoom(0.8)}>−</button>
-                    <span>{Math.round(view.scale * 100)}%</span>
-                    <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
+                <div className="se-map-tool-section" role="group" aria-label="Canvas controls">
+                    <div className="se-zoom-controls" role="group" aria-label="Zoom controls">
+                        <button type="button" onClick={() => setCamera({ scale: fitScale, x: (size.width - atlas.width * fitScale) / 2, y: (size.height - atlas.height * fitScale) / 2 })}>Fit all</button>
+                        <button type="button" aria-label="Zoom out" onClick={() => zoom(0.8)}>−</button>
+                        <span>{Math.round(view.scale * 100)}%</span>
+                        <button type="button" aria-label="Zoom in" onClick={() => zoom(1.25)}>+</button>
+                    </div>
+                    {/* Exports the whole map, whatever part of it is in view. */}
+                    <button type="button" id="atlas-export" disabled={exporting} onClick={async () => {
+                        setExporting(true);
+                        setError('');
+                        try { await exportPNG(svg.current, 'all-schemas-map'); }
+                        catch (err) { setError(err.message || 'PNG export failed.'); }
+                        finally { setExporting(false); }
+                    }}>{exporting ? 'Exporting…' : 'Export PNG'}
+                    </button>
                 </div>
             </div>
+            {error && <p role="alert">{error}</p>}
             <div className="se-atlas-stage">
                 <button type="button" className="se-canvas-fullscreen" id="atlas-fullscreen" aria-label={full ? 'Exit full screen' : 'Enter full screen'}
                     title={full ? 'Exit full screen' : 'Enter full screen'} aria-pressed={full} onClick={() => setFull(!full)}>
@@ -286,7 +316,7 @@ export default function SchemaAtlas({ index, query, onOpen }) {
                             </marker>
                         ))}
                     </defs>
-                    <g transform={`translate(${view.x},${view.y}) scale(${view.scale})`}>
+                    <g data-world="" transform={`translate(${view.x},${view.y}) scale(${view.scale})`}>
                         {atlas.frames.map((frame) => (
                             <g key={frame.id} className="se-domain-frame se-atlas-frame">
                                 <rect x={frame.left} y={frame.top} width={frame.width} height={frame.height} rx="4" />
@@ -306,11 +336,11 @@ export default function SchemaAtlas({ index, query, onOpen }) {
                         ))}
                         {groups.map((g) => {
                             const route = routes[g.key] || fallback(g), label = labels[g.key];
-                            const on = traced?.has(g.key);
+                            const on = traced?.has(g.key), cross = crosses(g);
                             if (hubbed(g) && !on) return null;
                             const name = `${g.from} to ${g.to}: ${fieldsOf(g).join(', ')}`;
                             return (
-                                <g key={g.key} className={traced ? (on ? 'se-atlas-on' : 'se-atlas-off') : ''}>
+                                <g key={g.key} className={`${traced ? (on ? 'se-atlas-on' : 'se-atlas-off') : ''}${cross ? ' se-atlas-cross' : ''}`}>
                                     <path className={`se-edge ${dash(g)}${on ? ' se-traced-edge' : ''}`} d={route.d} markerEnd={`url(#atlas-arrow-${dash(g)})`}
                                         tabIndex={0} role="button" aria-label={name}
                                         onMouseEnter={() => setHover({ edge: g.key })} onMouseLeave={() => setHover(null)}
@@ -324,7 +354,8 @@ export default function SchemaAtlas({ index, query, onOpen }) {
                         <g className="se-atlas-labels">
                             {groups.map((g) => {
                                 const label = labels[g.key], on = traced?.has(g.key);
-                                if (!label || (hubbed(g) && !on)) return null;
+                                // A faint arrow between groups is named only while traced.
+                                if (!label || ((hubbed(g) || crosses(g)) && !on)) return null;
                                 return <text key={g.key} className={`se-edge-label${traced && !on ? ' se-atlas-label-off' : ''}`} x={label.left + label.width / 2} y={label.top + 15}>{caption(g)}</text>;
                             })}
                         </g>

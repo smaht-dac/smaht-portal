@@ -94,6 +94,9 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
         }
     });
     if (!boxes.length) return {};
+    // Extra lines the router may run along (lanes through the gaps between groups on the map of all schemas).
+    (options.lanes?.x || []).forEach((v) => xs.add(v));
+    (options.lanes?.y || []).forEach((v) => ys.add(v));
     xs.add(Math.min(...expanded.map((r) => r.left)) - 48); xs.add(Math.max(...expanded.map((r) => r.right)) + 48);
     ys.add(Math.min(...expanded.map((r) => r.top)) - 48); ys.add(Math.max(...expanded.map((r) => r.bottom)) + 48);
     const x = [...xs].sort((a, b) => a - b), y = [...ys].sort((a, b) => a - b), columns = x.length;
@@ -130,12 +133,25 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
     // Segments are remembered per target: arrows into the same schema may share a trunk (a fan-in reads
     // as one bundle), while arrows into different schemas are pushed apart so they stay distinguishable.
     // Parallel relations between the same two schemas never share, or they would read as one arrow.
+    // `regions` (with `regionOf(name)`) are areas an arrow may enter only when one of its ends is inside: on the
+    // map of all schemas, the groups, so an arrow between two groups goes around the others, not through them.
+    const regions = options.regions || [], regionOf = options.regionOf || (() => null), crossings = new Map();
+    const regionsCrossed = (key, a, b) => {
+        if (!crossings.has(key)) crossings.set(key, regions.filter((r) => !segmentClear(a, b, [r])).map((r) => r.id));
+        return crossings.get(key);
+    };
     const usage = new Map(), targetsBySegment = new Map(), pairsBySegment = new Map(), routes = {};
     for (const group of [...groups].sort((a, b) => a.key.localeCompare(b.key))) {
         if (!positions[group.from] || !positions[group.to]) continue;
         const same = group.from === group.to, pair = `${group.from}\0${group.to}`;
-        const starts = same ? ports(group.from, portKey(group, group.from), true).filter((p) => p.axis === 0 && p.x > positions[group.from].x) : ports(group.from, portKey(group, group.from));
-        const ends = same ? ports(group.to, portKey(group, group.to), true).filter((p) => p.axis === 1) : ports(group.to, portKey(group, group.to));
+        // A card packed between others (a grid of file types) may have no side with room for a long port; it then
+        // uses the short ones rather than going without the arrow.
+        const open = (name) => {
+            const list = ports(name, portKey(group, name));
+            return list.length ? list : ports(name, portKey(group, name), true);
+        };
+        const starts = same ? ports(group.from, portKey(group, group.from), true).filter((p) => p.axis === 0 && p.x > positions[group.from].x) : open(group.from);
+        const ends = same ? ports(group.to, portKey(group, group.to), true).filter((p) => p.axis === 1) : open(group.to);
         if (!starts.length || !ends.length) continue;
         const targets = new Map(ends.map((p) => [idFor(p), p]));
         const heuristic = (id) => {
@@ -148,6 +164,7 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
             costs.set(state, 0); origins.set(state, port);
             queue.push({ state, distance: 0, cost: heuristic(id) });
         });
+        const allowed = new Set([regionOf(group.from), regionOf(group.to)]);
         let finish;
         while (queue.items.length) {
             const current = queue.pop(), { state, distance } = current;
@@ -157,6 +174,7 @@ export function routeEdges(positions, groups, nodeWidth, nodeHeight, headings = 
             for (const next of adjacent(id)) {
                 const nextState = next.id * 2 + next.axis;
                 const key = [Math.min(id, next.id), Math.max(id, next.id)].join(':');
+                if (regions.length && regionsCrossed(key, point(id), point(next.id)).some((r) => !allowed.has(r))) continue;
                 const sharesTrunk = targetsBySegment.get(key)?.has(group.to) && !pairsBySegment.get(key).has(pair);
                 if (!avoidCost.has(key)) avoidCost.set(key, avoid.length && runsAlongAvoided(point(id), point(next.id)) ? 600 : 0);
                 const cost = distance + next.length * (sharesTrunk ? 0.6 : 1) + (axis === next.axis ? 0 : 28) + (sharesTrunk ? 0 : (usage.get(key) || 0) * 24) + avoidCost.get(key);

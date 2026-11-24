@@ -45,10 +45,10 @@ export default function ExplorerNav({ route, onNavigate }) {
     const branches = (id) => concepts.filter((concept) => branchOf[concept.id] === id);
     const conceptOpen = (id) => route.view === 'concept' && route.concept === id;
     const conceptRoute = (id) => { return { view: 'concept', concept: id }; };
-    // The step holding the current concept opens on its own, as does All schemas on a group map or schema; others
-    // (and All schemas on its own page) open on demand.
+    // All schemas starts open, so the group maps are in view from the first visit; the step holding the current
+    // concept opens on its own. Others open on demand.
     const current = route.view === 'concept' ? branchOf[route.concept] || route.concept : ['group', 'schema'].includes(route.view) ? 'schemas' : '';
-    const [open, setOpen] = useState(() => new Set(current ? [current] : []));
+    const [open, setOpen] = useState(() => new Set(['schemas', ...(current ? [current] : [])]));
     useEffect(() => { if (current) setOpen((o) => (o.has(current) ? o : new Set([...o, current]))); }, [current]);
     const toggle = (id) => setOpen((o) => {
         const next = new Set(o);
