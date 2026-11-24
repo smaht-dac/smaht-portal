@@ -2,7 +2,7 @@
 
     <div class="callout data-available mb-3">
         <span class="callout-text">
-            <b>Note</b>: Protected-access data on the SMaHT Data Portal are currently available to verified SMaHT Network members. Other researchers can request access through dbGaP. See <a href="#requesting-access">Requesting Access</a> below.
+            <b>Data Access Update</b>: Protected-access data on the SMaHT Data Portal are currently available to verified SMaHT Network members. Other researchers can request access through dbGaP. See <a href="#requesting-access">Requesting Access</a> below.
         </span>
     </div>
 

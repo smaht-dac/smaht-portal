@@ -2,7 +2,7 @@
 
     <div class="callout data-available mb-3">
         <span class="callout-text">
-            <b>Note</b>: Protected-access data on the SMaHT Data Portal are currently available to verified SMaHT Network members. Other researchers can access these data through dbGaP. See <a href="#portal-access-to-protected-data">Portal Access to Protected Data</a> below.
+            <b>Data Access Update</b>: Protected-access data on the SMaHT Data Portal are currently available to verified SMaHT Network members.<br/>Other researchers can access these data through dbGaP. See <a href="#portal-access-to-protected-data">Portal Access to Protected Data</a> below.
         </span>
     </div>
 
@@ -20,14 +20,14 @@ The primary molecular assays of the SMaHT Network include bulk whole genome sequ
 
     <h3 id="smaht-data-access">SMaHT Data Access</h3>
 
-SMaHT data/metadata files are either open-access or protected-access, and how you can access them depends on whether you are a SMaHT Network member. For self-registered Data Portal users who are not part of the SMaHT Network, the data are available after official data releases. See the table below for the access level of each data type.
+SMaHT data/metadata files are either open-access or protected-access. How you can access them depends on whether you are a SMaHT Network member. For self-registered Data Portal users who are not part of the SMaHT Network, the data are available after official data releases. See the table below for the access level of each data type.
 
 **Open Access**: The open-access data/metadata files are available for download from the SMaHT Data Portal to all logged-in users, including SMaHT Network members and self-registered users who are not part of the SMaHT Network.
 
 **Protected Access**: With the exception of the COLO829 and HapMap Mixture samples, sequence data (DNA and RNA), inherited germline variant data, and full donor metadata files are protected-access data. Following official data releases, these data are made available to researchers outside of the SMaHT Network through the NIH database of Genotypes and Phenotypes (`dbGaP <https://www.ncbi.nlm.nih.gov/gap/>`_). Researchers who are not members of the SMaHT Network must submit a Data Access Request (DAR) through the `dbGaP Authorized Access Portal <https://dbgap.ncbi.nlm.nih.gov/aa/landing/>`_ for the relevant SMaHT studies:
 
-- **SMaHT Benchmarking Data**: `phs004193 <https://dbgap.ncbi.nlm.nih.gov/study/phs004193.v1.p1/#study>`_
-- **SMaHT Production Data**: `phs004194 <https://dbgap.ncbi.nlm.nih.gov/study/phs004194.v1.p1/#study>`_
+- **SMaHT Benchmarking Data**: dbGaP study `phs004193 <https://dbgap.ncbi.nlm.nih.gov/study/phs004193.v1.p1/#study>`_
+- **SMaHT Production Data**: dbGaP study `phs004194 <https://dbgap.ncbi.nlm.nih.gov/study/phs004194.v1.p1/#study>`_
 
 Upon approval by the NIH Data Access Committee, researchers can access and download the authorized protected-access data through dbGaP. Please see our `Getting dbGaP Access page </docs/access/getting-dbgap-access>`_ for more information on the SMaHT dbGaP studies and how to request access.
 
@@ -38,9 +38,12 @@ Upon approval by the NIH Data Access Committee, researchers can access and downl
 
    Protected-access data on the SMaHT Data Portal are currently available to verified SMaHT Network members, while researchers outside of the SMaHT Network can access these data through dbGaP. Integration with the NIH Researcher Auth Service (RAS) is underway to enable researchers with approved dbGaP access to download protected data directly from the SMaHT Data Portal in the future.
 
+|
+
 .. raw:: html
 
-    <h3>Data Availability by Sample Source</h3>
+    <br />
+    <br />
     <div class="table-responsive">
         <table class="data-availability-table table-sm">
             <thead>
@@ -95,7 +98,7 @@ Upon approval by the NIH Data Access Committee, researchers can access and downl
                     <td class="open">open</td>
                 </tr>
                 <tr>
-                    <td class="row-label"><b>Limited Donor Metadata</b><br/> &lpar;i.e., age, sex, Hardy scale&rpar;</td>
+                    <td class="row-label"><b>Limited Donor Metadata</b><br/> &lpar;i.e., age, sex, Hardy Scale&rpar;</td>
                     <td class="open">open</td>
                     <td class="open">open</td>
                     <td class="open">open</td>
