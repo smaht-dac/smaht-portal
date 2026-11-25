@@ -929,8 +929,8 @@ i.status-indicator-dot {
         font-family: Inter;
         color: #5d5e63;
         font-size: 0.875rem;
-        padding: 15px;
-        line-height: 25px;
+        padding: 8px;
+        line-height: 20px;
 
         .flag {
             font-weight: 600;
@@ -960,8 +960,7 @@ i.status-indicator-dot {
     &.data-available {
         background-color: #e3fbff;
         border: 1px solid #96e8f7;
-        display: flex;
-        padding: 0px 20px;
+        padding: 15px;
         margin-bottom: 10px;
         border-radius: 7px;
 
@@ -974,11 +973,9 @@ i.status-indicator-dot {
         .callout-text {
             color: #0e4855;
             font-size: 1rem;
-            padding-left: 0;
-            padding-right: 0;
 
             b {
-                font-weight: 600;
+                font-weight: 500;
             }
         }
 
@@ -986,6 +983,21 @@ i.status-indicator-dot {
             color: #0e4855;
             font-weight: 600;
             text-decoration: underline;
+        }
+    }
+}
+
+// Banner callouts at the top of RST documentation pages
+.rst-container .callout.data-available {
+    display: flex;
+    padding: 0 20px;
+
+    .callout-text {
+        padding: 15px 0;
+        line-height: 25px;
+
+        b {
+            font-weight: 600;
         }
     }
 }
