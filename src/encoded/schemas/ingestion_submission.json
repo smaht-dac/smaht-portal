@@ -97,6 +97,9 @@
         },
         "processing_status.outcome": {
             "title": "Processing Outcome"
+        },
+        "date_created": {
+            "title": "Date Created"
         }
     },
     "columns": {
