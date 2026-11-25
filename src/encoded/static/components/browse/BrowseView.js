@@ -156,14 +156,19 @@ export const NoResultsBrowseModal = ({
                         alt="SMaHT Logo"
                     />
                     <h4>
-                        SMaHT Donor Data: <br />
-                        Official Release - Coming Soon
+                        SMaHT Production Data: <br />
+                        Data will be available through dbGaP
                     </h4>
                     <span>
-                        Production data are available to the SMaHT Network
-                        members at this time. <br />
-                        Please check back for the official release of the SMaHT
-                        data.
+                        Production data are available to SMaHT Network members{' '}
+                        <br />
+                        who signed the Data Use Agreement at this time. <br />
+                        <br />
+                        Please see data access information{' '}
+                        <a href="/docs/access/data-availability-and-access">
+                            here
+                        </a>
+                        .
                     </span>
                 </div>
             </Modal.Body>

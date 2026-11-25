@@ -1006,7 +1006,7 @@
     },
     {
         "identifier": "getting_dbgap_access",
-        "title": "Getting dbGAP Access - Coming Soon",
+        "title": "Getting dbGaP Access",
         "file": "/docs/source/getting_dbgap_access.rst",
         "status": "open",
         "options": {
