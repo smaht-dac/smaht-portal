@@ -3714,6 +3714,92 @@ body[data-pathname^='/data/benchmarking']:not([data-at-type*='Error']) {
     }
 }
 
+/** Data Retraction Tabs styles, matching the Data Matrix tabs (_charts.scss) **/
+.tab-router.data-retraction-tabs {
+    margin-top: 20px;
+    padding-bottom: 20px;
+
+    .dot-tab-nav-list {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 1rem;
+
+        > button {
+            display: flex;
+            flex: 1 1 0;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            min-height: 84px;
+            padding: 0 15px;
+            background: #ffffff;
+            border: 1px solid #e8d7d6;
+            border-radius: 8px 8px 0 0;
+            color: #1f2f44;
+            font-size: 1.2rem;
+            font-weight: 600;
+            line-height: 1.1;
+
+            &.active {
+                background: #fef4f4;
+            }
+
+            .btn-title {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .icon {
+                color: #dd9e9f;
+                font-size: 0.95em;
+                margin-right: 0.5rem;
+            }
+        }
+    }
+
+    // Pull up to meet the tab buttons
+    .tab-router-contents {
+        margin-top: -1px;
+        padding-top: 20px;
+        border: 1px solid #e8d7d6;
+    }
+
+    .data-retraction-panel-title {
+        margin: 0 1.25rem 0.5rem 1rem;
+        padding: 0.6rem 1.25rem 0.65rem 0;
+        border-bottom: 1px solid #e8d7d6;
+        color: #111827;
+        font-size: 1.35rem;
+        font-weight: 600;
+    }
+
+    .data-retraction-panel-body {
+        padding: 0.5rem 1rem 2rem;
+    }
+
+    // The space below the description is set here instead of on the table's
+    // count title, which only renders when there are results
+    .data-retraction-panel-description {
+        margin-bottom: 40px;
+
+        p {
+            margin-bottom: 0.5rem;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    .retracted-files-table,
+    .renamed-files-table {
+        .tab-section-title {
+            margin-top: 0;
+        }
+    }
+}
+
 /** Utilities for static page tables **/
 
 thead.thead-smaht,
