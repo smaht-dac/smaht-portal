@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+2.15.27
+=======
+
+`PR 805: Data Matrix: IngestionSubmission facets and columns <https://github.com/smaht-dac/smaht-portal/pull/805>`_
+
+* Add facets and columns to the IngestionSubmission page
+
+
 2.15.26
 =======
 
