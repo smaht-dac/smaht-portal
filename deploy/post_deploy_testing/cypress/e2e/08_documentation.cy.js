@@ -319,7 +319,7 @@ function stepSampledDocsAndInternalLinks() {
                                     "Data Release Status",
                                     "Submission Data Dictionary",
                                     "Submission FAQ",
-                                    "Getting dbGAP Access",
+                                    "Getting dbGaP Access",
                                     "Donor Metadata Dictionary",
                                     "Data Availability and Access",
                                     "Analysis Pipelines",
