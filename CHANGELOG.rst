@@ -12,12 +12,11 @@ Change Log
 
 `PR 799: feat: documentation and copy updates <https://github.com/smaht-dac/smaht-portal/pull/799>`_
 
-* Update Creating an Account page
 * Update Data Availability and Access page
 * Update dbGaP Documentation page
 * Correct Privacy Policy link in self registration modal
 * Update Browse View Modal Text
-* Fix data-available callout text overflowing its padding
+* Fix documentation banner text overflowing its padding
 
 
 2.15.26
