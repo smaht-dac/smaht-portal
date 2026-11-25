@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-2.15.22
+2.15.27
 =======
 
 `PR 799: feat: documentation and copy updates <https://github.com/smaht-dac/smaht-portal/pull/799>`_
@@ -18,6 +18,58 @@ Change Log
 * Correct Privacy Policy link in self registration modal
 * Update Browse View Modal Text
 * Fix data-available callout text overflowing its padding
+
+
+2.15.26
+=======
+
+`PR 800: Data Matrix: Reorder colums for Bulk WGS <https://github.com/smaht-dac/smaht-portal/pull/800>`_
+
+* Move Fiber-seq next to WGS - PacBio in the Data Matrix's Bulk WGS column group
+
+
+2.15.25
+=======
+
+`PR 803: feat: add status facet back to browse and search tables <https://github.com/smaht-dac/smaht-portal/pull/803>`_
+
+* Add status facet to file tables
+
+
+2.15.24
+=======
+
+`PR 804: feat: reorder benchmarking page tissue codes <https://github.com/smaht-dac/smaht-portal/pull/804>`_
+
+* Reorder tissue names on benchmarking pages to include the code first
+* Correct the benchmarking tissue description to list five tissue types (adding skin) instead of four
+
+
+2.15.23
+=======
+
+`PR 801: Add Sequencing Center to Browse by File chart's Group By menu <https://github.com/smaht-dac/smaht-portal/pull/801>`_
+
+* Adds a "Sequencing Center" (``sequencing_center.display_title``) option to the Browse by File bar chart's
+  Group By menu; Donor and Protected Donor charts keep their default list
+* Resets an already-initialized chart to its page's default fields on mount, so a Group By picked on
+  Browse by File no longer carries over to Browse by Donor as a raw field name
+
+
+2.15.22
+=======
+
+`PR 797: Bump nginx to 1.31.9 (CVE-2026-123633, CVE-2026-123007) <https://github.com/smaht-dac/smaht-portal/pull/797>`_
+
+* Bumps the production nginx pin in ``deploy/docker/production/install_nginx_bookworm.sh`` from
+  stable ``1.30.4`` to mainline ``1.31.9`` (njs ``1.0.1`` -> ``1.0.2``, the build matching nginx
+  1.31.9), addressing the HTTP/2 advisories CVE-2026-123633 and CVE-2026-123007 listed at
+  https://nginx.org/en/security_advisories.html (fixed in 1.31.9+ and 1.30.7+). The apt source moves
+  from ``nginx.org/packages/debian/`` to ``nginx.org/packages/mainline/debian/`` (bookworm, amd64
+  and arm64 both publish the exact packages); versions stay exact pins, and the signing-key
+  fingerprint checks, ``signed-by=`` verification, base image, uid/gid 121 and ``nginx.conf`` are unchanged.
+* Updates version references in comments/docstrings (``Dockerfile``, ``nginx.conf``,
+  ``test_nginx_failover.py``).
 
 
 2.15.21
